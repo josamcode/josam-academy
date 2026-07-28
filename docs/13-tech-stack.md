@@ -353,7 +353,36 @@ Every external service is reached through an interface. This is what makes the s
 | ID | Question | Blocking | Owner |
 |---|---|---|---|
 | `OQ-23` | Certificate PDF generation via headless Chrome is CPU-heavy. Alternative: generate on a scheduled off-peak batch, or use an external rendering service (~$0 at this volume). Decide before Phase 4. | `15-implementation-roadmap` | Joint |
-| `OQ-24` | Should Renovate auto-merge patch updates on green CI, or require review? Auto-merge saves time but removes a checkpoint. | `16-task-breakdown` | Founder |
+| ~~`OQ-24`~~ | ~~Should Renovate auto-merge patch updates on green CI, or require review?~~ **Resolved 2026-07-29 — policy in `§16.1`.** | — | Founder |
+
+### 16.1 Renovate Policy (`DEC-59`)
+
+Founder decision, 2026-07-29, closing `OQ-24`. Configuration is written at `PH-0.10`; this section
+is the policy it must implement, not the file.
+
+| Update class                    | Action                                       |
+| ------------------------------- | -------------------------------------------- |
+| `devDependencies` patch + minor | **Auto-merge** on green CI                   |
+| `devDependencies` major         | Manual review                                |
+| `dependencies` — any bump       | Manual review                                |
+| GitHub Actions patch + minor    | **Auto-merge** on green CI                   |
+| Docker base images              | Manual review, pinned per `BR-1810`          |
+| Security advisories             | Priority PR, **never** auto-merged           |
+
+**Scheduling:** maximum 5 open PRs at once, opened Monday mornings only.
+
+- `BR-1826` — Auto-merge applies only to `devDependencies` and GitHub Actions, and only at patch
+  and minor. A runtime dependency is never merged without a human reading the diff: a devDependency
+  that breaks stops the build loudly and locally, whereas a runtime dependency that breaks changes
+  what the product does in production.
+- `BR-1827` — A security advisory PR is never auto-merged, even at patch level and even with green
+  CI. Advisory patches are exactly the class most likely to carry an urgent, lightly-tested change,
+  and the moment to look closely is not the moment to automate.
+- `BR-1828` — Docker base image bumps are manual because `BR-1810` requires the pinned version to
+  stay identical across `engines`, `packageManager`, `.nvmrc`, the CI matrix and every Dockerfile.
+  Renovate can change one of those; only a person can change all five coherently.
+- `BR-1829` — The open-PR cap and the Monday-only schedule exist because dependency review that
+  arrives continuously gets skimmed. A bounded, predictable batch gets read.
 
 ---
 
