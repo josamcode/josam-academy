@@ -4,15 +4,15 @@
 > It is read at the start of every session and updated at the end of every task.
 > The documents in `/docs` describe the plan. This file describes reality.
 
-| Field              | Value                                                                                |
-| ------------------ | ------------------------------------------------------------------------------------ |
-| **Last updated**   | 2026-07-28                                                                           |
-| **Updated by**     | AI (`PH-0.2` execution)                                                              |
-| **Current phase**  | Phase 0 — Foundation                                                                 |
-| **Current task**   | _None in progress_ — `PH-0.2` complete                                               |
-| **Next task**      | `PH-0.3` — Scaffold `apps/api` (NestJS) with health endpoint (`08 §4`)               |
-| **Production URL** | _Not deployed_                                                                       |
-| **Blocked**        | No — `PH-0.3` is unblocked. `SB-05`/`SB-07` block `PH-0.7` review and `PH-0.4` only. |
+| Field              | Value                                                                                                                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Last updated**   | 2026-07-29                                                                                                                                                                                    |
+| **Updated by**     | AI (`PH-0.3` execution)                                                                                                                                                                       |
+| **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
+| **Current task**   | _None in progress_ — `PH-0.3` complete                                                                                                                                                        |
+| **Next task**      | `PH-0.4` — Scaffold `apps/web` (Next.js 16, App Router, route groups) (`09 §7.1`)                                                                                                             |
+| **Production URL** | _Not deployed_                                                                                                                                                                                |
+| **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
 ---
 
@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |  Done | Status         |
 | ----------------------- | ------: | ----: | -------------- |
-| **0 — Foundation**      |      28 |     2 | 🟡 In progress |
+| **0 — Foundation**      |      28 |     3 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |     0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |     0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |     0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |     0 | ⬜ Not started |
 | 6 — Mobile              |      16 |     0 | ⬜ Not started |
 | 7 — Growth              |      14 |     0 | ⬜ Not started |
-| **Total**               | **191** | **2** | **1.0%**       |
+| **Total**               | **191** | **3** | **1.6%**       |
 
 **Milestones**
 
@@ -91,6 +91,73 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.3 — Scaffold `apps/api` (NestJS) with health endpoint
+
+**By:** AI
+**Time:** estimated 0.5 d → actual 0.4 d
+**Output:**
+
+- `apps/api` is a running NestJS 11 application: `main.ts`, `app.module.ts`, and
+  `modules/health/` (module + controller + service). The placeholder `src/index.ts` is gone.
+- `config/env.ts` — Zod startup validation (`BR-943`, `BR-1678`). `NODE_ENV` and `PORT` only;
+  `DATABASE_URL` and `REDIS_URL` are added by `PH-0.6`/`PH-0.5`, because declaring a variable
+  before its service exists would make the API refuse to boot for a dependency nothing uses.
+- `src/probes/di.probe.ts` + `pnpm --filter @josam/api run probe:di` — a permanent guard,
+  compiled by `tsc` and executed by node, for the DI-erasure trap.
+- Pinned exactly, re-verified live (`BR-1811`), both equal to registry latest:
+  NestJS **11.1.28** (`common`, `core`, `platform-express`) · Zod **4.4.3**.
+  Plus `reflect-metadata` 0.2.2, `rxjs` 7.8.2.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **`GET /health` → `HTTP/1.1 200 OK`**, body `{"status":"ok","checks":{},"version":"0.0.0"}`;
+  `curl -o /dev/null -w "%{http_code}"` → `200`. Nest logged `Mapped {/health, GET} route`.
+  This is the task Output.
+- **DI probe passes on the compiled artifact**, run before the endpoint was written as required:
+  `design:paramtypes[0] = DependencyService` · `consumer.describe() = dependency-resolved` ·
+  `DI PROBE PASSED`. `nodenext` + NestJS 11 did **not** fight; no cast and no disable was needed.
+- **The probe was then proven to actually catch the trap**, because a guard that cannot fail is
+  not a guard. Splitting the dependency into its own file and importing it with `import type`
+  changed the emit to `__metadata("design:paramtypes", [Function])` and produced exactly the
+  predicted failure: `Nest can't resolve dependencies of the ConsumerService (?). Please make
+sure that the argument Function at index [0] is available in the ProbeModule module.`
+  Reverted afterwards; the probe passes again.
+- **`BR-943` fail-fast proven twice:** `PORT=not-a-number` →
+  `Invalid environment configuration: PORT: Invalid input: expected number, received NaN`,
+  exit 1. `NODE_ENV=staging` → `expected one of "development"|"test"|"production"`. Neither
+  reached `NestFactory.create`.
+- `pnpm build` → 5/5 · `pnpm lint` → 6/6 · `pnpm typecheck` → 5/5 · `pnpm test` → 6/6.
+
+**Diverged:**
+
+1. **`/health` returns `checks: {}`, not the five checks in `11 §API`** (`database`, `redis`,
+   `queue`, `storage`, `last_backup`). None of those services exist yet — Postgres and Redis
+   arrive at `PH-0.5`, the queue in Phase 1, `last_backup` at `PH-0.28`. Reporting
+   `"database": "ok"` before there is a database would make the endpoint lie exactly where it is
+   trusted most: it is what pages the founder (`BR-892`). `HealthService` takes a registry of
+   indicators so each owning module contributes its own check when it lands; the Phase 0 exit
+   criterion "health endpoint reports database, Redis, queue, storage, last backup" is **not**
+   met yet and is not claimed to be.
+
+**Notes:**
+
+- **Two findings worth keeping, both discovered by testing rather than assumed:**
+  - Nest's default `abortOnError: true` **terminates the process itself** on a DI failure. With
+    `logger: false` that is a silent `exit 1` with no diagnostic whatsoever — which is what the
+    probe did on its first failing run. Both `main.ts` and the probe now pass
+    `abortOnError: false` so the error is catchable and names the missing token.
+  - **Vitest 4 preserves `emitDecoratorMetadata`** — the opposite of what was expected of an
+    esbuild-based transform. Confirmed properly: a spec asserting `design:paramtypes` on
+    `HealthController` passed **with `dist/` deleted**, so it transformed the TypeScript source
+    rather than silently resolving to compiled output. Nest unit tests are therefore viable at
+    `PH-0.19` and in Phase 1. The DI probe still stays on the `tsc` path — it exists to guard the
+    artifact we actually ship, and a second transform agreeing is not evidence about the first.
+- `apps/api` remains CommonJS (no `type` field) — correct for NestJS 11, and the reason the probe
+  and `main.ts` use `.catch()` rather than top-level `await`, which `TS1309` rejects here.
+- The 17 domain modules of `08 §4.1` are Phase 1+. `app.module.ts` imports `HealthModule` only.
 
 ---
 
@@ -247,13 +314,13 @@ functioning in TypeScript 7.0`, exit 2.
 
 > Anything stopping work right now. Empty is good.
 
-| ID      | Blocker                                                                                                                                                                                                                                                             | Blocks                                   | Since      | Owner   | Action needed                                                                                                        |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
-| `SB-05` | `docs/runbooks/vps-hardening.md` is not in the repository. Stated as placed twice; **re-checked at the end of `PH-0.1` — `docs/runbooks/` does not exist and a tree-wide search for `*vps*` returns nothing.** Likely saved outside `D:\MyProjects\josam_academy\`. | `PH-0.7` review                          | 2026-07-28 | Founder | Confirm the path the file was saved to. Once it is under `docs/runbooks/`, the reconciliation against `14 §12` runs. |
-| `SB-07` | **Next.js major.** `13 §4` states `15` (a bare major, i.e. an exact statement); the current release is **16.2.12**. Adopting 16 is a divergence needing a document correction (`BR-1809`).                                                                          | `PH-0.4`                                 | 2026-07-28 | Founder | Decide: hold at Next 15.x, or authorise correcting `13 §4` to 16. **Not blocking `PH-0.1`.**                         |
-| `SB-01` | No GitHub remote. Local `git init -b main` **done at `PH-0.1`**; the remote needs founder credentials.                                                                                                                                                              | `PH-0.10`                                | 2026-07-28 | Founder | Create the GitHub repository and add the remote.                                                                     |
-| `SB-14` | `13 §9` cites "custom rules (`§19`)" but `13` ends at `§18`. Dangling cross-reference, same class as `SB-11`.                                                                                                                                                       | Nothing — `PH-0.16` governs custom rules | 2026-07-28 | Founder | Point the citation at a real section, or drop it. Not urgent.                                                        |
-| `OQ-24` | Renovate auto-merge policy for patch updates (`13 §16`).                                                                                                                                                                                                            | `PH-0.10`                                | 2026-07-28 | Founder | Decide auto-merge vs review.                                                                                         |
+| ID      | Blocker                                                                                                                                                                                                                                                         | Blocks                                   | Since      | Owner   | Action needed                                                 |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------- | ------- | ------------------------------------------------------------- |
+| `SB-05` | ~~`docs/runbooks/vps-hardening.md` missing.~~ **Closed by founder decision 2026-07-29: stop waiting for it — `PH-0.7` is authored from `14 §12` directly.**                                                                                                     | Nothing                                  | 2026-07-28 | —       | None.                                                         |
+| `SB-07` | ~~**Next.js major.**~~ **Resolved by founder pre-authorisation 2026-07-29: adopt Next 16, correct `13 §4` and the `PH-0.4` row, gated on the four-part probe (route groups · ISR · Tailwind 4 · Storybook 10 + a11y). Hold at 15.x and log if any part fails.** | Nothing                                  | 2026-07-28 | —       | None — executed at `PH-0.4`.                                  |
+| `SB-01` | No GitHub remote. Local `git init -b main` **done at `PH-0.1`**; the remote needs founder credentials.                                                                                                                                                          | `PH-0.10`                                | 2026-07-28 | Founder | Create the GitHub repository and add the remote.              |
+| `SB-14` | `13 §9` cites "custom rules (`§19`)" but `13` ends at `§18`. Dangling cross-reference, same class as `SB-11`.                                                                                                                                                   | Nothing — `PH-0.16` governs custom rules | 2026-07-28 | Founder | Point the citation at a real section, or drop it. Not urgent. |
+| `OQ-24` | Renovate auto-merge policy for patch updates (`13 §16`).                                                                                                                                                                                                        | `PH-0.10`                                | 2026-07-28 | Founder | Decide auto-merge vs review.                                  |
 
 ---
 
