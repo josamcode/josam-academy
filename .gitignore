@@ -11,6 +11,16 @@ coverage/
 .env.*
 !.env.example
 
+# Agent tooling directories. `prisma generate` recreates these on every run (seen at PH-0.6),
+# so deleting them by hand is not a fix. Matched at any depth, not just the repository root.
+#
+# If project-level agent config is ever wanted as a committed artifact, add a negation for the
+# specific file — e.g. `!.claude/settings.json` — rather than removing these lines.
+.claude/
+.agents/
+.windsurf/
+skills-lock.json
+
 .DS_Store
 Thumbs.db
 storybook-static/

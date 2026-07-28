@@ -62,7 +62,7 @@ document that defines rules in a table not listed here will be undercounted unti
 | `11-api-contract-part-1` | — | `BR-1105` – `BR-1152` | 48 | — |
 | `11-api-contract-part-2` | — | `BR-1153` – `BR-1210` | 58 | — |
 | `12-ui-ux-design` | `BR-1211` – `BR-1594` | `BR-1211` – `BR-1576` (complete, 14 of them in the `§17.2` table) · `BR-1812` – `BR-1813` | 368 | ⚠️ over-declared; `1577`–`1594` belong to `13` |
-| `13-tech-stack` | `BR-1577` – `BR-1604` · `BR-1805` – `BR-1811` · `BR-1814` – `BR-1818` | same | 40 | ✅ corrected 2026-07-28 |
+| `13-tech-stack` | `BR-1577` – `BR-1604` · `BR-1805` – `BR-1811` · `BR-1814` – `BR-1819` | same | 41 | ✅ corrected 2026-07-28; `BR-1819` allocated 2026-07-29 (`PH-0.6`) |
 | `14-security-design` | `BR-1605` – `BR-1704` | `BR-1605` – `BR-1718` | 114 | ⚠️ under-declared by 14 — **the collision source** |
 | `15-implementation-roadmap` | `BR-1719` – `BR-1760` | `BR-1719` – `BR-1748` | 30 | ⚠️ over-declared; `1749`–`1760` unused |
 | `16-task-breakdown` | `BR-1761` – `BR-1790` | `BR-1761` – `BR-1780` | 20 | ⚠️ over-declared; `1781`–`1790` unused |
@@ -84,14 +84,14 @@ The per-document counts above sum to the same figure.
 | Range | Status |
 |---|---|
 | **`BR-1826` onward** | ✅ **Next free block — use this.** Contiguous and unused. |
-| `BR-1819` | ✅ free (single, between `13`'s two sub-blocks) |
+| `BR-1819` | ❌ taken by `13 §18` — allocated 2026-07-29 at `PH-0.6` (Prisma 7 driver adapter). It was the single free slot between `13`'s two sub-blocks; `13` now owns a contiguous `BR-1814` – `BR-1819`. |
 | `BR-1781` – `BR-1798` | ⚠️ free but **declared** by `16`; leave for `16`'s own growth |
 | `BR-1749` – `BR-1760` | ⚠️ free but **declared** by `15`; leave for `15`'s own growth |
 | `BR-946` – `BR-948` | ⚠️ free but **declared** by `09`; leave for `09`'s own growth |
 | `BR-895` – `BR-899` | ❌ **do not reuse** — actively referenced by `09 §11` and `13 §13`. Reusing them would silently repoint live citations. Reserved pending `§5`. |
 | `BR-1577` – `BR-1604` | ❌ taken by `13` |
 | `BR-1605` – `BR-1718` | ❌ taken by `14` |
-| `BR-1805` – `BR-1818` | ❌ taken by `13 §18` and `12 §20.12` |
+| `BR-1805` – `BR-1819` | ❌ taken by `13 §18` and `12 §20.12` |
 | `BR-1820` – `BR-1825` | ❌ taken by this file |
 
 - `BR-1823` — When a document needs rules and its declared range is exhausted or contested, it takes

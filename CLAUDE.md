@@ -168,6 +168,12 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 
 **Progress: 6 / 28 · 21.4%** · Estimated total 19.0 d · Actual to date 1.9 d
 
+> **The Redis health indicator is registered in the same task that installs `ioredis` — never
+> "later" (`SB-16`).** `11 §API-21` lists `redis` among the `GET /health` checks. `PH-0.6` built
+> the pattern: an indicator registers itself with `HealthService` on module init, so this is a few
+> lines. A `/health` that reports `status: ok` while silently omitting a dependency the founder
+> believes is being watched is worse than one that never claimed to check it (`BR-892`).
+
 > **`PH-0.10` must run lint by BOTH paths — `turbo run lint` _and_ a single root-level
 > `eslint` invocation over changed files, the way the pre-commit hook does.** They are not
 > equivalent: turbo runs `eslint .` inside each workspace (one TSConfig root), the hook runs it
@@ -256,7 +262,7 @@ Identical across `engines` · `packageManager` · `.nvmrc` · CI Node matrix · 
 - Every `tsconfig` uses `moduleResolution: "nodenext"` or `"bundler"`. TS 6 rejects `"node"` with `TS5107` (`BR-1806`).
 - TypeScript stays at **6.0.3** until `typescript-eslint` supports TS 7 — TS 7 silently disables typed linting, which is how `BR-1579` is enforced (`BR-1805`).
 - `.gitignore` must contain `.turbo/` — Turborepo's local cache lives in `.turbo/cache`.
-- **Prisma 7 confirmed at `PH-0.6`** — all three `BR-1816` probe parts passed; 7.9.1 stands. It requires a driver adapter (`@prisma/adapter-pg`), contained inside `shared/database` (`SB-09` closed).
+- **Prisma 7 confirmed at `PH-0.6`** — all three `BR-1816` probe parts passed; 7.9.1 stands (`SB-09` closed). It connects through a **driver adapter** (`@prisma/adapter-pg` over `pg`), which is code-contained inside `shared/database` but **not behaviour-contained**: pooling, `$transaction` semantics and Prisma error shapes all moved. `08` and `10` assume the Prisma 5 client. Five items must be re-verified when Phase 1 writes its first transaction — `BR-1819`, `STATUS.md §7`.
 - **Next.js 16** is the decision, gated on a `PH-0.4` probe: route groups · ISR · Tailwind 4 binding · Storybook 10 + a11y addon. If any fails, report and hold at 15.x — do not work around (`BR-1809`).
 
 ### BR numbering

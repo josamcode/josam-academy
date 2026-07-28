@@ -11,7 +11,7 @@
 | **Owner** | Founder (Super Admin) |
 | **Depends On** | `08-system-design.md`, `09-system-architecture.md`, `10-database-design`, `12-ui-ux-design.md` |
 | **Feeds Into** | `14-security-design.md`, `15-implementation-roadmap.md`, `16-task-breakdown.md` |
-| **Adds** | `BR-1577` – `BR-1604` · `BR-1805` – `BR-1811`, `BR-1814` – `BR-1818` (`§18`) · `DEC-44` – `DEC-52` |
+| **Adds** | `BR-1577` – `BR-1604` · `BR-1805` – `BR-1811`, `BR-1814` – `BR-1819` (`§18`) · `DEC-44` – `DEC-52` |
 
 ---
 
@@ -438,7 +438,7 @@ until then the version is fixed but not yet installed. Every entry is re-verifie
 | NestJS | 10+ | **11.1.28** | `PH-0.3` | Floor satisfied |
 | Pino | 9+ | **10.3.1** | `PH-0.19` | Floor satisfied |
 | Zod | 3+ | **4.4.3** | `PH-0.3` | **Env validation only** (`§9`, `BR-943`). Shared/API schema use is Phase 1 and re-decided there. |
-| Prisma / `@prisma/client` | 5+ | **7.9.1 — provisional** | `PH-0.6` | ⚠️ Probe required, see `BR-1816` |
+| Prisma / `@prisma/client` / `@prisma/adapter-pg` | 5+ | **7.9.1 — confirmed** | `PH-0.6` | Probe passed. ⚠️ Requires a **driver adapter** (`pg` 8.22.0) — see `BR-1819` |
 | `ioredis` | — | **5.11.1** | `PH-0.5` | |
 
 #### Web and design system (`PH-0.4`, `PH-0.12`–`PH-0.15`, `PH-0.17`, `PH-0.24`, `PH-0.27`)
@@ -483,6 +483,38 @@ until then the version is fixed but not yet installed. Every entry is re-verifie
   against: (a) the NestJS CommonJS build, (b) the generated client location, (c) whether the
   repository-only pattern of `BR-1580` still holds without leaking Prisma types upward. If any
   fails, drop to the latest Prisma 6 and record the reason. This is not discovered in Phase 1.
+  **Discharged at `PH-0.6`: all three parts passed on the compiled CommonJS artifact and
+  7.9.1 stands. The probe surfaced one architectural change — see `BR-1819`.**
+- `BR-1819` — **Prisma 7 connects through a driver adapter, and that changes more than one
+  import line.** Prisma 7 removed the built-in connection path: `new PrismaClient()` no longer
+  accepts a connection URL and is handed `@prisma/adapter-pg` wrapping a `pg` pool instead. The
+  *code* impact is contained inside `apps/api/src/shared/database` and does not touch `BR-1580`.
+  The *behavioural* impact is not contained, and `08` and `10` were written against the Prisma 5
+  client, where the query engine owned connections and transactions.
+
+  **These must be re-verified when Phase 1 writes its first real transaction — not assumed:**
+
+  1. **Connection pooling has moved.** It is now `pg.Pool`'s, configured in application code, not
+     the query engine's. `connection_limit` in `DATABASE_URL` no longer applies, and **no document
+     specifies a pool size** — with `08 §11`'s 2 vCPU / 8 GB budget (`CON-03`) that number is a
+     real capacity decision, not a default to inherit.
+  2. **`$transaction` semantics.** Both forms — the array form and the interactive callback form —
+     now run through the adapter. Isolation level support, timeout and `maxWait` handling, and
+     nested-call behaviour must be confirmed against the adapter rather than against Prisma 5
+     documentation.
+  3. **Token rotation (`08 §7`, `BR-016`).** Refresh tokens are rotated on every use and
+     family-tracked. Rotating the token and invalidating its family must remain atomic under
+     concurrent refreshes; that is a transaction whose guarantees now depend on the adapter.
+  4. **Atomic `UPDATE … RETURNING` (`10`, `BR-984`, `BR-798`).** Quota consumption relies on
+     `UPDATE … WHERE quota_consumed + n <= quota_limit RETURNING` being atomic. Confirm the
+     adapter preserves that under concurrency and that the returned row count is trustworthy.
+  5. **Error shapes.** Driver-level failures may surface as `pg` errors rather than
+     `PrismaClientKnownRequestError`. Any handler that matches on a Prisma error code — unique
+     constraint violations especially — must be checked against what actually propagates.
+
+  `08` and `10` are **not** corrected here: they describe the target design, and the divergence
+  is in the client beneath them. This rule exists so Phase 1 cannot walk into it blind
+  (`SB-09`, `STATUS.md §7`).
 - `BR-1817` — Radix is a **Phase 0** dependency, not a deferred one: `PH-0.24` requires
   Radix-based choice fields (`DEC-39`) and `PH-0.27` requires `Dialog`, `Popover`, `Tooltip`, and
   `DropdownMenu`, which are Radix primitives per `12 §20.2`. Radix is versioned per package, so
