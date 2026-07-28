@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "@josam/config — node (NestJS / Node runtime)",
+  "extends": "./base.json",
+
+  "//": [
+    "verbatimModuleSyntax MUST stay false here.",
+    "",
+    "With verbatimModuleSyntax: true, `import type { X }` is erased entirely. NestJS uses the",
+    "class itself as the DI token, emitted by emitDecoratorMetadata into design:paramtypes.",
+    "The moment a lint autofix (consistent-type-imports) rewrites an injectable's import to",
+    "`import type`, the runtime value disappears: typecheck passes, lint passes, and the API",
+    "dies on boot with 'Nest can't resolve dependencies of ...'.",
+    "",
+    "This is why the override lives in the shared preset rather than in each app: an app-level",
+    "override is one careless copy-paste away from being dropped.",
+    "",
+    "Proven at PH-0.3 by a two-service DI probe compiled and executed before the health endpoint."
+  ],
+
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+
+    "verbatimModuleSyntax": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    "rootDir": "${configDir}/src",
+    "outDir": "${configDir}/dist"
+  }
+}

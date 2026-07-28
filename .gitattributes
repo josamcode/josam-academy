@@ -1,0 +1,19 @@
+# Normalise line endings to LF in the repository AND in the working tree.
+#
+# Development is on Windows; every deployment target is Linux. Without this, git checks
+# out CRLF locally, and the type-B artifacts — scripts/backup.sh (PH-0.28), the Dockerfiles
+# (PH-0.10) — are COPYed into a container with CRLF endings, where `#!/bin/bash\r` is not
+# a valid interpreter path. The failure appears only in the container, never locally.
+* text=auto eol=lf
+
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.woff  binary
+*.woff2 binary
+*.pdf   binary
+
+pnpm-lock.yaml linguist-generated -diff

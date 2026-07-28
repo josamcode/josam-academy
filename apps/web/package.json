@@ -1,0 +1,16 @@
+{
+  "name": "@josam/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Next.js web app (learner + admin). Scaffolded at PH-0.4.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@josam/config": "workspace:*"
+  }
+}

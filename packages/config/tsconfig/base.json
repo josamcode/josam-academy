@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "@josam/config — base",
+
+  "//": [
+    "BR-1579: strict: true in every tsconfig. any and @ts-ignore fail the build.",
+    "BR-1806: TypeScript 6 removed moduleResolution 'node' (node10). Every config in this",
+    "monorepo resolves with 'bundler' (here) or 'nodenext' (node.json). A node10 config",
+    "fails with TS5107.",
+    "Do NOT set verbatimModuleSyntax: false here. node.json overrides it for NestJS only —",
+    "see the note in that file."
+  ],
+
+  "compilerOptions": {
+    "target": "ES2024",
+    "lib": ["ES2024"],
+
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "skipLibCheck": true
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "@josam/config — library (bundler-consumed shared package)",
+  "extends": "./base.json",
+
+  "//": [
+    "For packages compiled by tsc and consumed by a bundler (Next, Vite, Storybook).",
+    "Keeps verbatimModuleSyntax: true from base — there is no decorator metadata here,",
+    "so type-only imports are safe and desirable.",
+    "",
+    "Named library.json, not package.json: a tsconfig called package.json is read as a",
+    "manifest by pnpm, IDEs, and anything that walks the tree looking for one."
+  ],
+
+  "compilerOptions": {
+    "rootDir": "${configDir}/src",
+    "outDir": "${configDir}/dist"
+  }
+}
