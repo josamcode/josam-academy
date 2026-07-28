@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+pnpm-lock.yaml
+*.tsbuildinfo
+
+# The 16 specification documents plus the BR registry are frozen (CLAUDE.md §1). Reformatting
+# them would produce a large diff over content this protocol is not allowed to modify, and would
+# do it silently on every pre-commit. docs/runbooks/ is operational and is NOT excluded.
+docs/*.md
+
+# The planning prototype is a historical artifact, not maintained source.
+prototype/

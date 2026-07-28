@@ -1,5 +1,5 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
+  "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
   "globalDependencies": [".nvmrc", ".npmrc"],
   "tasks": {
@@ -8,6 +8,14 @@
       "outputs": ["dist/**"]
     },
     "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
       "dependsOn": ["^build"],
       "outputs": []
     },

@@ -4,44 +4,44 @@
 > It is read at the start of every session and updated at the end of every task.
 > The documents in `/docs` describe the plan. This file describes reality.
 
-| Field | Value |
-|---|---|
-| **Last updated** | 2026-07-28 |
-| **Updated by** | AI (`PH-0.1` execution) |
-| **Current phase** | Phase 0 — Foundation |
-| **Current task** | *None in progress* — `PH-0.1` complete |
-| **Next task** | `PH-0.2` — Shared config package: ESLint flat config, Stylelint, Prettier (`13 §9`) |
-| **Production URL** | *Not deployed* |
-| **Blocked** | No — `PH-0.2` is unblocked. `SB-05`/`SB-07` block `PH-0.7` review and `PH-0.4` only. |
+| Field              | Value                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------ |
+| **Last updated**   | 2026-07-28                                                                           |
+| **Updated by**     | AI (`PH-0.2` execution)                                                              |
+| **Current phase**  | Phase 0 — Foundation                                                                 |
+| **Current task**   | _None in progress_ — `PH-0.2` complete                                               |
+| **Next task**      | `PH-0.3` — Scaffold `apps/api` (NestJS) with health endpoint (`08 §4`)               |
+| **Production URL** | _Not deployed_                                                                       |
+| **Blocked**        | No — `PH-0.3` is unblocked. `SB-05`/`SB-07` block `PH-0.7` review and `PH-0.4` only. |
 
 ---
 
 ## 1. Progress
 
-| Phase | Tasks | Done | Status |
-|---|---:|---:|---|
-| **0 — Foundation** | 28 | 1 | 🟡 In progress |
-| 1 — Identity & Commerce | 32 | 0 | ⬜ Not started |
-| 2 — Content & Learning | 34 | 0 | ⬜ Not started |
-| 3 — Operations & Launch | 26 | 0 | ⬜ Not started |
-| 4 — Motivation & Proof | 22 | 0 | ⬜ Not started |
-| 5 — AI Mentor | 18 | 0 | ⬜ Not started |
-| 6 — Mobile | 16 | 0 | ⬜ Not started |
-| 7 — Growth | 14 | 0 | ⬜ Not started |
-| **Total** | **191** | **1** | **0.5%** |
+| Phase                   |   Tasks |  Done | Status         |
+| ----------------------- | ------: | ----: | -------------- |
+| **0 — Foundation**      |      28 |     2 | 🟡 In progress |
+| 1 — Identity & Commerce |      32 |     0 | ⬜ Not started |
+| 2 — Content & Learning  |      34 |     0 | ⬜ Not started |
+| 3 — Operations & Launch |      26 |     0 | ⬜ Not started |
+| 4 — Motivation & Proof  |      22 |     0 | ⬜ Not started |
+| 5 — AI Mentor           |      18 |     0 | ⬜ Not started |
+| 6 — Mobile              |      16 |     0 | ⬜ Not started |
+| 7 — Growth              |      14 |     0 | ⬜ Not started |
+| **Total**               | **191** | **2** | **1.0%**       |
 
 **Milestones**
 
-| # | Milestone | Target | Actual |
-|---|---|---|---|
-| M1 | Deployable skeleton | Week 3 | — |
-| M2 | First real payment | Week 8 | — |
-| M3 | First lesson watched | Week 14 | — |
-| M4 | 🚀 Public launch | Week 18 | — |
-| M5 | First certificate | Week 22 | — |
-| M6 | AI answers without founder | Week 26 | — |
-| M7 | Apps in stores | Week 31 | — |
-| M8 | Feature complete | Week 34 | — |
+| #   | Milestone                  | Target  | Actual |
+| --- | -------------------------- | ------- | ------ |
+| M1  | Deployable skeleton        | Week 3  | —      |
+| M2  | First real payment         | Week 8  | —      |
+| M3  | First lesson watched       | Week 14 | —      |
+| M4  | 🚀 Public launch           | Week 18 | —      |
+| M5  | First certificate          | Week 22 | —      |
+| M6  | AI answers without founder | Week 26 | —      |
+| M7  | Apps in stores             | Week 31 | —      |
+| M8  | Feature complete           | Week 34 | —      |
 
 ---
 
@@ -49,30 +49,30 @@
 
 > Only list what is **deployed and verified in production**. Not what is written.
 
-| Capability | Status | Verified |
-|---|---|---|
-| — | Nothing deployed yet | — |
+| Capability | Status               | Verified |
+| ---------- | -------------------- | -------- |
+| —          | Nothing deployed yet | —        |
 
 ---
 
 ## 3. Environments
 
-| Environment | URL | Status | Notes |
-|---|---|---|---|
-| Production | `josamacademy.com` | ⬜ Not provisioned | VPS exists, not hardened |
-| Local | `localhost:3000` / `:4000` | ⬜ Not set up | — |
-| Storybook | `localhost:6006` | ⬜ Not set up | — |
+| Environment | URL                        | Status             | Notes                    |
+| ----------- | -------------------------- | ------------------ | ------------------------ |
+| Production  | `josamacademy.com`         | ⬜ Not provisioned | VPS exists, not hardened |
+| Local       | `localhost:3000` / `:4000` | ⬜ Not set up      | —                        |
+| Storybook   | `localhost:6006`           | ⬜ Not set up      | —                        |
 
 **Infrastructure state**
 
-| Item | Status |
-|---|---|
+| Item                    | Status      |
+| ----------------------- | ----------- |
 | VPS hardened (`PH-0.7`) | ⬜ Not done |
-| Cloudflare configured | ⬜ Not done |
-| Coolify installed | ⬜ Not done |
-| CI pipeline | ⬜ Not done |
-| Backups running | ⬜ Not done |
-| Monitoring + alerts | ⬜ Not done |
+| Cloudflare configured   | ⬜ Not done |
+| Coolify installed       | ⬜ Not done |
+| CI pipeline             | ⬜ Not done |
+| Backups running         | ⬜ Not done |
+| Monitoring + alerts     | ⬜ Not done |
 
 ---
 
@@ -94,10 +94,93 @@
 
 ---
 
-### 2026-07-28 · PH-0.1 — Initialize monorepo: pnpm workspaces, Turborepo, base `tsconfig`
+### 2026-07-28 · PH-0.2 — Shared config package: ESLint flat config, Stylelint, Prettier
+
 **By:** AI
 **Time:** estimated 0.5 d → actual 0.25 d
 **Output:**
+
+- `packages/config` now ships tooling as well as tsconfig presets, exported via its `exports` map:
+  `eslint/base.js`, `eslint/node.js`, `stylelint/index.js`, `prettier/index.js`.
+- ESLint 10 flat config, **type-aware** (`projectService`), `recommendedTypeChecked` +
+  `stylisticTypeChecked` + `eslint-config-prettier` last.
+- `eslint.config.mjs` in all six workspaces and at the root; `lint` and `test` scripts in each.
+- Root: `prettier.config.mjs`, `stylelint.config.mjs`, `lint-staged.config.mjs`,
+  `.prettierignore`, `.husky/pre-commit` → `pnpm exec lint-staged`.
+- `turbo.json` gains `lint` and `test`. Root gains `lint`, `lint:css`, `test`, `format`,
+  `format:check`, `prepare`.
+- Pinned exactly, all seven re-verified live and all seven equal to the registry's current latest:
+  eslint **10.8.0** · typescript-eslint **8.65.0** · stylelint **17.14.1** · prettier **3.9.6** ·
+  husky **9.1.7** · lint-staged **17.2.0** · vitest **4.1.10**.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **`pnpm lint` → `Tasks: 6 successful, 6 total`** — the task Output: it runs in every workspace.
+- `pnpm typecheck` → 5/5 · `pnpm test` → 6/6 · `pnpm build` → 5/5. (5 not 6 because
+  `packages/config` is JSON+JS and has neither a build nor a typecheck task.)
+- **Enforcement proven by deliberate violation, then removed** — green lint means nothing until
+  it is shown to fail:
+  - `any` → `error @typescript-eslint/no-explicit-any` (`BR-1579`)
+  - `@ts-ignore` → `error @typescript-eslint/ban-ts-comment` (`BR-1579`)
+  - unawaited promise → `error @typescript-eslint/no-floating-promises`. This one matters most:
+    it is a **type-aware** rule, so its firing proves `projectService` is genuinely wired and
+    that the mechanism `BR-1579` depends on is live, not merely configured.
+  - a stale `eslint-disable-next-line` → `error Unused eslint-disable directive`
+    (`reportUnusedDisableDirectives`, the companion to `BR-1512`). All exits were 1.
+- **Vitest proven to execute**, not just to be installed: a temporary spec with one passing and
+  one failing assertion → `Tests 1 failed | 1 passed (2)`, exit 1. Removed afterwards.
+- **Stylelint proven both ways**: a bad property → `Unknown property "colr"`, exit 2; with no CSS
+  in the repository → exit 0 under `--allow-empty-input`.
+- **The `apps/api` DI guard is real, not decorative:** `eslint --print-config src/index.ts`
+  reports `consistent-type-imports = [0]` and `no-explicit-any = [2]`.
+- `pnpm format:check` → `All matched files use Prettier code style!`
+- **The pre-commit hook rejected the first attempt to commit this task, and it was right.**
+  `eslint` failed on 14 files with
+  `Parsing error: No tsconfigRootDir was set, and multiple candidate TSConfigRootDirs are present`.
+  `pnpm lint` cannot surface this: turbo runs `eslint .` **inside** each workspace, so exactly one
+  candidate root exists. lint-staged runs eslint **once from the repository root** with absolute
+  paths spanning every workspace. typescript-eslint resolves `tsconfigRootDir` before it checks
+  whether type-aware parsing is enabled, so even a plain `.mjs` config file failed.
+  Fixed by setting `tsconfigRootDir` for every file rather than only the type-checked ones.
+  Verified afterwards on **both** invocation paths — root-invoked mixed `.mjs`/`.js`/`.ts` across
+  workspaces → exit 0, and `pnpm lint` → 6/6 — and the enforcement proof was **re-run** after the
+  parser change, because that edit is exactly how type-aware linting dies silently:
+  `no-explicit-any` and `no-floating-promises` still fire, from root and per-workspace alike.
+
+**Diverged:**
+
+1. **`13 §9` cites `§19` for custom rules; `13` has no `§19`** (it ends at `§18`). Dangling
+   reference — logged as `SB-14`. Custom rules are `PH-0.16` with its own Refs, so nothing is
+   lost and nothing is blocked.
+2. **`boundaries` and `jsx-a11y` from `13 §9` are not installed here.** `16` assigns fitness
+   functions to `PH-0.16` and `jsx-a11y` has no JSX to lint until `PH-0.17`. Deferred, not dropped.
+3. **`prettier-plugin-tailwindcss` deferred to `PH-0.14`** though `13 §9` lists Tailwind class
+   sorting under Prettier. The plugin resolves `tailwindcss` at load time and Tailwind is not
+   installed until `PH-0.14`; adding it now would break Prettier for every workspace.
+4. **`docs/*.md` and `prototype/` added to `.prettierignore`.** Without this, `pnpm format` and
+   every pre-commit would silently reformat the 16 frozen specification documents — a direct
+   collision with the `/docs` freeze in `CLAUDE.md §1`. `docs/runbooks/` is deliberately **not**
+   excluded, since it is operational and this protocol authors it.
+
+**Notes:**
+
+- Prettier reformatted `CLAUDE.md`, `STATUS.md` and `pnpm-workspace.yaml` on its first run
+  (table pipe alignment only). Verified the `PH-0.1`/`PH-0.2` queue rows survived intact.
+- Rule strength is `recommendedTypeChecked`, not `strictTypeChecked`. The stricter preset adds
+  rules that fire heavily on NestJS and Prisma code, and `BR-1512` forbids the usual escape
+  hatches — so raising it is a decision for `PH-0.16` with real code to measure against, not a
+  guess made before `apps/api` exists.
+- `test` scripts use `--passWithNoTests`. There are genuinely zero tests in the repository; the
+  flag is why `pnpm test` exits 0, and the probe above is why we know the runner works.
+
+---
+
+### 2026-07-28 · PH-0.1 — Initialize monorepo: pnpm workspaces, Turborepo, base `tsconfig`
+
+**By:** AI
+**Time:** estimated 0.5 d → actual 0.25 d
+**Output:**
+
 - Root: `package.json` (`packageManager` pnpm@11.17.0, `engines.node ">=24.18.0 <25.0.0"`),
   `pnpm-workspace.yaml`, `turbo.json`, `.nvmrc` (`24`), `.npmrc` (`save-exact`, `engine-strict`),
   `.gitignore` (contains `.turbo/`), `.gitattributes`, `pnpm-lock.yaml`.
@@ -107,6 +190,7 @@
 - Local git repository initialized (`git init -b main`), first commit landed.
 
 **Verified:** (real terminal output, `BR-1518`)
+
 - `node -v` → `v24.18.0`; `pnpm -v` → `11.17.0` — checked **before** writing `engines`.
 - Registry re-verification per `BR-1811`: `turbo` latest = **2.10.7** (pin matches exactly);
   `typescript@6.0.3` exists (latest is 7.0.2 — deliberately not taken, `BR-1805`);
@@ -124,18 +208,20 @@
   (correct for NestJS 11), `packages/ui/dist/index.js` is ESM.
 - **`BR-1806` proven, not assumed:** a throwaway project with `moduleResolution: "node"` compiled
   under TS 6.0.3 → `error TS5107: Option 'moduleResolution=node10' is deprecated and will stop
-  functioning in TypeScript 7.0`, exit 2.
+functioning in TypeScript 7.0`, exit 2.
 - **`pnpm lint` and `pnpm test` do not exist and were not faked.** Real output:
   `[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command "lint" not found`. ESLint, Stylelint and Prettier
   arrive at `PH-0.2`; Vitest at `PH-0.2`. `turbo.json` declares only `build`, `typecheck`, `dev`.
 
 **Diverged:**
+
 1. **`packages/ui` created though `09 §9`'s tree omits it** — `12 §20` mandates it (`BR-1524`,
    `BR-1575`). Recorded as `SB-13`; `09 §9` needs a correction pass.
 2. **`.gitattributes` added beyond the approved file list** — see §7. Founder may veto.
 3. `BR-1818` rewritten on founder instruction — see §7.
 
 **Notes:**
+
 - `packages/contracts` and `packages/abilities` were **not** created. They are Phase 1 work
   (`PH-1.8` / `PH-1.9`); an empty package in the turbo graph for five weeks earns nothing.
 - The `verbatimModuleSyntax: false` override lives in the **shared** `node.json`, not in
@@ -147,6 +233,7 @@
 ---
 
 ### 2026-07-28 · Planning complete
+
 **By:** Founder + AI
 **Output:** 23 documents — `00` through `16` plus this file and the HTML prototype
 **Contents:** 220 features · 1,798 business rules · 60 decisions · 174 permissions · 85 tables · 248 endpoints · 134 components · 72 screens · 30 flows · 191 tasks
@@ -160,29 +247,29 @@
 
 > Anything stopping work right now. Empty is good.
 
-| ID | Blocker | Blocks | Since | Owner | Action needed |
-|---|---|---|---|---|---|
-| `SB-05` | `docs/runbooks/vps-hardening.md` is not in the repository. Stated as placed twice; **re-checked at the end of `PH-0.1` — `docs/runbooks/` does not exist and a tree-wide search for `*vps*` returns nothing.** Likely saved outside `D:\MyProjects\josam_academy\`. | `PH-0.7` review | 2026-07-28 | Founder | Confirm the path the file was saved to. Once it is under `docs/runbooks/`, the reconciliation against `14 §12` runs. |
-| `SB-07` | **Next.js major.** `13 §4` states `15` (a bare major, i.e. an exact statement); the current release is **16.2.12**. Adopting 16 is a divergence needing a document correction (`BR-1809`). | `PH-0.4` | 2026-07-28 | Founder | Decide: hold at Next 15.x, or authorise correcting `13 §4` to 16. **Not blocking `PH-0.1`.** |
-| `SB-01` | No GitHub remote. Local `git init -b main` **done at `PH-0.1`**; the remote needs founder credentials. | `PH-0.10` | 2026-07-28 | Founder | Create the GitHub repository and add the remote. |
-| `SB-13` | `09 §9`'s monorepo tree omits `packages/ui`, which `12 §20` mandates (`BR-1524`, `BR-1575`). Created at `PH-0.1` on the authority of `12`. | Nothing — `12` governs | 2026-07-28 | Founder | Authorise a correction pass on `09 §9`. Not urgent. |
-| `OQ-24` | Renovate auto-merge policy for patch updates (`13 §16`). | `PH-0.10` | 2026-07-28 | Founder | Decide auto-merge vs review. |
+| ID      | Blocker                                                                                                                                                                                                                                                             | Blocks                                   | Since      | Owner   | Action needed                                                                                                        |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
+| `SB-05` | `docs/runbooks/vps-hardening.md` is not in the repository. Stated as placed twice; **re-checked at the end of `PH-0.1` — `docs/runbooks/` does not exist and a tree-wide search for `*vps*` returns nothing.** Likely saved outside `D:\MyProjects\josam_academy\`. | `PH-0.7` review                          | 2026-07-28 | Founder | Confirm the path the file was saved to. Once it is under `docs/runbooks/`, the reconciliation against `14 §12` runs. |
+| `SB-07` | **Next.js major.** `13 §4` states `15` (a bare major, i.e. an exact statement); the current release is **16.2.12**. Adopting 16 is a divergence needing a document correction (`BR-1809`).                                                                          | `PH-0.4`                                 | 2026-07-28 | Founder | Decide: hold at Next 15.x, or authorise correcting `13 §4` to 16. **Not blocking `PH-0.1`.**                         |
+| `SB-01` | No GitHub remote. Local `git init -b main` **done at `PH-0.1`**; the remote needs founder credentials.                                                                                                                                                              | `PH-0.10`                                | 2026-07-28 | Founder | Create the GitHub repository and add the remote.                                                                     |
+| `SB-14` | `13 §9` cites "custom rules (`§19`)" but `13` ends at `§18`. Dangling cross-reference, same class as `SB-11`.                                                                                                                                                       | Nothing — `PH-0.16` governs custom rules | 2026-07-28 | Founder | Point the citation at a real section, or drop it. Not urgent.                                                        |
+| `OQ-24` | Renovate auto-merge policy for patch updates (`13 §16`).                                                                                                                                                                                                            | `PH-0.10`                                | 2026-07-28 | Founder | Decide auto-merge vs review.                                                                                         |
 
 ---
 
 ## 6. Open Questions
 
-| ID | Question | Owner | Needed by | Status |
-|---|---|---|---|---|
-| `OQ-01` | Commercial registration for Paymob merchant account | Founder | Phase 1 | 🟡 **Start now** — longest lead time |
-| `OQ-21` | Certificate PDF layout — portrait/landscape, QR placement | Founder | Phase 4 | ⬜ Open |
-| `OQ-22` | Week start day default (Saturday vs locale) | Founder | Phase 4 | ⬜ Open |
-| `OQ-23` | PDF rendering approach on 2 vCPU | Joint | Phase 4 | ⬜ Open |
-| `OQ-24` | Renovate auto-merge policy for patch updates | Founder | Phase 0 | ⬜ Open |
-| `OQ-25` | Learner 2FA — offer or staff-only | Founder | Phase 3 | ⬜ Open |
-| `OQ-26` | Breach notification commitment (72h proposed) | Founder | Phase 3 | ⬜ Open |
-| `OQ-27` | Soft launch pricing — free / discounted / full | Founder | Phase 3 | ⬜ Open |
-| `OQ-28` | Mobile before Growth, or reverse | Founder | Phase 5 exit | ⬜ Open |
+| ID      | Question                                                  | Owner   | Needed by    | Status                               |
+| ------- | --------------------------------------------------------- | ------- | ------------ | ------------------------------------ |
+| `OQ-01` | Commercial registration for Paymob merchant account       | Founder | Phase 1      | 🟡 **Start now** — longest lead time |
+| `OQ-21` | Certificate PDF layout — portrait/landscape, QR placement | Founder | Phase 4      | ⬜ Open                              |
+| `OQ-22` | Week start day default (Saturday vs locale)               | Founder | Phase 4      | ⬜ Open                              |
+| `OQ-23` | PDF rendering approach on 2 vCPU                          | Joint   | Phase 4      | ⬜ Open                              |
+| `OQ-24` | Renovate auto-merge policy for patch updates              | Founder | Phase 0      | ⬜ Open                              |
+| `OQ-25` | Learner 2FA — offer or staff-only                         | Founder | Phase 3      | ⬜ Open                              |
+| `OQ-26` | Breach notification commitment (72h proposed)             | Founder | Phase 3      | ⬜ Open                              |
+| `OQ-27` | Soft launch pricing — free / discounted / full            | Founder | Phase 3      | ⬜ Open                              |
+| `OQ-28` | Mobile before Growth, or reverse                          | Founder | Phase 5 exit | ⬜ Open                              |
 
 **Resolved:** `OQ-02` – `OQ-20` — see `DEC-01` through `DEC-55` in their respective documents.
 
@@ -192,15 +279,15 @@
 
 > Where the built system differs from the specification, and why. Every entry must either be corrected in the document or justified here.
 
-| Date | Document | What diverged | Why | Resolution |
-|---|---|---|---|---|
-| 2026-07-28 | `13 §2` | **`SB-02` — Node runtime.** Document specified **Node 22 LTS**; the pinned runtime is **Node 24 LTS ("Krypton") 24.18.0**. | Node 22 moved to Maintenance LTS. Node 24 is the current Active LTS, maintained through April 2028, and is what is installed on the development machine. `13 §2` was stale, not wrong in principle. | ✅ **Resolved.** Founder authorised the document edit. `13 §2` version cell and rationale corrected; the stale "Node 22" in the `§17` approval table corrected for internal consistency; appendix `13 §18` "Resolved Versions (Phase 0)" added with the full pin table. Binding on `engines`, `packageManager`, `.nvmrc`, the CI Node matrix, and every Dockerfile base image (`BR-1810`). |
-| 2026-07-28 | `12 §20.12`, `15 §2`, `15 §Phase 0` | **`SB-04` — Wave 1 component count.** Documents stated **62**; `16-task-breakdown.md` tasks `PH-0.17`–`PH-0.27` enumerate **69**. | The 62 was an aggregate that never reconciled with any enumeration. `16` is the executable artifact, so `16` wins. | ✅ **Resolved.** Founder authorised the document edit. Count corrected to **69** in `12 §20.12`, `15 §2`, and the `15` Phase 0 exit criteria. New `12 §20.12.1` records the authoritative 69-component roster by task; `12 §20.12.2` reassigns by name every `§20` component with no Phase 0 task (`Can` and `Reason` → Phase 1, they read `_can` from `PH-1.11`; 9 → Wave 2; `VideoUploader` → Wave 3; `Confirm` and `ToastProvider` folded as naming duplicates). Added `BR-1812`, `BR-1813`. |
-| 2026-07-28 | `13 §2` | **`SB-06` — TypeScript major.** Floor is `5.6+`; the newest release is **7.0.2**, but the pin is **6.0.3**. | `typescript-eslint@8.65.0` declares `typescript: ">=4.8.4 <6.1.0"`. TypeScript 7 would silently disable type-aware linting, which is the mechanism enforcing `BR-1579`. Verified against the live registry, not assumed. | ✅ **Not a divergence** — `5.6+` is a floor and 6.0.3 satisfies it. Recorded because the pin is deliberately *not* the newest available. `BR-1805` states the condition for raising it. Also `BR-1806`: TS 6 removes `moduleResolution: "node"`, so every `tsconfig` uses `nodenext`/`bundler`. |
-| 2026-07-28 | `13 §18.2` | **`BR-1818` rewritten.** The superseded text left open whether `QueryBoundary` (`PH-0.27`) and `Form` (`PH-0.21`) would be built on TanStack Query / React Hook Form or against a library-agnostic interface, and cited `BR-1528` in favour of the wrapper. | That reading of `BR-1528` was wrong. `BR-1528` is about **Radix** — a headless behaviour library supplying keyboard handling and ARIA for a *visible control*, which is why it belongs inside our components. TanStack Query and React Hook Form are not visible controls. `09 §7.2` names TanStack Query as **the** server-state mechanism and React Hook Form + Zod as **the** form mechanism, and `07`/`12` assume its cache semantics directly. A wrapper would be an abstraction at first use — prohibited by `BR-1355`. | ✅ **Resolved.** Founder-instructed correction made during `PH-0.1`. `BR-1818` now states both libraries are used **directly**, no abstraction is built over either, and only the *version* is deferred to `PH-0.21`/`PH-0.27`. The superseded text is quoted in the rule so the change is auditable. |
-| 2026-07-28 | `09 §9` | **`SB-13` — `packages/ui` absent from the documented monorepo tree.** `09 §9` lists `contracts`, `abilities`, `tokens`, `i18n`, `config` — no `ui`. | `12 §20` mandates `packages/ui` and two rules depend on it existing: `BR-1524` (feature code imports from `@josam/ui` only) and `BR-1575` (`packages/ui` depends on no app). `09 §9`'s tree is illustrative and predates the `12 §20` component work. | 🟡 **Open — not corrected.** `packages/ui` was created at `PH-0.1` on the authority of `12`. Correcting `09 §9` is outside this task's authorisation. Blocks nothing. |
-| 2026-07-28 | *(none — new file)* | **`.gitattributes` added beyond the approved `PH-0.1` file list.** Forces LF in the repository and the working tree. | Development is Windows, every deployment target is Linux. Without it, `scripts/backup.sh` (`PH-0.28`) and the Dockerfiles (`PH-0.10`) are checked out CRLF and `COPY`ed into containers where `#!/bin/bash\r` is not a valid interpreter — a failure that appears only in the container. Cheaper to prevent at repo init than to diagnose at `PH-0.28`. | 🟡 **Flagged for founder review.** One unapproved file; trivially revertable if unwanted. |
-| 2026-07-28 | `12 §20.12` | **Component library total.** `§20.12` states **134** components; a full census of `§20.4`–`§20.10` enumerates **151** distinct names. | The 134 total predates the Wave 1 reconciliation and has never been recounted. | 🟡 **Open — not corrected.** Outside the authorised edit. Recorded as `BR-1813`. Nothing in Phase 0 depends on the Wave 2/3 counts. Needs a founder-authorised recount pass before Wave 2 begins. |
+| Date       | Document                            | What diverged                                                                                                                                                                                                                                               | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Resolution                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-07-28 | `13 §2`                             | **`SB-02` — Node runtime.** Document specified **Node 22 LTS**; the pinned runtime is **Node 24 LTS ("Krypton") 24.18.0**.                                                                                                                                  | Node 22 moved to Maintenance LTS. Node 24 is the current Active LTS, maintained through April 2028, and is what is installed on the development machine. `13 §2` was stale, not wrong in principle.                                                                                                                                                                                                                                                                                                                           | ✅ **Resolved.** Founder authorised the document edit. `13 §2` version cell and rationale corrected; the stale "Node 22" in the `§17` approval table corrected for internal consistency; appendix `13 §18` "Resolved Versions (Phase 0)" added with the full pin table. Binding on `engines`, `packageManager`, `.nvmrc`, the CI Node matrix, and every Dockerfile base image (`BR-1810`).                                                                                                      |
+| 2026-07-28 | `12 §20.12`, `15 §2`, `15 §Phase 0` | **`SB-04` — Wave 1 component count.** Documents stated **62**; `16-task-breakdown.md` tasks `PH-0.17`–`PH-0.27` enumerate **69**.                                                                                                                           | The 62 was an aggregate that never reconciled with any enumeration. `16` is the executable artifact, so `16` wins.                                                                                                                                                                                                                                                                                                                                                                                                            | ✅ **Resolved.** Founder authorised the document edit. Count corrected to **69** in `12 §20.12`, `15 §2`, and the `15` Phase 0 exit criteria. New `12 §20.12.1` records the authoritative 69-component roster by task; `12 §20.12.2` reassigns by name every `§20` component with no Phase 0 task (`Can` and `Reason` → Phase 1, they read `_can` from `PH-1.11`; 9 → Wave 2; `VideoUploader` → Wave 3; `Confirm` and `ToastProvider` folded as naming duplicates). Added `BR-1812`, `BR-1813`. |
+| 2026-07-28 | `13 §2`                             | **`SB-06` — TypeScript major.** Floor is `5.6+`; the newest release is **7.0.2**, but the pin is **6.0.3**.                                                                                                                                                 | `typescript-eslint@8.65.0` declares `typescript: ">=4.8.4 <6.1.0"`. TypeScript 7 would silently disable type-aware linting, which is the mechanism enforcing `BR-1579`. Verified against the live registry, not assumed.                                                                                                                                                                                                                                                                                                      | ✅ **Not a divergence** — `5.6+` is a floor and 6.0.3 satisfies it. Recorded because the pin is deliberately _not_ the newest available. `BR-1805` states the condition for raising it. Also `BR-1806`: TS 6 removes `moduleResolution: "node"`, so every `tsconfig` uses `nodenext`/`bundler`.                                                                                                                                                                                                 |
+| 2026-07-28 | `13 §18.2`                          | **`BR-1818` rewritten.** The superseded text left open whether `QueryBoundary` (`PH-0.27`) and `Form` (`PH-0.21`) would be built on TanStack Query / React Hook Form or against a library-agnostic interface, and cited `BR-1528` in favour of the wrapper. | That reading of `BR-1528` was wrong. `BR-1528` is about **Radix** — a headless behaviour library supplying keyboard handling and ARIA for a _visible control_, which is why it belongs inside our components. TanStack Query and React Hook Form are not visible controls. `09 §7.2` names TanStack Query as **the** server-state mechanism and React Hook Form + Zod as **the** form mechanism, and `07`/`12` assume its cache semantics directly. A wrapper would be an abstraction at first use — prohibited by `BR-1355`. | ✅ **Resolved.** Founder-instructed correction made during `PH-0.1`. `BR-1818` now states both libraries are used **directly**, no abstraction is built over either, and only the _version_ is deferred to `PH-0.21`/`PH-0.27`. The superseded text is quoted in the rule so the change is auditable.                                                                                                                                                                                           |
+| 2026-07-28 | `09 §9`                             | **`SB-13` — `packages/ui` absent from the documented monorepo tree.** `09 §9` lists `contracts`, `abilities`, `tokens`, `i18n`, `config` — no `ui`.                                                                                                         | `12 §20` mandates `packages/ui` and two rules depend on it existing: `BR-1524` (feature code imports from `@josam/ui` only) and `BR-1575` (`packages/ui` depends on no app). `09 §9`'s tree is illustrative and predates the `12 §20` component work.                                                                                                                                                                                                                                                                         | ✅ **Resolved.** `packages/ui` created at `PH-0.1` on the authority of `12`; `09 §9` corrected 2026-07-28 on founder instruction — the tree now lists `ui/` and names stylelint in the config package.                                                                                                                                                                                                                                                                                          |
+| 2026-07-28 | _(none — new file)_                 | **`.gitattributes` added beyond the approved `PH-0.1` file list.** Forces LF in the repository and the working tree.                                                                                                                                        | Development is Windows, every deployment target is Linux. Without it, `scripts/backup.sh` (`PH-0.28`) and the Dockerfiles (`PH-0.10`) are checked out CRLF and `COPY`ed into containers where `#!/bin/bash\r` is not a valid interpreter — a failure that appears only in the container. Cheaper to prevent at repo init than to diagnose at `PH-0.28`.                                                                                                                                                                       | 🟡 **Flagged for founder review.** One unapproved file; trivially revertable if unwanted.                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 2026-07-28 | `12 §20.12`                         | **Component library total.** `§20.12` states **134** components; a full census of `§20.4`–`§20.10` enumerates **151** distinct names.                                                                                                                       | The 134 total predates the Wave 1 reconciliation and has never been recounted.                                                                                                                                                                                                                                                                                                                                                                                                                                                | 🟡 **Open — not corrected.** Outside the authorised edit. Recorded as `BR-1813`. Nothing in Phase 0 depends on the Wave 2/3 counts. Needs a founder-authorised recount pass before Wave 2 begins.                                                                                                                                                                                                                                                                                               |
 
 - **Rule:** a divergence is either fixed in the code or corrected in the document. It is never left as an undocumented difference (`BR-1789`).
 
@@ -210,13 +297,13 @@
 
 > Things deliberately deferred. Not bugs — decisions with a date.
 
-| ID | Item | Reason deferred | Revisit at |
-|---|---|---|---|
-| `SB-08` | **Component library census.** `12 §20.12` states **134** total components; a full census of `§20.4`–`§20.10` enumerates **151** distinct names. Wave 2 (44) and Wave 3 (28) counts have never been reconciled against any enumeration either. Wave 1 is settled at 69 (`SB-04`); only the downstream totals are unverified. | Outside Phase 0 authorisation, and blocks nothing before Wave 2. Recorded as `BR-1813`. | **Phase 0 exit** |
-| `SB-09` | **Prisma 7 pin is provisional.** Prisma 7 is a rewrite. Pinned provisionally pending a probe at `PH-0.6` against the NestJS CommonJS build, the generated client location, and the repository-only pattern (`BR-1580`). Fallback is the latest Prisma 6. | Cannot be settled before `PH-0.6` exists to probe against. Recorded as `BR-1816`. | **`PH-0.6`** |
+| ID      | Item                                                                                                                                                                                                                                                                                                                                                                                  | Reason deferred                                                                                                                                           | Revisit at                                                  |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `SB-08` | **Component library census.** `12 §20.12` states **134** total components; a full census of `§20.4`–`§20.10` enumerates **151** distinct names. Wave 2 (44) and Wave 3 (28) counts have never been reconciled against any enumeration either. Wave 1 is settled at 69 (`SB-04`); only the downstream totals are unverified.                                                           | Outside Phase 0 authorisation, and blocks nothing before Wave 2. Recorded as `BR-1813`.                                                                   | **Phase 0 exit**                                            |
+| `SB-09` | **Prisma 7 pin is provisional.** Prisma 7 is a rewrite. Pinned provisionally pending a probe at `PH-0.6` against the NestJS CommonJS build, the generated client location, and the repository-only pattern (`BR-1580`). Fallback is the latest Prisma 6.                                                                                                                              | Cannot be settled before `PH-0.6` exists to probe against. Recorded as `BR-1816`.                                                                         | **`PH-0.6`**                                                |
 | `SB-11` | **13 dangling BR references** — rules cited but never written (`docs/BR-REGISTRY.md §5`). Most are off-by-1000 typos the author already annotated inline. **`BR-895`–`BR-899` are the exception**: they are not typos, they are citations to rules that were never authored, and `PH-0.16` is scheduled to enforce two of them (layer direction; no vendor SDK outside `providers/`). | Each needs an authoring decision by the founder, not an inferred fix. Correcting them is a multi-document pass outside current authorisation (`BR-1824`). | **`PH-0.16`** for `BR-895`–`899`; Phase 0 exit for the rest |
-| `SB-12` | **Six document headers declare BR ranges that do not match their contents** (`docs/BR-REGISTRY.md §3`). `13` declared a range overlapping 114 live rules in `14` — this caused a real collision during this session. | `BR-REGISTRY.md §3`/`§4` is now the allocation authority, so the wrong headers are documented rather than trusted. Fixing them is a six-document edit. | **Phase 0 exit** |
-| `SB-10` | **Deferred version pins.** ~20 dependencies are recorded in `13 §18.2` as dated observations, explicitly non-binding. Each is pinned by the phase that installs it. | Pinning a Phase 6 dependency in Phase 0 uses information that will be seven months stale and violates `13 §1` filter 4. Recorded as `BR-1814`, `BR-1815`. | **each named phase** |
+| `SB-12` | **Six document headers declare BR ranges that do not match their contents** (`docs/BR-REGISTRY.md §3`). `13` declared a range overlapping 114 live rules in `14` — this caused a real collision during this session.                                                                                                                                                                  | `BR-REGISTRY.md §3`/`§4` is now the allocation authority, so the wrong headers are documented rather than trusted. Fixing them is a six-document edit.    | **Phase 0 exit**                                            |
+| `SB-10` | **Deferred version pins.** ~20 dependencies are recorded in `13 §18.2` as dated observations, explicitly non-binding. Each is pinned by the phase that installs it.                                                                                                                                                                                                                   | Pinning a Phase 6 dependency in Phase 0 uses information that will be seven months stale and violates `13 §1` filter 4. Recorded as `BR-1814`, `BR-1815`. | **each named phase**                                        |
 
 ---
 
@@ -224,22 +311,22 @@
 
 > Populated after launch. Targets from `01 §5`.
 
-| Metric | Target (6mo) | Current | Trend |
-|---|---|---|---|
-| `MET-01` Course completion | ≥ 35% | — | — |
-| `MET-02` Goal set rate | ≥ 70% | — | — |
-| `MET-03` AI deflection | ≥ 60% | — | — |
-| `MET-06` Founder ops hours/week | < 3 | — | — |
-| `MET-09` 7-day activation | ≥ 65% | — | — |
-| `MET-11` Weekly active learners | ≥ 40% | — | — |
+| Metric                          | Target (6mo) | Current | Trend |
+| ------------------------------- | ------------ | ------- | ----- |
+| `MET-01` Course completion      | ≥ 35%        | —       | —     |
+| `MET-02` Goal set rate          | ≥ 70%        | —       | —     |
+| `MET-03` AI deflection          | ≥ 60%        | —       | —     |
+| `MET-06` Founder ops hours/week | < 3          | —       | —     |
+| `MET-09` 7-day activation       | ≥ 65%        | —       | —     |
+| `MET-11` Weekly active learners | ≥ 40%        | —       | —     |
 
 **Infrastructure**
 
-| Item | Budget | Current |
-|---|---|---|
-| Monthly spend | ~$30 | $0 |
-| Learners | — | 0 |
-| Courses published | — | 0 |
+| Item              | Budget | Current |
+| ----------------- | ------ | ------- |
+| Monthly spend     | ~$30   | $0      |
+| Learners          | —      | 0       |
+| Courses published | —      | 0       |
 
 ---
 
@@ -247,9 +334,9 @@
 
 > Tracked separately because content is a parallel track and a top risk (`RSK-05`).
 
-| Course | Lessons | Video | Lesson Notes | Quizzes | Status |
-|---|---:|---|---|---|---|
-| — | — | — | — | — | No courses yet |
+| Course | Lessons | Video | Lesson Notes | Quizzes | Status         |
+| ------ | ------: | ----- | ------------ | ------- | -------------- |
+| —      |       — | —     | —            | —       | No courses yet |
 
 **Reminder:** `DEC-58` — the founder authors one complete course **during** Phase 2, not after it.
 
@@ -304,4 +391,4 @@ At the end of **every** task:
 
 ---
 
-*This file is the project's memory. Keep it honest — its only value is accuracy.*
+_This file is the project's memory. Keep it honest — its only value is accuracy._
