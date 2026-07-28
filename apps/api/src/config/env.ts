@@ -14,6 +14,19 @@ import { z } from 'zod';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().max(65535).default(4000),
+
+  // PH-0.19 — observability. FEAT-217: production defaults to info.
+  LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
+
+  /**
+   * Optional by design. SENTRY_DSN is a credential the founder holds; with it absent the tracker
+   * is inert and says so at boot, rather than the API refusing to start in development for want
+   * of an error reporter (BR-943 is about required secrets, and this is not one).
+   */
+  SENTRY_DSN: z.string().url().optional(),
+
+  /** Release tag for log lines and Sentry grouping. Set from the image tag at PH-0.10. */
+  APP_VERSION: z.string().min(1).default('0.0.0-dev'),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.6` close-out — bookkeeping)                                                                                                                                                         |
+| **Updated by**     | AI (`PH-0.19` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.6` complete                                                                                                                                                        |
-| **Next task**      | `PH-0.7` — VPS hardening runbook, authored from `14 §12` (type B)                                                                                                                             |
+| **Current task**   | _None in progress_ — `PH-0.19` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.12` — `packages/tokens`: both themes to CSS vars + RN constants (`12 §3`, `BR-1583`)                                                                                                    |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |  Done | Status         |
 | ----------------------- | ------: | ----: | -------------- |
-| **0 — Foundation**      |      28 |     6 | 🟡 In progress |
+| **0 — Foundation**      |      28 |     7 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |     0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |     0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |     0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |     0 | ⬜ Not started |
 | 6 — Mobile              |      16 |     0 | ⬜ Not started |
 | 7 — Growth              |      14 |     0 | ⬜ Not started |
-| **Total**               | **191** | **6** | **3.1%**       |
+| **Total**               | **191** | **7** | **3.7%**       |
 
 **Milestones**
 
@@ -91,6 +91,77 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.19 — Structured logging (Pino) with correlation IDs; Sentry wiring
+
+**By:** AI
+**Time:** estimated 0.5 d -> actual 0.4 d
+**Output:**
+
+- `shared/common/correlation/` — `AsyncLocalStorage` context + middleware. Honours an inbound
+  `X-Correlation-Id` (`11 §1.2`), otherwise mints a prefixed ULID `req_01H...` matching `11 §1.5`.
+  Always echoed back on the response.
+- `shared/common/logging/` — `AppLogger` (Pino behind our own class, implements Nest's
+  `LoggerService`) and `redact.ts`, the `BR-626` redaction paths.
+- `shared/common/filters/all-exceptions.filter.ts` — the `11 §1.5` error envelope with
+  `correlation_id`, generic 5xx text, and Sentry capture for 5xx only.
+- `shared/providers/error-tracker/` — our `ErrorTracker` interface and the Sentry adapter.
+- `tsconfig.build.json` — emit config; specs are linted but never compiled into `dist/`.
+- Pinned: pino **10.3.1** (matches `13 §18.1`), ulid **3.0.2** (first use, `13 §18.2`),
+  @sentry/node **10.68.0** (new pin), @types/express **5.0.6**.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **Request traced end to end — the task Output.** Generated id `req_01KYNFWK6J3YKC29AH0T3Y25BB`
+  came back in the response header and appears on the matching server line
+  `"route":"/health","status":200,"durationMs":49.4`. An inbound `end-to-end-404` produced
+  `{"error":{"code":"NOT_FOUND",...,"correlation_id":"end-to-end-404"}}` to the client and
+  `"level":"warn",...,"status":404` on the server. Same id, both directions.
+- **`BR-631`/`BR-1114` proven by trying to leak.** A deliberate throwing route raised
+  `probe: deliberate unhandled error with secret=hunter2`. The client received exactly
+  `{"code":"INTERNAL_ERROR","message":"Something went wrong on our side."}` plus the correlation
+  id — grepped for `hunter2` and `probe:`, neither present. The full stack was in the server log.
+  Route removed afterwards.
+- **`BR-626` proven by test, not by reading the config** — 13 passing specs covering redaction of
+  password / token / accessToken / otp / cardNumber / cvv / phone at the root and one level deep,
+  that `passwordChangedAt` survives, correlation-id binding, out-of-band marking, ULID format,
+  and isolation between two concurrent requests.
+- **`BR-1599` verified by inspection:** the only files naming `@sentry/node` are under
+  `shared/providers/error-tracker/`. Pino appears in exactly one file, `logger.service.ts`.
+- Nest's own framework output now goes through Pino as JSON — `InstanceLoader`, `RoutesResolver`,
+  `PrismaService`, `NestApplication` all emit structured lines, so there is no second
+  unstructured format during boot.
+- `pnpm build` 5/5 · `pnpm lint` 6/6 · `pnpm typecheck` 5/5 · `pnpm test` 6/6.
+
+**Diverged:**
+
+1. **`BR-1113` not implemented — error `message` is a single string, not a bilingual `{ar, en}`
+   object.** The rule requires localisation server-side from the string catalog; `packages/i18n`
+   is `PH-0.13` and `shared/i18n` is Phase 1. Hand-writing an `{ar, en}` pair here would invent
+   translations outside the catalog, which is the thing `BR-525` exists to prevent. The envelope
+   shape is otherwise `11 §1.5` exactly, so this is a one-field change when the catalog exists.
+2. **`@sentry/node` 10.68.0 is a new pin** — Sentry is named in `08 §12` and `13 §8` but has no
+   row in `13 §18.1`. Recorded here rather than added to the table, which is founder territory.
+
+**Notes:**
+
+- **Two defects found by reading the output rather than trusting the design:**
+  - The first implementation logged request lines from a Nest interceptor. On the error path the
+    interceptor runs _before_ the exception filter sets the status, so a 500 was logged as
+    `"status":200` — an error-rate query would have been silently wrong. And an unmatched route
+    never reaches an interceptor at all, so every 404 went unlogged.
+  - Both are gone: request logging moved to `res.on('finish')` in the middleware, which fires for
+    every response including unmatched routes and reads the status actually sent. Verified
+    500/`error`, 404/`warn`, 200/`info`. This **removed** the interceptor rather than adding to it.
+- **Redaction covers structured fields, not free text.** Pino redacts by path, so a `password`
+  field is censored but a secret interpolated into an exception _message_ is not — as the probe
+  above showed, `secret=hunter2` reached the server log inside the message string. It never
+  reaches the client, but `BR-626` is only fully honoured if nobody writes a secret into an error
+  message. A `PH-0.16` lint rule could catch the obvious cases; noted, not built.
+- `SENTRY_DSN` is optional and unset. The tracker reports `errorTracking: "disabled (no
+SENTRY_DSN)"` at boot. No credential was requested, stored or echoed.
 
 ---
 

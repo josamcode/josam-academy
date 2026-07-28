@@ -4,14 +4,14 @@
 > Read this file and `STATUS.md` at the start of every session, before anything else.
 > Update the task queue in §5 at the end of every task, in the same commit as the work.
 
-| Field               | Value                                       |
-| ------------------- | ------------------------------------------- |
-| **Repository**      | `josam-academy`                             |
-| **Domain**          | `josamacademy.com`                          |
-| **Current phase**   | Phase 0 — Foundation                        |
-| **Scope authority** | `docs/16-task-breakdown.md`, Phase 0 only   |
-| **Last updated**    | 2026-07-29                                  |
-| **Updated after**   | `PH-0.6` — Prisma 7 probed, empty migration |
+| Field               | Value                                     |
+| ------------------- | ----------------------------------------- |
+| **Repository**      | `josam-academy`                           |
+| **Domain**          | `josamacademy.com`                        |
+| **Current phase**   | Phase 0 — Foundation                      |
+| **Scope authority** | `docs/16-task-breakdown.md`, Phase 0 only |
+| **Last updated**    | 2026-07-29                                |
+| **Updated after**   | `PH-0.19` — Pino, correlation IDs, Sentry |
 
 ---
 
@@ -155,7 +155,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.16` | **Fitness functions**: boundaries, dependency-cruiser, custom lint rules                                                                                                                                                |  A   | `0.2`          | 1.5 |   ⬜   |      — | Deliberate violations fail CI (verified)             |
 | `PH-0.17` | Primitives: `Text` `Heading` `Stack` `Inline` `Grid` `Box` `Icon` `Surface`                                                                                                                                             |  A   | `0.14`, `0.15` | 1.5 |   ⬜   |      — | Off-scale values are type errors                     |
 | `PH-0.18` | Architectural: `T` `Bidi` `Money` `Num` `Percent` `Duration` `When` `CopyableId`                                                                                                                                        |  A   | `0.13`, `0.17` |   1 |   ⬜   |      — | Bilingual + LTR isolation verified                   |
-| `PH-0.19` | Structured logging (Pino) with correlation IDs; Sentry wiring                                                                                                                                                           |  A   | `0.3`          | 0.5 |   ⬜   |      — | Request traced end to end                            |
+| `PH-0.19` | Structured logging (Pino) with correlation IDs; Sentry wiring                                                                                                                                                           |  A   | `0.3`          | 0.5 |   ✅   |    0.4 | Request traced end to end — id in log + body         |
 | `PH-0.20` | `Button` `IconButton` all variants and states                                                                                                                                                                           |  A   | `0.17`         | 0.5 |   ⬜   |      — | 5 states in Storybook                                |
 | `PH-0.21` | `Form` + `FormField` (label, hint, required, error, ARIA)                                                                                                                                                               |  A   | `0.17`         |   1 |   ⬜   |      — | Focus-first-error and dirty tracking work            |
 | `PH-0.22` | Text fields: `TextField` `TextArea` `PasswordField` `NumberField` `CurrencyField` `CodeField`                                                                                                                           |  A   | `0.21`         |   1 |   ⬜   |      — | All with counters and states                         |
@@ -166,7 +166,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.27` | Feedback: `Toast` `InlineAlert` `Dialog` `ConfirmDialog` `Drawer` `Popover` `Tooltip` `DropdownMenu` `Skeleton` `ProgressBar` `ProgressRing` `EmptyState` `ErrorState` `OfflineBanner` `ReadOnlyBanner` `QueryBoundary` |  A   | `0.17`         |   2 |   ⬜   |      — | `QueryBoundary` requires all three states            |
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified from a clean database               |
 
-**Progress: 6 / 28 · 21.4%** · Estimated total 19.0 d · Actual to date 1.9 d
+**Progress: 7 / 28 · 25.0%** · Estimated total 19.0 d · Actual to date 2.3 d
 
 > **The Redis health indicator is registered in the same task that installs `ioredis` — never
 > "later" (`SB-16`).** `11 §API-21` lists `redis` among the `GET /health` checks. `PH-0.6` built

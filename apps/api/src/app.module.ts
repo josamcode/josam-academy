@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { HealthModule } from './modules/health/health.module.js';
+import { ObservabilityModule } from './shared/common/observability.module.js';
 import { DatabaseModule } from './shared/database/database.module.js';
 
 /**
@@ -10,6 +11,6 @@ import { DatabaseModule } from './shared/database/database.module.js';
  * imported here as each is built. Phase 0 has infrastructure only; it has no domain.
  */
 @Module({
-  imports: [DatabaseModule, HealthModule],
+  imports: [ObservabilityModule, DatabaseModule, HealthModule],
 })
 export class AppModule {}

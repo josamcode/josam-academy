@@ -1,0 +1,13 @@
+{
+  "//": [
+    "Emit config. Identical to tsconfig.json except that specs are excluded from dist/.",
+    "",
+    "The split exists because the two consumers want different file sets. ESLint's project",
+    "service and the editor need specs INCLUDED or they cannot be type-aware linted — excluding",
+    "them produced 'was not found by the project service'. The build needs them EXCLUDED, or",
+    "compiled .spec.js files land in dist/ and vitest then runs every test twice, once from",
+    "source and once from output. Both were observed at PH-0.19."
+  ],
+  "extends": "./tsconfig.json",
+  "exclude": ["dist", "node_modules", "**/*.spec.ts"]
+}
