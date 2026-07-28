@@ -14,8 +14,11 @@ import prettierConfig from 'eslint-config-prettier';
  * Boundaries, dependency-cruiser and the custom rules are PH-0.16, not here.
  *
  * @param {string} tsconfigRootDir Pass `import.meta.dirname` from the consuming workspace.
+ * @param {{allowDefaultProject?: string[]}} [options] Package-root TypeScript files that are
+ *   deliberately outside the workspace tsconfig — see the note on `allowDefaultProject` below.
  */
-export function base(tsconfigRootDir) {
+export function base(tsconfigRootDir, options = {}) {
+  const allowDefaultProject = options.allowDefaultProject ?? [];
   return tseslint.config(
     {
       // Build output is never linted. `.next/**` and `storybook-static/**` are here rather than
@@ -29,6 +32,8 @@ export function base(tsconfigRootDir) {
         'node_modules/**',
         '.next/**',
         'storybook-static/**',
+        // Prisma 7 generates its client into src/, so it is inside the linted tree.
+        '**/generated/prisma/**',
       ],
     },
 
@@ -63,7 +68,21 @@ export function base(tsconfigRootDir) {
       files: ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts'],
       languageOptions: {
         parserOptions: {
-          projectService: true,
+          /**
+           * A workspace names its own package-root TypeScript files here, and only if it has
+           * any — apps/api passes `prisma.config.ts`, which cannot join its tsconfig `include`
+           * without breaking `rootDir: src`. Such a file is still linted, just against the
+           * default project rather than the app's.
+           *
+           * It has to be opt-in per workspace rather than a blanket glob: apps/web's tsconfig
+           * already includes `next.config.ts`, and listing a file that IS in the project is
+           * itself an error ("was included by allowDefaultProject but also was found in the
+           * project service"). Caught at PH-0.6.
+           *
+           * Keep the entries free of `**`. Only a package-root file belongs here; a nested
+           * source file missing from `include` must fail loudly, not be quietly absorbed.
+           */
+          projectService: allowDefaultProject.length === 0 ? true : { allowDefaultProject },
           tsconfigRootDir,
         },
       },

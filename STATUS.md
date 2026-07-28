@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.5` execution)                                                                                                                                                                       |
+| **Updated by**     | AI (`PH-0.6` execution)                                                                                                                                                                       |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.5` complete                                                                                                                                                        |
-| **Next task**      | `PH-0.6` — Prisma init, connection, first empty migration (`10 §1`)                                                                                                                           |
+| **Current task**   | _None in progress_ — `PH-0.6` complete                                                                                                                                                        |
+| **Next task**      | `PH-0.7` — VPS hardening runbook, authored from `14 §12` (type B)                                                                                                                             |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |  Done | Status         |
 | ----------------------- | ------: | ----: | -------------- |
-| **0 — Foundation**      |      28 |     5 | 🟡 In progress |
+| **0 — Foundation**      |      28 |     6 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |     0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |     0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |     0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |     0 | ⬜ Not started |
 | 6 — Mobile              |      16 |     0 | ⬜ Not started |
 | 7 — Growth              |      14 |     0 | ⬜ Not started |
-| **Total**               | **191** | **5** | **2.6%**       |
+| **Total**               | **191** | **6** | **3.1%**       |
 
 **Milestones**
 
@@ -91,6 +91,86 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.6 — Prisma init, connection, first empty migration
+
+**By:** AI
+**Time:** estimated 0.5 d → actual 0.45 d
+**Output:**
+
+- `apps/api/prisma/schema.prisma` — **no models, no enums, no tables.** The entity design is
+  `10 §2` onward and belongs to Phase 1. The header records the `10 §1` conventions the schema
+  will follow when Phase 1 adds to it (prefixed ULIDs as TEXT, `TIMESTAMPTZ` UTC, money as minor
+  units, bilingual `JSONB`).
+- `prisma.config.ts` (Prisma 7's config file), `prisma/migrations/20260728221812_init/` —
+  a genuinely empty migration, 30 bytes: `-- This is an empty migration.`
+- `src/shared/database/` — `PrismaService`, `DatabaseModule`, `DatabaseHealthIndicator`.
+- `src/probes/prisma.probe.ts` — a permanent guard, like the DI probe, run on the compiled
+  artifact.
+- Scripts: `db:migrate` (`prisma migrate deploy`), `db:migrate:dev`, `db:generate`,
+  `probe:prisma`. `build` is now `prisma generate && tsc`.
+- Pinned exactly: prisma / @prisma/client / @prisma/adapter-pg **7.9.1**, pg **8.22.0**,
+  dotenv **17.2.4**.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **`pnpm db:migrate` succeeds — the task Output** — and was proven against a _genuinely empty_
+  database, not just a no-op: dropped `_prisma_migrations`, confirmed `public` held `(none)`,
+  then `db:migrate` → `The following migration(s) have been applied: 20260728221812_init` ·
+  `All migrations have been successfully applied.` `_prisma_migrations` then showed
+  `20260728221812_init|t`, and domain tables were still **`(none)`**.
+- **Prisma 7 generates against an empty schema.** This was the founder's explicit question:
+  `prisma generate` → `Generated Prisma Client (7.9.1) to .\src\generated\prisma in 44ms`.
+  **No table had to be invented.**
+- **`BR-1816` probe passed on all three parts**, executed on the compiled output:
+  `module system at runtime = CommonJS` · `SELECT 1 = 1` ·
+  `server = PostgreSQL 16.14` · `PRISMA PROBE PASSED`.
+- **`BR-1580` verified by inspection, not assumed.** Every file importing Prisma or the generated
+  client: `src/shared/database/prisma.service.ts` and `src/probes/prisma.probe.ts` — nothing
+  else. No controller and no domain service imports Prisma, and nothing above
+  `shared/database` names a `PrismaClient` or `Prisma.*` type.
+- **`/health` now reports a real dependency**: `{"status":"ok","checks":{"database":"ok"},...}`,
+  `http 200`, with `[PrismaService] database connected` in the boot log. The check is a live
+  `SELECT 1` round trip, not a cached `$connect()` result.
+- `pnpm build` → 5/5 · `pnpm lint` → 6/6 · `pnpm typecheck` → 5/5 · `pnpm test` → 6/6 ·
+  `format:check` clean · `probe:di` still passes.
+
+**Diverged:**
+
+1. **Prisma 7 requires a driver adapter.** It removed the built-in connection path, so
+   `new PrismaClient()` no longer accepts a URL — it takes `@prisma/adapter-pg` over the `pg`
+   driver. This is the substantive Prisma 7 change and it added two dependencies. **It does not
+   touch `BR-1580`**: the adapter is constructed inside `PrismaService` and is invisible above
+   `shared/database`, which is exactly what the boundary is for. Prisma 7 therefore **stands** —
+   no fallback to Prisma 6. `SB-09` closes.
+2. **`prisma migrate dev` will not create a migration when the schema has no changes** — it
+   reports `Already in sync`. The empty migration was created with `--create-only`, which is the
+   documented way to get one, and then applied through `migrate deploy`. Recorded so the next
+   person does not conclude the pipeline is broken.
+3. **The generated client lives in `src/generated/prisma`** (Prisma 7 no longer writes to
+   `node_modules/.prisma`), so it is inside the linted and compiled tree. It is gitignored as
+   build output, excluded from ESLint, and `build` runs `prisma generate` first so a clean
+   checkout compiles.
+4. **`prisma init` also wrote `.claude/`, `.agents/`, `.windsurf/` skill directories and
+   `skills-lock.json` into `apps/api`.** Removed — Prisma does not get to install agent tooling
+   into this repository as a side effect of scaffolding a schema.
+5. **ESLint's `allowDefaultProject` is now an opt-in parameter** on the shared config.
+   `prisma.config.ts` sits at the package root and cannot join `apps/api`'s tsconfig `include`
+   without breaking `rootDir: src`. A blanket glob was the obvious fix and is wrong: `apps/web`
+   already includes `next.config.ts`, and naming a file that IS in the project is itself an error.
+   So each workspace declares its own. Proven load-bearing — removing the argument reproduces
+   the parse error, restoring it returns lint to 6/6.
+
+**Notes:**
+
+- The database is reachable only on `127.0.0.1:55432` (`PH-0.5`); `DATABASE_URL` in the
+  gitignored `.env` points there. `.env.example` carries the documented-port version.
+- `PrismaService` throws by name, never by value, when `DATABASE_URL` is missing (`BR-943`).
+- Still **not** met, and not claimed: the Phase 0 exit criterion that `/health` reports database,
+  Redis, queue, storage and last backup. `database` is real now; Redis has no client until its
+  first consumer, queue is Phase 1, `last_backup` is `PH-0.28`.
 
 ---
 
@@ -486,7 +566,7 @@ functioning in TypeScript 7.0`, exit 2.
 | ID      | Item                                                                                                                                                                                                                                                                                                                                                                                                                   | Reason deferred                                                                                                                                           | Revisit at                                                  |
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | `SB-08` | **Component library census.** `12 §20.12` states **134** total components; a full census of `§20.4`–`§20.10` enumerates **151** distinct names. Wave 2 (44) and Wave 3 (28) counts have never been reconciled against any enumeration either. Wave 1 is settled at 69 (`SB-04`); only the downstream totals are unverified.                                                                                            | Outside Phase 0 authorisation, and blocks nothing before Wave 2. Recorded as `BR-1813`.                                                                   | **Phase 0 exit**                                            |
-| `SB-09` | **Prisma 7 pin is provisional.** Prisma 7 is a rewrite. Pinned provisionally pending a probe at `PH-0.6` against the NestJS CommonJS build, the generated client location, and the repository-only pattern (`BR-1580`). Fallback is the latest Prisma 6.                                                                                                                                                               | Cannot be settled before `PH-0.6` exists to probe against. Recorded as `BR-1816`.                                                                         | **`PH-0.6`**                                                |
+| `SB-09` | ~~**Prisma 7 pin is provisional.**~~ **Closed at `PH-0.6`: all three probe parts passed on the compiled CJS artifact. Prisma 7.9.1 stands; no fallback to 6. The one real change — a required driver adapter — is contained inside `shared/database` and does not touch `BR-1580`.**                                                                                                                                   | Resolved.                                                                                                                                                 | ✅ **Closed `PH-0.6`**                                      |
 | `SB-11` | **13 dangling BR references** — rules cited but never written (`docs/BR-REGISTRY.md §5`). Most are off-by-1000 typos the author already annotated inline. **`BR-895`–`BR-899` are the exception**: they are not typos, they are citations to rules that were never authored, and `PH-0.16` is scheduled to enforce two of them (layer direction; no vendor SDK outside `providers/`).                                  | Each needs an authoring decision by the founder, not an inferred fix. Correcting them is a multi-document pass outside current authorisation (`BR-1824`). | **`PH-0.16`** for `BR-895`–`899`; Phase 0 exit for the rest |
 | `SB-12` | **Six document headers declare BR ranges that do not match their contents** (`docs/BR-REGISTRY.md §3`). `13` declared a range overlapping 114 live rules in `14` — this caused a real collision during this session.                                                                                                                                                                                                   | `BR-REGISTRY.md §3`/`§4` is now the allocation authority, so the wrong headers are documented rather than trusted. Fixing them is a six-document edit.    | **Phase 0 exit**                                            |
 | `SB-10` | **Deferred version pins.** ~20 dependencies are recorded in `13 §18.2` as dated observations, explicitly non-binding. Each is pinned by the phase that installs it.                                                                                                                                                                                                                                                    | Pinning a Phase 6 dependency in Phase 0 uses information that will be seven months stale and violates `13 §1` filter 4. Recorded as `BR-1814`, `BR-1815`. | **each named phase**                                        |

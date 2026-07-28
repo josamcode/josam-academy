@@ -6,8 +6,12 @@ packages:
 # convenience — a package allowed to run install scripts can run arbitrary code on this machine
 # and in CI.
 #
-#   sharp   — Next.js's image optimiser; needs its native binary built (PH-0.4).
-#   esbuild — the bundler under Vite and Storybook 10; ships a platform binary (PH-0.4 probe).
+#   sharp           — Next.js's image optimiser; needs its native binary built (PH-0.4).
+#   esbuild         — the bundler under Vite and Storybook 10; ships a platform binary (PH-0.4).
+#   prisma          — the CLI; prepares its query engine (PH-0.6).
+#   @prisma/engines — downloads the query engine binary itself (PH-0.6).
 allowBuilds:
+  '@prisma/engines': true
   esbuild: true
+  prisma: true
   sharp: true

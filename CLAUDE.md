@@ -4,14 +4,14 @@
 > Read this file and `STATUS.md` at the start of every session, before anything else.
 > Update the task queue in §5 at the end of every task, in the same commit as the work.
 
-| Field               | Value                                     |
-| ------------------- | ----------------------------------------- |
-| **Repository**      | `josam-academy`                           |
-| **Domain**          | `josamacademy.com`                        |
-| **Current phase**   | Phase 0 — Foundation                      |
-| **Scope authority** | `docs/16-task-breakdown.md`, Phase 0 only |
-| **Last updated**    | 2026-07-29                                |
-| **Updated after**   | `PH-0.5` — local Docker stack             |
+| Field               | Value                                       |
+| ------------------- | ------------------------------------------- |
+| **Repository**      | `josam-academy`                             |
+| **Domain**          | `josamacademy.com`                          |
+| **Current phase**   | Phase 0 — Foundation                        |
+| **Scope authority** | `docs/16-task-breakdown.md`, Phase 0 only   |
+| **Last updated**    | 2026-07-29                                  |
+| **Updated after**   | `PH-0.6` — Prisma 7 probed, empty migration |
 
 ---
 
@@ -166,7 +166,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.27` | Feedback: `Toast` `InlineAlert` `Dialog` `ConfirmDialog` `Drawer` `Popover` `Tooltip` `DropdownMenu` `Skeleton` `ProgressBar` `ProgressRing` `EmptyState` `ErrorState` `OfflineBanner` `ReadOnlyBanner` `QueryBoundary` |  A   | `0.17`         |   2 |   ⬜   |      — | `QueryBoundary` requires all three states      |
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified from a clean database         |
 
-**Progress: 5 / 28 · 17.9%** · Estimated total 19.0 d · Actual to date 1.45 d
+**Progress: 6 / 28 · 21.4%** · Estimated total 19.0 d · Actual to date 1.9 d
 
 > **`PH-0.10` must run lint by BOTH paths — `turbo run lint` _and_ a single root-level
 > `eslint` invocation over changed files, the way the pre-commit hook does.** They are not
@@ -256,7 +256,7 @@ Identical across `engines` · `packageManager` · `.nvmrc` · CI Node matrix · 
 - Every `tsconfig` uses `moduleResolution: "nodenext"` or `"bundler"`. TS 6 rejects `"node"` with `TS5107` (`BR-1806`).
 - TypeScript stays at **6.0.3** until `typescript-eslint` supports TS 7 — TS 7 silently disables typed linting, which is how `BR-1579` is enforced (`BR-1805`).
 - `.gitignore` must contain `.turbo/` — Turborepo's local cache lives in `.turbo/cache`.
-- **Prisma 7 is provisional** — probe at `PH-0.6` before pinning; fall back to Prisma 6 if it fails (`BR-1816`, `SB-09`).
+- **Prisma 7 confirmed at `PH-0.6`** — all three `BR-1816` probe parts passed; 7.9.1 stands. It requires a driver adapter (`@prisma/adapter-pg`), contained inside `shared/database` (`SB-09` closed).
 - **Next.js 16** is the decision, gated on a `PH-0.4` probe: route groups · ISR · Tailwind 4 binding · Storybook 10 + a11y addon. If any fails, report and hold at 15.x — do not work around (`BR-1809`).
 
 ### BR numbering

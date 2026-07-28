@@ -5,10 +5,11 @@ import { base } from './base.js';
  * ESLint config for Node runtime workspaces — apps/api (NestJS).
  *
  * @param {string} tsconfigRootDir Pass `import.meta.dirname` from the consuming workspace.
+ * @param {{allowDefaultProject?: string[]}} [options] Forwarded to base().
  */
-export function node(tsconfigRootDir) {
+export function node(tsconfigRootDir, options = {}) {
   return [
-    ...base(tsconfigRootDir),
+    ...base(tsconfigRootDir, options),
     {
       files: ['**/*.ts'],
       languageOptions: {

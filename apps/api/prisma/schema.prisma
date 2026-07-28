@@ -1,0 +1,27 @@
+// Josam Academy — Prisma schema.
+//
+// PH-0.6 establishes the connection and the migration pipeline. It defines NO models: the
+// entity design is 10 §2 onward and belongs to Phase 1. An empty schema is the honest state
+// of a database that has no domain yet, and it proves the pipeline works without pretending
+// the domain exists.
+//
+// Conventions this schema will follow when Phase 1 adds to it (10 §1):
+//   - prefixed ULIDs stored as TEXT (DEC-29), never bare UUIDs
+//   - TIMESTAMPTZ, always UTC (BR-825); created_at / updated_at on every table
+//   - money as INTEGER minor units + CHAR(3) currency (BR-826)
+//   - bilingual text as JSONB {"ar": ..., "en": ...} (BR-827)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+
+  // apps/api is CommonJS — required by NestJS 11 and emitDecoratorMetadata. Prisma 7's
+  // prisma-client generator emits ESM by default, which a CJS build cannot require().
+  // Probed at PH-0.6 per BR-1816.
+  moduleFormat = "cjs"
+  runtime      = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
