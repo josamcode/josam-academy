@@ -28,12 +28,39 @@ export interface ColorTokens {
   accentHover: string;
   accentPressed: string;
   accentSubtle: string;
-  accentForeground: string;
 
+  /**
+   * The foreground that pairs with `accent` — a **dark** foreground in both themes (`SB-18`).
+   *
+   * This replaces the former `accentForeground`, which was white in light mode and measured
+   * 3.83:1 on the light accent: the primary button failed `BR-1216`. White cannot pass 4.5:1
+   * without darkening the gold until it reads brown, which would destroy the identity the design
+   * rests on. Dark mode was already using a dark foreground, so light mode was the inconsistent
+   * one — not the hex values.
+   *
+   * The rule is uniform: `accentContrast` is the theme's own darkest text colour.
+   * Components reference this token, never white and never a hex (`BR-1219`, `BR-1220`).
+   */
+  accentContrast: string;
+
+  /**
+   * Status colours come in pairs (`SB-18`). One value cannot serve both roles: `#CA8A04` measured
+   * 2.84:1 on the light base — below the 3:1 UI-boundary threshold — and could never reach 4.5:1
+   * as text.
+   *
+   *   `success`     — surfaces, borders, icons. Clears **3:1** against `bgBase`.
+   *   `successText` — status text on `bgBase`. Clears **4.5:1**.
+   *
+   * Darkened only as far as each threshold requires, with hue held fixed (within 0.1°).
+   */
   success: string;
+  successText: string;
   warning: string;
+  warningText: string;
   danger: string;
+  dangerText: string;
   info: string;
+  infoText: string;
 }
 
 /** `12 §3.1`. Near-black with a blue cast, not dead black. */
@@ -56,12 +83,19 @@ export const darkColors: ColorTokens = {
   accentHover: '#F0BE63',
   accentPressed: '#D19E3C',
   accentSubtle: '#2A2115',
-  accentForeground: '#0A0A0B',
+  accentContrast: '#0A0A0B', // 10.124:1 on accent
 
-  success: '#4ADE80',
-  warning: '#FBBF24',
-  danger: '#F87171',
-  info: '#60A5FA',
+  // Every dark-mode status colour already clears both thresholds against the near-black base, so
+  // the surface and text tokens hold the same value. They remain two tokens rather than one
+  // shared token: a component must not have to know which theme makes them equal.
+  success: '#4ADE80', // 11.357:1 on bgBase
+  successText: '#4ADE80', // 11.357:1
+  warning: '#FBBF24', // 11.855:1
+  warningText: '#FBBF24', // 11.855:1
+  danger: '#F87171', // 7.154:1
+  dangerText: '#F87171', // 7.154:1
+  info: '#60A5FA', // 7.784:1
+  infoText: '#60A5FA', // 7.784:1
 };
 
 /**
@@ -89,12 +123,18 @@ export const lightColors: ColorTokens = {
   accentHover: '#916814',
   accentPressed: '#7A5710',
   accentSubtle: '#FBF4E4',
-  accentForeground: '#FFFFFF',
+  accentContrast: '#18181B', // 4.627:1 on accent — was #FFFFFF at 3.83:1, which failed BR-1216
 
-  success: '#16A34A',
-  warning: '#CA8A04',
-  danger: '#DC2626',
-  info: '#2563EB',
+  // SB-18. Only `warning` needed its surface moved; `success` and `warning` both needed a
+  // separate, darker text value. `danger` and `info` already cleared 4.5:1 as published.
+  success: '#16A34A', // 3.183:1 on bgBase — unchanged from 12 §3.2
+  successText: '#12843C', // 4.618:1 — darkened from #16A34A, hue held at 142.1°
+  warning: '#C18404', // 3.087:1 — darkened from #CA8A04 (2.837:1), hue 40.6° → 40.5°
+  warningText: '#9A6903', // 4.614:1 — darkened further, same hue
+  danger: '#DC2626', // 4.664:1 — unchanged
+  dangerText: '#DC2626', // 4.664:1 — already clears the text threshold
+  info: '#2563EB', // 4.992:1 — unchanged
+  infoText: '#2563EB', // 4.992:1 — already clears the text threshold
 };
 
 export const themes = { dark: darkColors, light: lightColors } as const;

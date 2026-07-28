@@ -466,6 +466,8 @@ until then the version is fixed but not yet installed. Every entry is re-verifie
 |---|---|---|---|---|
 | NestJS | 10+ | **11.1.28** | `PH-0.3` | Floor satisfied |
 | Pino | 9+ | **10.3.1** | `PH-0.19` | Floor satisfied |
+| `@sentry/node` | — | **10.68.0** | `PH-0.19` | Error tracking (`§8`, `08 §12`). Inert without `SENTRY_DSN`; the DSN is founder-held and never committed. |
+| `ulid` | — | **3.0.2** | `PH-0.19` | Correlation IDs (`11 §1.5` `req_01H…`). Was deferred in `§18.2` "at first use"; this was first use. |
 | Zod | 3+ | **4.4.3** | `PH-0.3` | **Env validation only** (`§9`, `BR-943`). Shared/API schema use is Phase 1 and re-decided there. |
 | Prisma / `@prisma/client` / `@prisma/adapter-pg` | 5+ | **7.9.1 — confirmed** | `PH-0.6` | Probe passed. ⚠️ Requires a **driver adapter** (`pg` 8.22.0) — see `BR-1819` |
 | `ioredis` | — | **5.11.1** | `PH-0.5` | |
