@@ -1,5 +1,6 @@
 import './globals.css';
 
+import { DEFAULT_LOCALE, directionOf } from '@josam/i18n';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
@@ -13,15 +14,16 @@ export const viewport: Viewport = {
 };
 
 /**
- * PH-0.4 scaffold root layout.
+ * Root layout.
  *
- * `lang` and `dir` are hardcoded here only because packages/i18n does not exist until PH-0.13.
- * They become locale-driven there — RTL is a first-class direction, not an afterthought
- * (BR-1232), so this element is where that lands.
+ * `lang` and `dir` are driven by @josam/i18n as of PH-0.13. The locale is fixed to the default
+ * here; resolving it per request from the URL segment and the user's preference is Phase 1 work,
+ * but the direction is already derived rather than written, so switching the locale switches the
+ * document direction with it (BR-1232, BR-1237).
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" dir="ltr">
+    <html lang={DEFAULT_LOCALE} dir={directionOf(DEFAULT_LOCALE)}>
       <body>{children}</body>
     </html>
   );

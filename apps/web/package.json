@@ -23,6 +23,7 @@
     "tailwindcss": "4.3.3"
   },
   "dependencies": {
+    "@josam/i18n": "workspace:*",
     "@josam/tokens": "workspace:*",
     "next": "16.2.12",
     "react": "19.2.8",

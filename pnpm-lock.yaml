@@ -120,6 +120,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@josam/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@josam/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens

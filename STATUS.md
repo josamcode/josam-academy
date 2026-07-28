@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.12` execution)                                                                                                                                                                      |
+| **Updated by**     | AI (`PH-0.13` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.12` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.13` — `packages/i18n`: AR/EN catalogs, 6-form Arabic plurals, locale utils (`BR-525`)                                                                                                   |
+| **Current task**   | _None in progress_ — `PH-0.13` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.14` — Tailwind 4 bound to tokens; no palette utilities available (`0.12`)                                                                                                               |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |  Done | Status         |
 | ----------------------- | ------: | ----: | -------------- |
-| **0 — Foundation**      |      28 |     8 | 🟡 In progress |
+| **0 — Foundation**      |      28 |     9 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |     0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |     0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |     0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |     0 | ⬜ Not started |
 | 6 — Mobile              |      16 |     0 | ⬜ Not started |
 | 7 — Growth              |      14 |     0 | ⬜ Not started |
-| **Total**               | **191** | **8** | **4.2%**       |
+| **Total**               | **191** | **9** | **4.7%**       |
 
 **Milestones**
 
@@ -91,6 +91,67 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.13 — `packages/i18n`: AR/EN catalogs, 6-form Arabic plurals, locale utils
+
+**By:** AI
+**Time:** estimated 1.0 d -> actual 0.4 d
+**Output:**
+
+- `src/catalogs/ar.ts` — Arabic, authored first, and the file that **defines the key space**.
+  `export type MessageKey = keyof typeof ar` is how `BR-524`'s "a missing Arabic string is a
+  build-time failure" is actually enforced: a key absent from Arabic is not a valid type, so no
+  call site can reference it. There is no runtime check to forget.
+- `src/catalogs/en.ts` — typed `Partial<Record<MessageKey, Message>>`. A missing English string
+  is legal and falls back to Arabic; a key English invents does not compile. The asymmetry _is_
+  the rule.
+- `src/message.ts` — the six CLDR forms, with `other` required and the rest optional, because
+  CLDR guarantees only `other`. `src/translate.ts` — named-variable interpolation and plural
+  selection. `src/format.ts` — `Intl` number / percent / money / date. `src/locale.ts` —
+  locale, direction, and the `latn` numbering pin.
+- `apps/web/app/layout.tsx` now derives `lang` and `dir` from the package.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **Interpolation and plurals tested — the task Output. 48 passing specs.**
+- **All six Arabic forms proven reachable, not merely declared**: 0 -> zero, 1 -> one, 2 -> two,
+  3 and 10 -> few, 11 and 99 -> many, 100 -> other, each asserted against the rendered Arabic
+  string. `Intl.PluralRules('ar').resolvedOptions().pluralCategories` returns all six;
+  English returns exactly `one, other`.
+- Interpolation: multiple occurrences, numeric values, and a **throw** on a missing variable
+  rather than rendering `{name}` to a learner.
+- `BR-1226` — Arabic output contains no Arabic-Indic digits for numbers, money, dates or
+  percentages. `Intl` defaults `ar` to `٠-٩`, so every formatter pins `-u-nu-latn`.
+- `BR-826` — `formatMoney` takes integer minor units and uses the **currency's own exponent**:
+  EGP 12345 -> `123.45`, JOD 12345 -> `12.345`, JPY 12345 -> `12,345`. A non-integer amount
+  throws instead of rounding quietly.
+- **`<html lang="ar" dir="rtl">` in the built output**, derived from `directionOf()` rather than
+  written by hand.
+- `pnpm build` 5/5 · `pnpm lint` 8/8 · `pnpm typecheck` 7/7 · `pnpm test` 8/8.
+
+**Diverged:** none.
+
+**Notes:**
+
+- **A real trap, found by a failing test rather than by review.** The English catalog originally
+  carried a `zero` form for `selection.count`. CLDR English has no `zero` category —
+  `Intl.PluralRules('en').select(0)` returns `other` — so that entry would have looked correct in
+  the catalog and never rendered. Removed, and `catalog.spec.ts` now asserts that **no catalog
+  declares a form its own locale can never select**, so it cannot come back quietly. A friendlier
+  empty state is a UI concern for the component that renders it, not for the plural machinery.
+- `catalog.spec.ts` also enforces: every category the locale _can_ select is supplied, `other` is
+  always present, no entry is blank, no plural `other` hardcodes a digit instead of `{count}`,
+  every English key has an Arabic source, and every key is namespaced.
+- **`next-intl` is not needed** — `13 §18.2` suspected as much and it is now confirmed:
+  `Intl.PluralRules` reaches all six Arabic categories natively, and `Intl.NumberFormat` /
+  `Intl.DateTimeFormat` cover `BR-526`. That deferred pin can be struck rather than decided.
+- Phase 0 seeds infrastructure strings only — the `11 §1.5` error envelope and form-validation
+  messages the Wave-1 fields need. Domain copy arrives with the features that own it.
+- `PH-0.19` left `BR-1113` (bilingual error objects) open pending this catalog. The Arabic and
+  English error strings now exist; wiring the API filter to them needs `shared/i18n`, which is
+  Phase 1.
 
 ---
 

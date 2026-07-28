@@ -1,4 +1,8 @@
 {
+  "//": [
+    "Specs are INCLUDED here so ESLint's project service can type-aware lint them, and EXCLUDED",
+    "from tsconfig.build.json so they never reach dist/. Same split as apps/api and tokens."
+  ],
   "extends": "@josam/config/tsconfig/library.json",
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]
