@@ -1,3 +1,13 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# pnpm blocks postinstall scripts by default. Each entry here is a deliberate decision, not a
+# convenience — a package allowed to run install scripts can run arbitrary code on this machine
+# and in CI.
+#
+#   sharp   — Next.js's image optimiser; needs its native binary built (PH-0.4).
+#   esbuild — the bundler under Vite and Storybook 10; ships a platform binary (PH-0.4 probe).
+allowBuilds:
+  esbuild: true
+  sharp: true

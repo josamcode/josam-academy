@@ -3,8 +3,8 @@
  * CI (PH-0.10) is what runs the full gate.
  */
 export default {
-  '*.{ts,tsx,mts,cts}': ['eslint --fix --max-warnings=0', 'prettier --write'],
-  '*.{js,mjs,cjs}': ['eslint --fix --max-warnings=0', 'prettier --write'],
+  '*.{ts,tsx,mts,cts}': ['eslint --fix --max-warnings=0 --no-warn-ignored', 'prettier --write'],
+  '*.{js,mjs,cjs}': ['eslint --fix --max-warnings=0 --no-warn-ignored', 'prettier --write'],
   '*.css': ['stylelint --fix', 'prettier --write'],
   '*.{json,md,yaml,yml}': ['prettier --write'],
 };

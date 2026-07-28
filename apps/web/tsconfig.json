@@ -1,8 +1,19 @@
 {
-  "extends": "@josam/config/tsconfig/library.json",
+  "extends": "@josam/config/tsconfig/base.json",
   "compilerOptions": {
-    "lib": ["ES2024", "DOM", "DOM.Iterable"]
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "incremental": true,
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "plugins": [{ "name": "next" }],
+    "paths": { "@/*": ["./*"] }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".storybook/**/*.ts"],
+  "exclude": ["node_modules", ".next", "dist"]
 }

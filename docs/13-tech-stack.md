@@ -85,8 +85,8 @@ Five filters. A tool must pass all five.
 
 | Concern | Choice | Version | Rationale |
 |---|---|---|---|
-| Framework | **Next.js** | 15 (App Router) | SSG/ISR for public pages, CSR for authenticated surfaces (`DEC-17`), and admin inside the same app (`DEC-16`). |
-| UI runtime | **React** | 19 | Required by Next 15. |
+| Framework | **Next.js** | 16 (App Router) | SSG/ISR for public pages, CSR for authenticated surfaces (`DEC-17`), and admin inside the same app (`DEC-16`). |
+| UI runtime | **React** | 19 | Required by Next 16. |
 | Styling | **Tailwind CSS** | 4 | Utility layer bound to our tokens (`DEC-34`). v4's CSS-first config maps cleanly to the token package. |
 | Component behavior | **Radix Primitives** | latest | Unstyled behavior and ARIA (`DEC-39`). Never exposed to feature code (`BR-1528`). |
 | Server state | **TanStack Query** | 5+ | Caching, invalidation, request cancellation, and background refresh — the mechanics `§17.17` requires. |
@@ -445,7 +445,7 @@ until then the version is fixed but not yet installed. Every entry is re-verifie
 
 | Concern | Documented | Pinned | Pinned at | Note |
 |---|---|---|---|---|
-| Next.js | 15 *(bare major)* | **16.2.12 — pending probe** | `PH-0.4` | Founder decision: adopt 16. Probe and document correction happen at `PH-0.4` (`BR-1809`). |
+| Next.js | 15 *(bare major)* | **16.2.12 — probe passed** | `PH-0.4` | Adopted. All four probe parts verified at `PH-0.4`; `§4` corrected to 16 (`BR-1809`). |
 | React | 19 *(bare major)* | **19.2.8** | `PH-0.4` | Within the stated major |
 | Tailwind CSS | 4 *(bare major)* | **4.3.3** | `PH-0.14` | Within the stated major |
 | Storybook | 8+ | **10.5.5** | `PH-0.15` | Floor satisfied |

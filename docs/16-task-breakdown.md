@@ -50,7 +50,7 @@ Refs        the documents that specify it
 | `PH-0.1` | Initialize monorepo: pnpm workspaces, Turborepo, base `tsconfig` | — | 0.5 | `pnpm build` succeeds across empty apps | `13 §2` |
 | `PH-0.2` | Shared config package: ESLint flat config, Stylelint, Prettier | `0.1` | 0.5 | `pnpm lint` runs in every workspace | `13 §9` |
 | `PH-0.3` | Scaffold `apps/api` (NestJS) with health endpoint | `0.1` | 0.5 | `GET /health` returns 200 locally | `08 §4` |
-| `PH-0.4` | Scaffold `apps/web` (Next.js 15, App Router, route groups) | `0.1` | 0.5 | Public and admin route groups render | `09 §7.1` |
+| `PH-0.4` | Scaffold `apps/web` (Next.js 16, App Router, route groups) | `0.1` | 0.5 | Public and admin route groups render | `09 §7.1` |
 | `PH-0.5` | Docker Compose: Postgres 16 + pgvector, Redis 7, MailHog | `0.1` | 0.5 | `docker compose up` gives a working local stack | `13 §12` |
 | `PH-0.6` | Prisma init, connection, first empty migration | `0.5` | 0.5 | `pnpm db:migrate` succeeds | `10 §1` |
 | `PH-0.7` | **VPS hardening**: SSH keys, disable root, fail2ban, ufw, unattended-upgrades | — | 1 | Documented runbook committed | `14 §12` |

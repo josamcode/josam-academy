@@ -18,7 +18,18 @@ import prettierConfig from 'eslint-config-prettier';
 export function base(tsconfigRootDir) {
   return tseslint.config(
     {
-      ignores: ['dist/**', 'coverage/**', '.turbo/**', 'node_modules/**'],
+      // Build output is never linted. `.next/**` and `storybook-static/**` are here rather than
+      // in apps/web because a generated artifact is not a workspace's private problem — the same
+      // rule holds wherever it appears. Added at PH-0.4, when `next build` first produced output
+      // and eslint dutifully reported `require()` imports inside Turbopack's own chunks.
+      ignores: [
+        'dist/**',
+        'coverage/**',
+        '.turbo/**',
+        'node_modules/**',
+        '.next/**',
+        'storybook-static/**',
+      ],
     },
 
     {

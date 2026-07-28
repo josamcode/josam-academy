@@ -4,15 +4,27 @@
   "private": true,
   "type": "module",
   "description": "Next.js web app (learner + admin). Scaffolded at PH-0.4.",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "next build",
+    "dev": "next dev --port 3000",
+    "start": "next start --port 3000",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests"
   },
   "devDependencies": {
-    "@josam/config": "workspace:*"
+    "@josam/config": "workspace:*",
+    "@storybook/addon-a11y": "10.5.5",
+    "@storybook/nextjs-vite": "10.5.5",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "storybook": "10.5.5",
+    "tailwindcss": "4.3.3"
+  },
+  "dependencies": {
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   }
 }

@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.3` execution)                                                                                                                                                                       |
+| **Updated by**     | AI (`PH-0.4` execution)                                                                                                                                                                       |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.3` complete                                                                                                                                                        |
-| **Next task**      | `PH-0.4` — Scaffold `apps/web` (Next.js 16, App Router, route groups) (`09 §7.1`)                                                                                                             |
+| **Current task**   | _None in progress_ — `PH-0.4` complete                                                                                                                                                        |
+| **Next task**      | `PH-0.5` — Docker Compose: Postgres 16 + pgvector, Redis 7, MailHog (`13 §12`)                                                                                                                |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |  Done | Status         |
 | ----------------------- | ------: | ----: | -------------- |
-| **0 — Foundation**      |      28 |     3 | 🟡 In progress |
+| **0 — Foundation**      |      28 |     4 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |     0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |     0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |     0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |     0 | ⬜ Not started |
 | 6 — Mobile              |      16 |     0 | ⬜ Not started |
 | 7 — Growth              |      14 |     0 | ⬜ Not started |
-| **Total**               | **191** | **3** | **1.6%**       |
+| **Total**               | **191** | **4** | **2.1%**       |
 
 **Milestones**
 
@@ -91,6 +91,72 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.4 — Scaffold `apps/web` (Next.js 16, App Router, route groups)
+
+**By:** AI
+**Time:** estimated 0.5 d → actual 0.35 d
+**Output:**
+
+- `apps/web` is a Next 16 App Router application with the four route groups of `09 §7.1`:
+  `(public)` → `/` and `/catalog`, `(auth)` → `/login`, `(learner)` → `/dashboard`,
+  `(admin)` → `/admin`, plus `app/api/` reserved as the BFF proxy (`BR-922`).
+- `next.config.ts` (`typedRoutes`, strict mode), `postcss.config.mjs`, `app/globals.css`,
+  `.storybook/` and one probe story.
+- Pins, all re-verified live and all equal to registry latest: next **16.2.12** ·
+  react / react-dom **19.2.8** · @types/react **19.2.17** · tailwindcss **4.3.3** ·
+  storybook **10.5.5** (+ `@storybook/nextjs-vite`, `@storybook/addon-a11y`).
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **All four parts of the `BR-1809` probe passed. Next 16 is adopted; no hold at 15.x.**
+  1. **Route groups render** — server started, all five paths returned `200` with the correct
+     `data-route-group` marker: `/` public · `/admin` admin · `/catalog` public ·
+     `/dashboard` learner · `/login` auth. This is the task Output.
+  2. **ISR works** — the `next build` route table classifies `/catalog` as `Revalidate 1m`,
+     `Expire 1y`. Proven by the build's own classification, not by the presence of the export.
+  3. **Tailwind 4 binds** — emitted CSS (4,295 bytes) contains `.grid`, `.gap-4`, `.p-8`, carries
+     the v4 `@layer theme/base/components/utilities` signature, and does **not** contain `.p-99`
+     — so it is really scanning source, not dumping a stylesheet.
+  4. **Storybook 10 + the a11y addon run against Next 16** — `storybook build` →
+     `Storybook build completed successfully`, and `axe-CL1FvwTe.js` (579 kB) is in the output,
+     which is the engine `BR-1571` depends on.
+- `pnpm build` → 5/5 · `pnpm lint` → 6/6 · `pnpm typecheck` → 5/5 · `pnpm test` → 6/6.
+
+**Diverged:**
+
+1. **`13 §4` corrected 15 → 16**, and "Required by Next 15" → "Next 16"; `§18.1` now reads
+   "16.2.12 — probe passed"; the `PH-0.4` row corrected in `16` and in `CLAUDE.md`. This is the
+   document correction `BR-1809` requires on adoption, executed under founder pre-authorisation.
+2. **Two lint defects found and fixed properly, not disabled.** ESLint linted Turbopack's own
+   generated chunks in `.next/` (`require()` imports, unused `exports`) — `.next/**` and
+   `storybook-static/**` went into the **shared** ignore list, since a build artifact is not one
+   workspace's private problem. And `.storybook/*.ts` sat outside the tsconfig project, so
+   type-aware parsing failed on it — added to `include` rather than excluded from linting.
+3. **`CatalogPage` was `async` with no `await`** (`require-await`). Made synchronous. Worth
+   recording because the reflex would have been to disable the rule; the function simply did not
+   need to be async.
+4. **`pnpm-workspace.yaml` gains an `allowBuilds` block** — `sharp` (Next's image optimiser) and
+   `esbuild` (under Vite and Storybook). pnpm blocks install scripts by default, which is the
+   right default; each entry is an explicit decision to let a package run code on this machine
+   and in CI. `sharp` is an **optional** dependency of Next 16 and is not currently linked —
+   `next build` succeeds without it, so this is recorded rather than chased.
+
+**Notes:**
+
+- **Tailwind and Storybook are installed and proven, but `PH-0.14` and `PH-0.15` are NOT done.**
+  The probe `BR-1809` mandates could not be run without them. What exists is a working baseline:
+  Tailwind emits utilities but is **not yet bound to tokens** (`PH-0.14`, whose Output is that
+  `text-gray-500` stops being a valid class), and Storybook builds one throwaway probe story with
+  **no theme or direction toolbars** (`PH-0.15`, whose Output is stories rendering in four
+  combinations). `.storybook/` and `components/Probe.stories.tsx` are probe artifacts to be
+  replaced there. Recorded so a later session does not mistake a passing probe for a done task.
+- `app/layout.tsx` hardcodes `lang="en" dir="ltr"` because `packages/i18n` does not exist until
+  `PH-0.13`. That element is where locale and direction land (`BR-1232`).
+- Page copy is route markers, not user-facing strings — real copy comes through `packages/i18n`
+  (`BR-525`), and the fitness function that fails the build on a hardcoded string is `PH-0.16`.
 
 ---
 

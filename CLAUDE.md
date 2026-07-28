@@ -11,7 +11,7 @@
 | **Current phase**   | Phase 0 — Foundation                      |
 | **Scope authority** | `docs/16-task-breakdown.md`, Phase 0 only |
 | **Last updated**    | 2026-07-29                                |
-| **Updated after**   | `PH-0.3` — NestJS scaffold + health       |
+| **Updated after**   | `PH-0.4` — Next 16 scaffold, probe passed |
 
 ---
 
@@ -140,7 +140,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.1`  | Initialize monorepo: pnpm workspaces, Turborepo, base `tsconfig`                                                                                                                                                        |  A   | —              | 0.5 |   ✅   |   0.25 | `pnpm build` → 5 successful, 5 total            |
 | `PH-0.2`  | Shared config package: ESLint flat config, Stylelint, Prettier                                                                                                                                                          |  A   | `0.1`          | 0.5 |   ✅   |   0.25 | `pnpm lint` → 6 successful, 6 total (6/6 ws)    |
 | `PH-0.3`  | Scaffold `apps/api` (NestJS) with health endpoint                                                                                                                                                                       |  A   | `0.1`          | 0.5 |   ✅   |    0.4 | `GET /health` → 200 + DI probe passes           |
-| `PH-0.4`  | Scaffold `apps/web` (Next.js 15, App Router, route groups)                                                                                                                                                              |  A   | `0.1`          | 0.5 |   ⬜   |      — | Public and admin route groups render            |
+| `PH-0.4`  | Scaffold `apps/web` (Next.js 16, App Router, route groups)                                                                                                                                                              |  A   | `0.1`          | 0.5 |   ✅   |   0.35 | 5 route groups render 200; 4-part probe passed  |
 | `PH-0.5`  | Docker Compose: Postgres 16 + pgvector, Redis 7, MailHog                                                                                                                                                                |  A   | `0.1`          | 0.5 |   ⬜   |      — | `docker compose up` gives a working local stack |
 | `PH-0.6`  | Prisma init, connection, first empty migration                                                                                                                                                                          |  A   | `0.5`          | 0.5 |   ⬜   |      — | `pnpm db:migrate` succeeds                      |
 | `PH-0.7`  | **VPS hardening**: SSH keys, disable root, fail2ban, ufw, unattended-upgrades                                                                                                                                           |  B   | —              |   1 |   ⬜   |      — | Documented runbook committed                    |
@@ -166,7 +166,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.27` | Feedback: `Toast` `InlineAlert` `Dialog` `ConfirmDialog` `Drawer` `Popover` `Tooltip` `DropdownMenu` `Skeleton` `ProgressBar` `ProgressRing` `EmptyState` `ErrorState` `OfflineBanner` `ReadOnlyBanner` `QueryBoundary` |  A   | `0.17`         |   2 |   ⬜   |      — | `QueryBoundary` requires all three states       |
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified from a clean database          |
 
-**Progress: 3 / 28 · 10.7%** · Estimated total 19.0 d · Actual to date 0.9 d
+**Progress: 4 / 28 · 14.3%** · Estimated total 19.0 d · Actual to date 1.25 d
 
 > **`PH-0.10` must run lint by BOTH paths — `turbo run lint` _and_ a single root-level
 > `eslint` invocation over changed files, the way the pre-commit hook does.** They are not
