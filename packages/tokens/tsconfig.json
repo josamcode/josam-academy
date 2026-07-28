@@ -1,5 +1,16 @@
 {
+  "//": [
+    "build-css.ts is a Node script that emits dist/tokens.css, so this package needs node types.",
+    "It is not exported from index.ts, so a React Native consumer never pulls a node: import",
+    "through the public entry point.",
+    "",
+    "Specs are INCLUDED here so ESLint's project service can type-aware lint them, and EXCLUDED",
+    "from tsconfig.build.json so they never reach dist/. Same split as apps/api, same reason."
+  ],
   "extends": "@josam/config/tsconfig/library.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

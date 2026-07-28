@@ -120,6 +120,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@josam/tokens':
+        specifier: workspace:*
+        version: link:../../packages/tokens
       next:
         specifier: 16.2.12
         version: 16.2.12(@babel/core@7.29.7(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -196,6 +199,9 @@ importers:
       '@josam/config':
         specifier: workspace:*
         version: link:../config
+      '@types/node':
+        specifier: 24.13.3
+        version: 24.13.3
 
   packages/ui:
     devDependencies:
