@@ -146,7 +146,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.7`  | **VPS hardening**: SSH keys, disable root, fail2ban, ufw, unattended-upgrades                                                                                                                                           |  B   | —              |   1 |   ⬜   |      — | Documented runbook committed                    |
 | `PH-0.8`  | Cloudflare: DNS, proxied records, TLS, origin firewall rules                                                                                                                                                            |  B   | `0.7`          | 0.5 |   ⬜   |      — | Origin IP not publicly resolvable               |
 | `PH-0.9`  | Coolify setup, container memory limits per `08 §11.1`                                                                                                                                                                   |  B   | `0.7`          | 0.5 |   ⬜   |      — | Containers start with declared limits           |
-| `PH-0.10` | GitHub Actions: lint → typecheck → test → build → push to ghcr.io                                                                                                                                                       |  B   | `0.2`          |   1 |   ⬜   |      — | Push to main produces a tagged image            |
+| `PH-0.10` | GitHub Actions: lint → typecheck → test → build → push to ghcr.io                                                                                                                                                       |  B   | `0.2`          |   1 |   ⬜   |      — | Tagged image + lint run by BOTH paths (see ↓)   |
 | `PH-0.11` | Coolify deploy from registry + rollback by tag verification                                                                                                                                                             |  B   | `0.9`, `0.10`  | 0.5 |   ⬜   |      — | Deploy < 2 min; rollback verified               |
 | `PH-0.12` | `packages/tokens`: both themes → CSS vars + RN constants                                                                                                                                                                |  A   | `0.1`          |   1 |   ⬜   |      — | Token package consumed by web                   |
 | `PH-0.13` | `packages/i18n`: AR/EN catalogs, 6-form Arabic plurals, locale utils                                                                                                                                                    |  A   | `0.1`          |   1 |   ⬜   |      — | Interpolation and plurals tested                |
@@ -167,6 +167,13 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified from a clean database          |
 
 **Progress: 2 / 28 · 7.1%** · Estimated total 19.0 d · Actual to date 0.5 d
+
+> **`PH-0.10` must run lint by BOTH paths — `turbo run lint` _and_ a single root-level
+> `eslint` invocation over changed files, the way the pre-commit hook does.** They are not
+> equivalent: turbo runs `eslint .` inside each workspace (one TSConfig root), the hook runs it
+> once from the repository root across every workspace. The second path caught a real parser
+> defect at `PH-0.2` that the first structurally cannot see. A CI that only runs turbo goes green
+> on code the hook rejects, and the bug resurfaces in a pull request instead of locally.
 
 > **Estimate-ratio caution (`DEC-56`, `BR-1802`).** `PH-0.1` came in at half its estimate, but it
 > is a Type-A task executed by AI with every version already resolved by the pre-`PH-0.1` pass.
