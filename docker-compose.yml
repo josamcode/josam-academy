@@ -1,0 +1,59 @@
+name: josam-academy
+
+# Local development stack (13 §12). Ports match the table there: Postgres 5432, Redis 6379,
+# MailHog 8025.
+#
+# EVERY published port is bound to 127.0.0.1 explicitly, never 0.0.0.0. Docker publishes to all
+# interfaces by default and, on Linux, writes its own iptables rules that bypass ufw — so a
+# default `5432:5432` on the VPS would expose the database to the internet with the firewall
+# still reporting itself as closed. The same rule applies here so the local shape matches the
+# server shape and the habit is never formed (PH-0.7, 14 §12).
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.5-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-josam}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-josam_local_only}
+      POSTGRES_DB: ${POSTGRES_DB:-josam}
+      # Deterministic collation, so an index built locally behaves like one built on the server.
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --locale=C'
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-josam} -d ${POSTGRES_DB:-josam} -q']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  redis:
+    image: redis:7.4.10-alpine
+    restart: unless-stopped
+    # appendonly keeps queue state across a restart. BullMQ arrives in Phase 1; losing jobs to a
+    # `docker compose restart` would be a confusing first bug to meet there.
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '127.0.0.1:${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${MAILHOG_SMTP_PORT:-1025}:1025' # SMTP sink
+      - '127.0.0.1:${MAILHOG_UI_PORT:-8025}:8025' # web UI
+    # BR-1596 / DEC-47 — no developer ever sends real email locally. Everything the application
+    # sends lands here and nowhere else.
+
+volumes:
+  postgres-data:
+  redis-data:

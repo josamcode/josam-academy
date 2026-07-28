@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.4` execution)                                                                                                                                                                       |
+| **Updated by**     | AI (`PH-0.5` execution)                                                                                                                                                                       |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.4` complete                                                                                                                                                        |
-| **Next task**      | `PH-0.5` — Docker Compose: Postgres 16 + pgvector, Redis 7, MailHog (`13 §12`)                                                                                                                |
+| **Current task**   | _None in progress_ — `PH-0.5` complete                                                                                                                                                        |
+| **Next task**      | `PH-0.6` — Prisma init, connection, first empty migration (`10 §1`)                                                                                                                           |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |  Done | Status         |
 | ----------------------- | ------: | ----: | -------------- |
-| **0 — Foundation**      |      28 |     4 | 🟡 In progress |
+| **0 — Foundation**      |      28 |     5 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |     0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |     0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |     0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |     0 | ⬜ Not started |
 | 6 — Mobile              |      16 |     0 | ⬜ Not started |
 | 7 — Growth              |      14 |     0 | ⬜ Not started |
-| **Total**               | **191** | **4** | **2.1%**       |
+| **Total**               | **191** | **5** | **2.6%**       |
 
 **Milestones**
 
@@ -57,11 +57,11 @@
 
 ## 3. Environments
 
-| Environment | URL                        | Status             | Notes                    |
-| ----------- | -------------------------- | ------------------ | ------------------------ |
-| Production  | `josamacademy.com`         | ⬜ Not provisioned | VPS exists, not hardened |
-| Local       | `localhost:3000` / `:4000` | ⬜ Not set up      | —                        |
-| Storybook   | `localhost:6006`           | ⬜ Not set up      | —                        |
+| Environment | URL                        | Status             | Notes                                                |
+| ----------- | -------------------------- | ------------------ | ---------------------------------------------------- |
+| Production  | `josamacademy.com`         | ⬜ Not provisioned | VPS exists, not hardened                             |
+| Local       | `localhost:3000` / `:4000` | 🟡 Partial         | api + web run; Docker stack healthy (127.0.0.1 only) |
+| Storybook   | `localhost:6006`           | ⬜ Not set up      | —                                                    |
 
 **Infrastructure state**
 
@@ -91,6 +91,59 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.5 — Docker Compose: Postgres 16 + pgvector, Redis 7, MailHog
+
+**By:** AI
+**Time:** estimated 0.5 d → actual 0.2 d
+**Output:**
+
+- `docker-compose.yml` — three services, pinned exactly: `pgvector/pgvector:0.8.5-pg16`,
+  `redis:7.4.10-alpine` (`--appendonly yes`), `mailhog/mailhog:v1.0.1`. Named volumes for
+  Postgres and Redis; healthchecks on both.
+- `.env.example` documenting the full environment shape, and `.env` (gitignored) for local values.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- `docker compose up -d` → all three started; `postgres healthy`, `redis healthy`.
+- **Postgres**: `PostgreSQL 16.14` — major 16 as `BR-1807` requires.
+- **pgvector actually works, not merely installed**: `create extension vector` →
+  `CREATE EXTENSION`, `extversion` → `0.8.5`, and a real operation —
+  `'[1,2,3]'::vector <-> '[1,2,4]'::vector` → `1`.
+- **Redis**: `Redis server v=7.4.10`, `PING` → `PONG`, `SET`/`GET` round-trip → `ok`.
+- **MailHog** web UI → `http 200`.
+- **Nothing is exposed beyond localhost — proven, not asserted.** All four published ports
+  listen on `127.0.0.1` and nothing else. From the host's own LAN address `172.20.128.1`,
+  every port was **unreachable** (`reachable=False` × 4); on `127.0.0.1` every port was
+  **reachable** (`reachable=True` × 4).
+
+**Diverged:**
+
+1. **Local host ports are overridden; the committed defaults are unchanged.** `13 §12`'s ports
+   are all occupied on this machine — 5432 by a **native PostgreSQL 18 install**
+   (`C:\Program Files\PostgreSQL\18\bin\postgres.exe`), 6379 and 8025 by other Docker
+   containers. `docker-compose.yml` still defaults to 5432 / 6379 / 8025 per `13 §12`; the
+   local gitignored `.env` maps them to 55432 / 56379 / 51025 / 58025. So the repository
+   matches the document and this machine still runs. The founder's own Postgres was not touched.
+2. **`ioredis` was not installed**, though `13 §18.1` lists it as pinned at `PH-0.5`. Nothing
+   connects to Redis yet — the first consumer is BullMQ in Phase 1, and `PH-0.19` for logging.
+   An unused dependency in a manifest is exactly what `PH-0.16`'s dependency-cruiser pass exists
+   to catch. Pinned at first use instead; the version in `§18.1` stands as the starting point.
+
+**Notes:**
+
+- **Why `127.0.0.1:` is written explicitly on every port.** Docker publishes to `0.0.0.0` by
+  default and, on Linux, inserts its own iptables rules **ahead of** ufw's. A plain
+  `5432:5432` on the VPS would expose the database to the internet while `ufw status` still
+  reported the port closed. Writing the interface here means the local shape matches the server
+  shape and the habit is never formed — this is the same rule `PH-0.7` will enforce.
+- `POSTGRES_INITDB_ARGS` sets `--locale=C` so an index built locally sorts the same way as one
+  built on the server.
+- MailHog reports no health status because the image carries no shell utilities to probe with;
+  the HTTP 200 above is the check. `mailhog/mailhog` is archived upstream — worth revisiting at
+  `PH-0.28` when mail delivery becomes real, but `13 §12` names it and it works.
 
 ---
 
