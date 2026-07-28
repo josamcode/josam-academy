@@ -1,7 +1,11 @@
 /*
  * BR-1583 — packages/tokens is the single source for colour, spacing, type, radius and motion.
- * The file below is generated; see packages/tokens/src/css.ts. Importing it before Tailwind so
- * the custom properties exist by the time PH-0.14 binds Tailwind's theme to them.
+ * Both files below are generated; see packages/tokens/src/css.ts.
+ *
+ * Order matters. tokens.css declares the custom properties, 'tailwindcss' brings the engine and
+ * its defaults, and tailwind.css deletes those defaults and binds the utility surface to our
+ * tokens. Import the theme layer before Tailwind and the defaults win (BR-1342).
  */
 @import url('@josam/tokens/tokens.css');
 @import url('tailwindcss');
+@import url('@josam/tokens/tailwind.css');

@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`SB-18` resolution)                                                                                                                                                                       |
+| **Updated by**     | AI (`PH-0.14` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.13` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.14` — Tailwind 4 bound to tokens; no palette utilities available (`0.12`)                                                                                                               |
+| **Current task**   | _None in progress_ — `PH-0.14` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.15` — Storybook with theme + direction toolbars, axe addon (`0.12`)                                                                                                                     |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -18,17 +18,17 @@
 
 ## 1. Progress
 
-| Phase                   |   Tasks |  Done | Status         |
-| ----------------------- | ------: | ----: | -------------- |
-| **0 — Foundation**      |      28 |     9 | 🟡 In progress |
-| 1 — Identity & Commerce |      32 |     0 | ⬜ Not started |
-| 2 — Content & Learning  |      34 |     0 | ⬜ Not started |
-| 3 — Operations & Launch |      26 |     0 | ⬜ Not started |
-| 4 — Motivation & Proof  |      22 |     0 | ⬜ Not started |
-| 5 — AI Mentor           |      18 |     0 | ⬜ Not started |
-| 6 — Mobile              |      16 |     0 | ⬜ Not started |
-| 7 — Growth              |      14 |     0 | ⬜ Not started |
-| **Total**               | **191** | **9** | **4.7%**       |
+| Phase                   |   Tasks |   Done | Status         |
+| ----------------------- | ------: | -----: | -------------- |
+| **0 — Foundation**      |      28 |     10 | 🟡 In progress |
+| 1 — Identity & Commerce |      32 |      0 | ⬜ Not started |
+| 2 — Content & Learning  |      34 |      0 | ⬜ Not started |
+| 3 — Operations & Launch |      26 |      0 | ⬜ Not started |
+| 4 — Motivation & Proof  |      22 |      0 | ⬜ Not started |
+| 5 — AI Mentor           |      18 |      0 | ⬜ Not started |
+| 6 — Mobile              |      16 |      0 | ⬜ Not started |
+| 7 — Growth              |      14 |      0 | ⬜ Not started |
+| **Total**               | **191** | **10** | **5.2%**       |
 
 **Milestones**
 
@@ -91,6 +91,49 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.14 — Tailwind 4 bound to tokens; no palette utilities available
+
+**By:** AI
+**Time:** estimated 0.5 d -> actual 0.3 d
+**Output:**
+
+- `packages/tokens` now emits a second generated file, `dist/tailwind.css` — the Tailwind 4
+  `@theme` layer, produced from the same TypeScript as `tokens.css` so the utility surface and
+  the custom properties cannot describe different systems.
+- `apps/web/app/globals.css` imports tokens, then `tailwindcss`, then the theme layer. Order is
+  load-bearing: import the theme layer first and Tailwind's defaults win.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **`text-gray-500` is not a valid class — the task Output — proven by deliberate violation.**
+  A component using `text-gray-500 bg-blue-600 border-red-300 text-slate-900 p-5 rounded-2xl
+text-9xl` was added, `next build` run, and the emitted stylesheet searched: **not one of the
+  seven produced a rule.** File removed afterwards.
+- Token-bound utilities do exist in the same build: `.bg-bg-base`, `.text-text-primary`,
+  `.gap-4`, `.p-8`.
+- 69 passing specs in `packages/tokens`, ten of them new and covering the generator.
+- `pnpm build` 5/5 · `pnpm lint` 8/8 · `pnpm typecheck` 7/7 · `pnpm test` 8/8.
+
+**Diverged:** none.
+
+**Notes:**
+
+- **`PH-0.14` makes the class not exist; it does not yet make it fail.** Writing `text-gray-500`
+  today is silent — no error, and no styling either. The build-failing fitness function is
+  `PH-0.16`, and `BR-1725` requires it to be proven by its own deliberate violation. Recorded so
+  the distinction is not mistaken for the rule already being enforced.
+- Colour uses `@theme inline`, scale uses `@theme`. `inline` emits `var(--accent)` into the
+  utility so `bg-accent` follows a runtime theme switch; resolved eagerly, every utility would
+  freeze to whichever theme compiled first and the `data-theme` toggle would move the custom
+  properties while the utilities ignored them.
+- Scale is emitted as literals for a second reason: Tailwind's font-size namespace is `--text-*`
+  and `12 §4.2` names our type tokens `--text-*` as well. As literals the two declarations agree;
+  as inline vars they would reference themselves.
+- `--spacing: initial` also removes Tailwind's _dynamic_ spacing, so `p-5` does not exist.
+  `12 §5`'s scale is deliberately gappy — 5 is not a step, so 20px must be unreachable.
 
 ---
 

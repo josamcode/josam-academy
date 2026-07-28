@@ -8,7 +8,7 @@
  */
 export default function PublicLandingPage() {
   return (
-    <main className="grid gap-4 p-8" data-route-group="public">
+    <main className="grid gap-4 p-8 bg-bg-base text-text-primary" data-route-group="public">
       public
     </main>
   );

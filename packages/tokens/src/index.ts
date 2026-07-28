@@ -32,4 +32,4 @@ export {
   type SpaceToken,
 } from './scale.js';
 
-export { generateCss } from './css.js';
+export { generateCss, generateTailwindTheme } from './css.js';
