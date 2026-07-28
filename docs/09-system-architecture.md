@@ -456,9 +456,10 @@ josam-academy/
 ├── packages/
 │   ├── contracts/         API types, DTOs, Zod schemas
 │   ├── abilities/         CASL definitions (BR-708)
+│   ├── ui/                component library (BR-1524, BR-1575)
 │   ├── tokens/            design tokens (BR-545)
 │   ├── i18n/              shared translation catalogs
-│   └── config/            shared tsconfig, eslint, prettier
+│   └── config/            shared tsconfig, eslint, stylelint, prettier
 ├── docs/                  this documentation set
 └── .github/workflows/     CI (BR-885)
 ```

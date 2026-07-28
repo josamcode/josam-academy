@@ -467,8 +467,12 @@ until then the version is fixed but not yet installed. Every entry is re-verifie
   declares `typescript: ">=4.8.4 <6.1.0"`. TypeScript 7 would silently disable type-aware linting,
   which is the mechanism that enforces `BR-1579`. The pin is raised only when `typescript-eslint`
   supports TypeScript 7. Verified against the registry, including the `canary` tag.
-- `BR-1806` — TypeScript 6 removes `moduleResolution: "node"` (node10). Every `tsconfig` in the
-  monorepo uses `nodenext` or `bundler`. Verified: a `node10` config fails with `TS5107`.
+- `BR-1806` — TypeScript 6 **errors** on `moduleResolution: "node"` (node10); TypeScript 7 removes
+  it outright. The error is silenceable with `ignoreDeprecations: "6.0"` — which `BR-1512`
+  prohibits — so within this repository the effect is identical to removal. Every `tsconfig` in the
+  monorepo uses `nodenext` or `bundler`. Verified at `PH-0.1` by compiling a deliberate `node10`
+  config under TS 6.0.3: `error TS5107: Option 'moduleResolution=node10' is deprecated and will
+  stop functioning in TypeScript 7.0`, **exit code 2**.
 - `BR-1807` — PostgreSQL is held at the documented major 16 (supported to November 2028).
   `pgvector` is available for 16, so nothing forces a move, and a database major upgrade is not
   Phase 0 work.
