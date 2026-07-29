@@ -129,3 +129,50 @@ export {
   TagsInput,
   type TagsInputProps,
 } from './fields/choice-composites.js';
+
+/**
+ * Time and file fields (PH-0.25). None is a Radix primitive — Radix has no date picker or file
+ * input — so each owns its keyboard contract outright.
+ */
+export {
+  DatePicker,
+  type DatePickerProps,
+  DurationField,
+  type DurationFieldProps,
+  formatDuration,
+  parseDuration,
+  TimestampField,
+  type TimestampFieldProps,
+} from './fields/time-fields.js';
+export {
+  FileDrop,
+  type FileDropLabels,
+  type FileDropProps,
+  ImageDrop,
+  type ImageDropProps,
+} from './fields/file-fields.js';
+export {
+  type AcceptCriteria,
+  type CropRect,
+  cropRectFor,
+  FILE_SIGNATURES,
+  formatBytes,
+  matchesAspect,
+  type RejectionReason,
+  type Size,
+  sniffMimeType,
+  validateFile,
+} from './fields/file-validation.js';
+export {
+  addDays,
+  addMonths,
+  type CalendarDay,
+  daysInMonth,
+  firstDayOfWeek,
+  hijriLabel,
+  isIsoDate,
+  type IsoDate,
+  monthGrid,
+  toIso,
+  weekdayNames,
+} from './fields/calendar.js';

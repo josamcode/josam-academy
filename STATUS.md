@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |   Done | Status         |
 | ----------------------- | ------: | -----: | -------------- |
-| **0 — Foundation**      |      28 |     20 | 🟡 In progress |
+| **0 — Foundation**      |      28 |     21 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |      0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |      0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |      0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |      0 | ⬜ Not started |
 | 6 — Mobile              |      16 |      0 | ⬜ Not started |
 | 7 — Growth              |      14 |      0 | ⬜ Not started |
-| **Total**               | **191** | **20** | **10.5%**      |
+| **Total**               | **191** | **21** | **11.0%**      |
 
 **Milestones**
 
@@ -220,6 +220,71 @@ placeholders only (`<SERVER_IP>`, `<ADMIN_USER>`, `<SSH_PORT>`, `<OLD_PORT>`, `<
 
 **Diverged:** none. `§11` lists what this task deliberately does not do and the task that owns
 each, so no gap is mistaken for coverage.
+
+---
+
+### 2026-07-29 · PH-0.25 — Time and file fields
+
+**By:** AI
+**Time:** estimated 1.5 d → actual 0.8 d
+**Output:** `packages/ui/src/fields/calendar.ts` — date arithmetic, no date library.
+`file-validation.ts` — byte-signature sniffing and crop arithmetic, both pure.
+`time-fields.tsx` — `DatePicker` `DurationField` `TimestampField`. `file-fields.tsx` —
+`FileDrop` `ImageDrop`. `time-file-fields.spec.tsx` (85 tests) · `time-file-fields.stories.tsx`
+(6 stories) · `src/intl-week-info.d.ts`.
+
+**Verified:** `pnpm lint` 9/9 · `pnpm typecheck` 8/8 · `pnpm test` 9/9 (`@josam/ui` 9 files,
+192 field tests) · `pnpm build` 5/5 · `pnpm verify:fitness` → **28 caught, 0 NOT caught**.
+
+**The RTL calendar, which is the task's stated proof.** Arrow keys on the day grid resolve against
+the document direction, asserted as a four-case table: in LTR `ArrowRight` is tomorrow, in RTL it
+is yesterday. This is the one behaviour in the component that logical CSS properties cannot fix,
+because it is not layout — the grid mirrors itself correctly either way; what changes is which key
+means "forward". Bound naively, the highlight moves opposite to the key in Arabic.
+
+The week also starts where the **locale** starts it, read from `Intl.Locale.getWeekInfo()`:
+Saturday for `ar-EG`, Sunday for `en-US`, Monday for `en-GB`. A hardcoded Monday would have been
+wrong in both of this product's languages.
+
+**Three defects the tests found, two of them mine from minutes earlier.**
+
+1. **`validateFile` let a disguised executable through — the exact case `BR-1467` exists for.**
+   The first version treated "these bytes match no known signature" as acceptable, so that files
+   of formats absent from the signature table would not be rejected. Correct for `text/csv`, and
+   it also passed a PE binary renamed `photo.png`, because `MZ` matches nothing. The right question
+   is not _did we recognise these bytes_ but _do we know what the declared type should look like_:
+   we know PNG, these bytes are not PNG, reject. Caught by the one test written specifically to
+   prove the rule was real rather than nominal.
+
+2. **`isIsoDate` accepted 30 February.** V8 does not return `Invalid Date` for
+   `2026-02-30T12:00:00Z` — it rolls the date to 2 March. So a `Number.isNaN(getTime())` check
+   passes, and an impossible date reads back later as a different, entirely plausible one. Fixed by
+   round-tripping: format the parsed date again and require it to equal the input.
+
+3. **`TimestampField`'s capture button announced the field label, not what it does.**
+   `aria-labelledby` on a `button` overrides its own text, so "Capture" became "Moment". The field
+   and the button are two different things with two different names; the wrapper is now a
+   `role="group"` carrying the field name, and the button names itself. Same root cause as
+   `PH-0.24`'s `Slider`: naming wired onto the wrong element looks complete and says the wrong
+   thing.
+
+**Two lint findings that removed code rather than adding it.**
+`jsx-a11y/no-static-element-interactions` rejected the drop zone as a `div` with drag handlers —
+correctly, since a div carrying drop handling is reachable by pointer only. Making it a real
+`<label>` wrapping the file input gave click-anywhere for pointer users and `Enter`/`Space` for
+keyboard users natively, which **deleted** the separate browse button. `interactive-supports-focus`
+rejected `role="grid"` with a key handler on a never-focusable container; moving the handler to the
+cells, which do carry the roving `tabIndex`, is also the correct ARIA pattern rather than a
+concession. axe then caught the grid having no `row` elements at all — `aria-required-children` and
+`aria-required-parent` — which the flat version had hidden behind an identical appearance.
+
+**One `eslint-disable` reached for and removed (`BR-1512`, second instance after `SB-20`).**
+Typing `Intl.Locale.getWeekInfo` requires the `namespace` keyword, which
+`@typescript-eslint/no-namespace` rejects. I wrote a disable, then checked whether the rule was
+actually right: it was — a namespace in application code usually is wrong, and the rule allows
+definition files precisely because ambient declarations are the legitimate exception. The
+declaration moved to `src/intl-week-info.d.ts`, where it needs no disable and is easier to find and
+delete when TypeScript's `lib` catches up.
 
 ---
 
@@ -1528,6 +1593,7 @@ functioning in TypeScript 7.0`, exit 2.
 
 | ID          | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Reason deferred                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Revisit at                                                                                                                   |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `SB-28`     | **`BR-1544` is honoured by `PH-0.25`'s five fields only.** Every field must support `readOnly` and `disabled` **distinctly**, and `disabled` must carry a reason (`BR-1347`). `PH-0.25` implements this as a discriminated `Availability` union, so omitting `disabledReason` is a type error. The sixteen fields from `PH-0.22`–`PH-0.24` take a plain `disabled?: boolean` and have no `readOnly` at all.                                                                                                                                                                                                                                                                                            | Not retrofitted here: the change is a one-line type swap per component but ripples through every story and spec of three completed tasks, and rewriting committed tasks inside an unrelated one is how a scope boundary stops meaning anything. Recorded rather than done, so it is the founder's call. The fix is mechanical — export the `Availability` union from a shared module and swap each field's `disabled?: boolean`; the type error then finds every call site. **Not** caught by any fitness function today, which is the reason it needs a date rather than a note.                       | **Phase 0 exit** — before the roster is declared complete                                                                    |
 | `SB-26`     | **A patched dependency (`patches/jsdom@30.0.0.patch`) and the geometry it does not restore.** jsdom's `getComputedStyle` throws on any `calc()` mixing a percentage with a length; the patch adds the missing null guard. Separately, `packages/ui/vitest.setup.ts` shims `ResizeObserver`, `scrollIntoView` and pointer capture, none of which jsdom can implement without a layout engine.                                                                                                                                                                                                                                                                                                           | The patch is upstream-correct and should be **dropped when jsdom ships the fix** — `src/test-environment.spec.tsx` exists so its absence fails loudly rather than as a stack trace inside `node_modules`. The shims are deliberately **inert**, so component specs prove semantics, keyboard operation, ARIA wiring and value flow, and prove **nothing** about popover placement, scroll-into-view or viewport collision. That surface is covered only by Storybook in a real browser, which is why a green `pnpm test` is not by itself evidence that a floating control is positioned correctly.     | **Phase 0 exit** — recheck jsdom upstream; **`PH-0.27`** depends on it most (`Popover`, `Tooltip`, `DropdownMenu`, `Drawer`) |
 | `SB-27`     | **`jsx-a11y/control-has-associated-label` is scoped off for `packages/ui/src/fields/**`.** `FormField` owns the `<label htmlFor>` and each field body owns the control carrying the matching id, so the association is real at runtime and structurally invisible to a rule that reads one JSX tree at a time.                                                                                                                                                                                                                                                                                                                                                                                         | Scoping a rule is indistinguishable from disabling it unless the remaining coverage is proven, so fitness case **28** asserts the rule still fails a build in `apps/web`. The compensating controls inside the scope are stronger than the rule: `useFormField()` throws outside a `FormField`, every field spec locates its control with `getByLabelText` (which resolves through the accessibility tree), and axe runs over all four theme/direction combinations. Revisit if a field body is ever written that does **not** go through `FormField` — at that point the scope is wrong, not the rule. | **Phase 0 exit**                                                                                                             |
 | `SB-23`     | **`08 §11.1`'s memory budget is invalid on a shared box.** It allocates 6.9 GB of 8 GB to Josam Academy with 1.1 GB headroom — the whole machine, leaving nothing for the client stack already running on it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | `PH-0.9` must recalculate against **actual free headroom** and record the split. It must **not** apply limits to the client containers; they are not this project's to constrain. Real risk to state plainly: the client containers are **unlimited**, so under pressure the OOM killer is likelier to select one of ours _because_ ours declares a limit. Declaring limits is still correct (`BR-878`); it just does not protect us from growth on the other side. Sizing conservatively is the only mitigation available.                                                                             | **`PH-0.9`**                                                                                                                 |
