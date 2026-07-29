@@ -541,6 +541,24 @@ TS
 check "root-level lint sees workspace files" "pnpm lint:hook" "BR-855|no-restricted-syntax"
 rm -f packages/ui/src/__violation.ts
 
+# ── 37. BR-1838 — renovate.json is validated, not assumed ────────────────────────────────
+# Renovate REJECTS unknown keys rather than ignoring them. `_comment` fields added for readability
+# stopped the bot dead: it opened a configuration-error issue, opened no PRs, and the repository
+# had a dependency policy that existed only as a file nobody had run anything against.
+#
+# The same shape as the Prisma failure one level out: a config that has never been validated is
+# not a config that works. This puts the exact rejected key back and requires it to fail.
+hr; echo "37. BR-1838 — an invalid renovate.json fails the build"
+cp renovate.json renovate.json.bak
+node -e '
+  const fs = require("fs");
+  const config = JSON.parse(fs.readFileSync("renovate.json", "utf8"));
+  config._comment = "an invented key — Renovate rejects rather than ignores this";
+  fs.writeFileSync("renovate.json", JSON.stringify(config, null, 2));
+'
+check "invalid renovate key" "pnpm check:renovate" "Invalid configuration option|_comment"
+mv -f renovate.json.bak renovate.json
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

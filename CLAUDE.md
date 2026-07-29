@@ -151,7 +151,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.7`  | **VPS hardening**: SSH keys, disable root, fail2ban, ufw, unattended-upgrades                                                                                                                                           |  B   | —              |   1 |   ✅   |    0.3 | Executed; output pasted back; port 8000 open         |
 | `PH-0.8`  | Cloudflare: DNS, proxied records, TLS, origin firewall rules                                                                                                                                                            |  B   | `0.7`          | 0.5 |   ⬜   |      — | Origin IP not publicly resolvable                    |
 | `PH-0.9`  | **Coolify already installed** — verify, rotate admin credential, unbind from 0.0.0.0, firewall it, apply `08 §11.1` memory limits                                                                                       |  B   | `0.7`          | 0.5 |   ⬜   |      — | Limits RECALCULATED for a shared box (SB-23)         |
-| `PH-0.10` | GitHub Actions: lint → typecheck → test → build → push to ghcr.io                                                                                                                                                       |  B   | `0.2`          |   1 |   ✅   |   0.95 | Run #3 green; both images pullable by SHA tag        |
+| `PH-0.10` | GitHub Actions: lint → typecheck → test → build → push to ghcr.io                                                                                                                                                       |  B   | `0.2`          |   1 |   ✅   |   1.15 | Run #3 green; both images pullable by SHA tag        |
 | `PH-0.11` | Coolify deploy from registry + rollback by tag verification                                                                                                                                                             |  B   | `0.9`, `0.10`  | 0.5 |   ⬜   |      — | Deploy < 2 min; rollback verified                    |
 | `PH-0.12` | `packages/tokens`: both themes → CSS vars + RN constants                                                                                                                                                                |  A   | `0.1`          |   1 |   ✅   |    0.4 | Tokens in web bundle; 40 specs incl. contrast        |
 | `PH-0.13` | `packages/i18n`: AR/EN catalogs, 6-form Arabic plurals, locale utils                                                                                                                                                    |  A   | `0.1`          |   1 |   ✅   |    0.4 | 48 specs; all six AR forms proven reachable          |
@@ -172,7 +172,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified; scope = Josam DB only (SB-24)      |
 | `PH-0.29` | **`BR-1544` conformance** — `readOnly`/`disabled` distinct on all 24 fields, `disabled` carrying a reason, plus a fitness function                                                                                      |  A   | `0.27`         | 0.5 |   ✅   |   0.45 | Bare `disabled?: boolean` fails lint (case 33)       |
 
-**Progress: 25 / 29 · 86.2%** · Estimated total 19.5 d · Actual to date 13.55 d authored + founder execution
+**Progress: 25 / 29 · 86.2%** · Estimated total 19.5 d · Actual to date 13.75 d authored + founder execution
 
 > **The Redis health indicator is registered in the same task that installs `ioredis` — never
 > "later" (`SB-16`).** `11 §API-21` lists `redis` among the `GET /health` checks. `PH-0.6` built
@@ -186,8 +186,11 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 > caught it at any point**. Fixed as `postinstall`, not a CI step — a CI-only fix repairs CI and
 > leaves a clean clone broken, which is the divergence that caused it.
 >
-> **Still founder-side: install Renovate.** `renovate.json` is committed and enforces nothing until
-> the GitHub App is enabled (`docs/runbooks/ci-pipeline.md` step 5).
+> **Renovate is installed.** Its first act was to reject `renovate.json` — `_comment` keys, which
+> Renovate rejects rather than ignores, so it opened an issue and no PRs. Rewritten with
+> `description` (a real option, and one that reaches the PR body), validated by
+> `pnpm check:renovate` in CI, and proven by fitness case 37. Same shape as `BR-1838`: a config
+> that has never been validated is not a config that works.
 
 > **`PH-0.10` runs `pnpm verify:fitness` in CI** (`BR-1831`) — done. The deliberate-violation suite
 > is what makes the 17 fitness functions trustworthy, and three of them were _silently dead_ when
@@ -205,7 +208,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 > 2 controls · 2 form · 24 fields · 9 layout/navigation · 16 feedback. All 22 Type-A tasks are
 > done. What remains in Phase 0 is the five founder-gated infrastructure tasks — `PH-0.8`, `0.9`,
 > `0.10`, `0.11`, `0.28` — plus the exit criteria in §7, which include **re-running**
-> `pnpm verify:fitness` (36 cases) rather than re-reading this line (`BR-1832`).
+> `pnpm verify:fitness` (37 cases) rather than re-reading this line (`BR-1832`).
 
 > **Estimate-ratio caution (`DEC-56`, `BR-1802`).** `PH-0.1` came in at half its estimate, but it
 > is a Type-A task executed by AI with every version already resolved by the pre-`PH-0.1` pass.
@@ -270,7 +273,7 @@ Phase 0 is not done until **all** of these are true and evidenced.
 ☐ Every story passes axe in both themes and both directions
 ☐ Fitness functions active: boundaries · tokens · logical properties
     · hardcoded strings · prohibited copy terms
-☐ `pnpm verify:fitness` (36 cases) RE-RUN at exit — not re-read — and every case still caught
+☐ `pnpm verify:fitness` (37 cases) RE-RUN at exit — not re-read — and every case still caught
     (`BR-1832`). The recorded table in STATUS.md §4 is evidence of a past run, never
     a substitute for a present one (`BR-1768`).
 ☐ All 20 checks in `12 §19` reconciled: active, or recorded against the task that

@@ -20,6 +20,21 @@ allowBuilds:
   esbuild: true
   prisma: true
   sharp: true
+  # The three below arrive with `renovate`, installed at PH-0.10 for `renovate-config-validator`.
+  # All three are DENIED: none is needed to parse and validate a config file, and each would run
+  # native compilation on every install, in CI and inside the Docker deps stage.
+  #
+  #   core-js-pure    — its install script only prints a funding notice.
+  #   dtrace-provider — optional native tracing for bunyan; absent, logging still works.
+  #   re2             — a native regex engine renovate uses for untrusted patterns. Without it
+  #                     renovate falls back to JS RegExp, which is irrelevant here: we run the
+  #                     validator, never the bot.
+  #
+  # Denying rather than approving is the whole point of this list. Proven by running the validator
+  # after the denial — fitness case 37.
+  core-js-pure: false
+  dtrace-provider: false
+  re2: false
 
 minimumReleaseAgeExclude:
   - jsdom@30.0.1

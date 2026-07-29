@@ -223,6 +223,51 @@ each, so no gap is mistaken for coverage.
 
 ---
 
+### 2026-07-29 · PH-0.10 (fix 2) — renovate.json was never validated
+
+**By:** AI
+**Time:** +0.2 d (`PH-0.10` running total 1.15 d against 1.0 estimated)
+
+**What failed.** Renovate installed, then opened an **issue** rather than a PR:
+`Invalid configuration option: _comment`, eleven times. Renovate **rejects unknown keys rather
+than ignoring them**, so the eleven `_comment` fields I had added for readability did not degrade
+the policy — they stopped the bot dead. No dependency PRs, no auto-merges, nothing.
+
+**The property that matters, and it is the same one as run #2.** Every gate in this repository
+stayed green throughout. The file is valid JSON, prettier formats it, nothing imports it, and no
+check existed that would ever ask Renovate what it thought. The repository had a dependency policy
+that existed as a file and as nothing else — `BR-1830`'s shape in a config file: loaded, apparently
+healthy, enforcing nothing.
+
+**Fixed with `description`**, which is a real Renovate option valid in the root config and in every
+`packageRule` — and which appears **in the PR body**, where the person reviewing an update will
+actually read the reasoning. That is strictly better than a comment key: the reasoning now reaches
+its audience instead of only the file. Also corrected `labels` → `addLabels` in the package rules,
+so a rule's labels add to the defaults rather than replacing them, and `schedule: null` →
+`schedule: []` on `vulnerabilityAlerts`.
+
+**Validated before pushing, not after.** `renovate` is now an exact-pinned root devDependency for
+its `renovate-config-validator`, wired in as `pnpm check:renovate`, run in CI and folded into the
+`fitness` script. The validator reproduced the founder's eleven errors exactly before the rewrite
+and passes after it.
+
+**Fitness case 37** puts the rejected key back and requires the build to fail — because a validator
+in CI that has never been shown to reject anything is the next instance of the same problem.
+`37 caught, 0 NOT caught`.
+
+**Three native builds denied, not approved.** `renovate` drags in `core-js-pure`,
+`dtrace-provider` and `re2`, and pnpm errored rather than silently skipping them. All three are
+denied in `pnpm-workspace.yaml`: none is needed to parse a config file, and each would compile
+natively on every install including inside the Docker deps stage. Proven by running the validator
+after denying them. Cost measured rather than assumed: 19 MB in the store, and the API image grew
+875 MB → 881 MB, since the runtime stage installs with `--prod` and carries no devDependencies.
+
+**Recorded under `BR-1838`** in `12 §19.1` as its third instance, generalising the rule from
+_generated_ state to _unexercised_ state: a config file that has never been validated by the tool
+that consumes it is not a config file that works. If a tool ships a validator, it runs in CI.
+
+---
+
 ### 2026-07-29 · PH-0.10 — ✅ DONE. Run #3 green, both images published
 
 **Verified on GitHub, not locally** (`BR-1768`). Run

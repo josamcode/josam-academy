@@ -1222,8 +1222,24 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
      PASS against a tree that could not lint**. A cache that does not know about an input cannot
      know the input is missing.
 
+  A third instance arrived from the other direction at the same task, and generalises the rule past
+  *generated* state to **unexercised** state. `renovate.json` was written, committed, reviewed and
+  pushed without ever being run through Renovate's own validator. It contained `_comment` keys
+  invented for readability; Renovate **rejects unknown keys rather than ignoring them**, so it
+  opened a configuration-error issue, opened no dependency PRs, and stopped. The repository had a
+  dependency policy that existed as a file and as nothing else.
+
+  That failure is invisible from inside the repository. Every gate stayed green — the file is valid
+  JSON, prettier formats it, nothing imports it — while the mechanism it configures did nothing at
+  all. It is `BR-1830`'s shape in a config file: loaded, apparently healthy, enforcing nothing. The
+  fix is the same one: `renovate-config-validator` runs in CI, and fitness case **37** puts the
+  rejected key back and requires the build to fail.
+
   What follows:
 
+  - **A config file that has never been validated by the tool that consumes it is not a config
+    file that works.** If a tool ships a validator, it runs in CI. If it does not, the config is
+    exercised some other way before it is trusted.
   - Generated artifacts are produced by **installing**, not by remembering to run a command.
     `prisma generate` belongs in `postinstall`, so "installed" implies "generated" in CI, in a
     clean clone, in the Docker image and in an editor. A CI-only step fixes CI and leaves the

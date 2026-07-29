@@ -117,6 +117,13 @@ jobs:
       - name: Check module boundaries
         run: pnpm check:deps
 
+      - name: Validate the Renovate config
+        # Renovate REJECTS unknown keys rather than ignoring them, so an invalid config does not
+        # degrade into a weaker policy — it stops the bot dead with a configuration-error issue and
+        # opens no PRs at all. That failure is invisible from inside the repository: everything
+        # here stays green while the dependency policy quietly does nothing (`BR-1838`).
+        run: pnpm check:renovate
+
       - name: Check translation catalogs
         # `BR-524` — Arabic defines the key space, so a missing Arabic string must not compile and
         # an English key with no Arabic counterpart is a catalog that lies about its coverage.

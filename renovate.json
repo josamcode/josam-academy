@@ -2,12 +2,15 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended", ":semanticCommits"],
 
-  "_comment": [
+  "description": [
     "PH-0.10. This file implements the policy in 13 §16.1 (DEC-59, BR-1826 to BR-1829), which is",
     "the authority — if the two disagree, the document is right and this file is a bug.",
     "",
-    "Renovate is configured but NOT yet installed: enabling the GitHub App is founder work, and",
-    "until that happens this file enforces nothing. Recorded as such rather than counted."
+    "`description` is a real Renovate option, valid in the root config and in every packageRule,",
+    "and it appears in the PR body where the person reviewing the update will actually read it.",
+    "The first version of this file used `_comment` keys instead, which Renovate REJECTS rather",
+    "than ignores: it opened a configuration-error issue and did no work at all. Validated by",
+    "`pnpm check:renovate` since (BR-1838)."
   ],
 
   "timezone": "Africa/Cairo",
@@ -15,42 +18,35 @@
   "prConcurrentLimit": 5,
   "prHourlyLimit": 2,
 
-  "_scheduleComment": [
-    "BR-1829 — a bounded, predictable batch gets read; a continuous trickle gets skimmed.",
-    "Monday mornings only, at most five open PRs. Africa/Cairo because 'Monday morning' means the",
-    "founder's Monday morning, and a UTC schedule would land them on Sunday night in winter."
-  ],
-
   "semanticCommitType": "chore",
   "semanticCommitScope": "deps",
   "commitMessageLowerCase": "never",
 
   "rangeStrategy": "pin",
-  "_rangeComment": "BR-1591 / DEC-46 — exact versions only. A range is how a working build breaks overnight with no code change.",
 
   "lockFileMaintenance": {
+    "description": "BR-1591 / DEC-46 — exact versions only. A range is how a working build breaks overnight with no code change, so the lockfile is refreshed on the same Monday schedule and never auto-merged.",
     "enabled": true,
     "schedule": ["* 6-9 * * 1"],
     "automerge": false
   },
 
   "vulnerabilityAlerts": {
+    "description": [
+      "BR-1827 — a security advisory PR is NEVER auto-merged, at any level, however green CI is.",
+      "Advisory patches are the class most likely to carry an urgent, lightly-tested change, and",
+      "the moment to look closely is not the moment to automate. `schedule: []` lets these escape",
+      "the Monday window: waiting five days for a known exploit is worse than an interrupting PR."
+    ],
     "enabled": true,
     "labels": ["security"],
     "automerge": false,
-    "schedule": null,
-    "_comment": [
-      "BR-1827 — a security advisory PR is NEVER auto-merged, at any level, however green CI is.",
-      "Advisory patches are the class most likely to carry an urgent, lightly-tested change, and",
-      "the moment to look closely is not the moment to automate. `schedule: null` lets these",
-      "escape the Monday window: waiting five days for a known exploit is worse than an",
-      "interrupting PR."
-    ]
+    "schedule": []
   },
 
   "packageRules": [
     {
-      "_comment": "BR-1826 — devDependencies at patch and minor. A devDependency that breaks stops the build loudly and locally; it does not change what the product does in production.",
+      "description": "BR-1826 — devDependencies at patch and minor auto-merge on green CI. A devDependency that breaks stops the build loudly and locally; it does not change what the product does in production.",
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["patch", "minor"],
       "automerge": true,
@@ -59,21 +55,20 @@
       "groupName": "dev dependencies (patch and minor)"
     },
     {
-      "_comment": "BR-1826 — a devDependency major still changes tooling behaviour. TypeScript, ESLint and Vitest majors have each moved a rule or a default that this repository depends on.",
+      "description": "BR-1826 — a devDependency major still changes tooling behaviour. TypeScript, ESLint and Vitest majors have each moved a rule or a default that this repository depends on.",
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["major"],
       "automerge": false,
-      "labels": ["needs-review"]
+      "addLabels": ["needs-review"]
     },
     {
-      "_comment": "BR-1826 — a runtime dependency is never merged without a human reading the diff, at ANY level. Patch releases have changed runtime behaviour before.",
+      "description": "BR-1826 — a runtime dependency is never merged without a human reading the diff, at ANY level. Patch releases have changed runtime behaviour before.",
       "matchDepTypes": ["dependencies", "optionalDependencies", "peerDependencies"],
       "automerge": false,
-      "labels": ["needs-review"],
-      "groupName": null
+      "addLabels": ["needs-review"]
     },
     {
-      "_comment": "GitHub Actions at patch and minor auto-merge. A workflow that breaks is visible on the next push and affects nothing a user can reach.",
+      "description": "GitHub Actions at patch and minor auto-merge. A workflow that breaks is visible on the next push and affects nothing a user can reach.",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["patch", "minor"],
       "automerge": true,
@@ -82,27 +77,27 @@
       "groupName": "github actions (patch and minor)"
     },
     {
+      "description": "A GitHub Actions major can change the runner contract or the inputs. SB-29 — pnpm/action-setup@v4 still targets Node 20, and its successor arrives through this rule.",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["major"],
       "automerge": false,
-      "labels": ["needs-review"]
+      "addLabels": ["needs-review"]
     },
     {
-      "_comment": [
-        "BR-1828 — Docker base images are manual, and this is the one rule most likely to be",
-        "loosened by someone who does not know why it exists. BR-1810 requires the pinned Node",
-        "version to stay identical across engines.node, .nvmrc, packageManager, the CI matrix and",
-        "every Dockerfile. Renovate can change the Dockerfile line. Only a person can change all",
-        "five coherently, and a bump that changes one of the five is worse than no bump at all,",
-        "because the mismatch is silent until something behaves differently in production."
+      "description": [
+        "BR-1828 — Docker base images are manual, and this is the rule most likely to be loosened",
+        "by someone who does not know why it exists. BR-1810 requires the pinned Node version to",
+        "stay identical across engines.node, .nvmrc, packageManager, the CI matrix and every",
+        "Dockerfile. Renovate can change the Dockerfile line. Only a person can change all five",
+        "coherently, and a bump that moves one of the five is worse than no bump at all, because",
+        "the mismatch is silent until something behaves differently in production."
       ],
       "matchManagers": ["dockerfile", "docker-compose"],
       "automerge": false,
-      "labels": ["needs-review", "version-pin-set"],
-      "groupName": null
+      "addLabels": ["needs-review", "version-pin-set"]
     },
     {
-      "_comment": [
+      "description": [
         "TypeScript is held at 6.0.3 by BR-1805: typescript-eslint declares `typescript: <6.1.0`,",
         "and TypeScript 7 would SILENTLY disable type-aware linting — the mechanism that enforces",
         "BR-1579. The failure mode is a green build with half its rules gone, so this is pinned",
@@ -111,14 +106,14 @@
       "matchPackageNames": ["typescript"],
       "allowedVersions": "<6.1.0",
       "automerge": false,
-      "labels": ["needs-review", "BR-1805"]
+      "addLabels": ["needs-review", "BR-1805"]
     },
     {
-      "_comment": "Node tracks LTS only (BR-1593), so odd-numbered majors never appear as a suggestion.",
+      "description": "BR-1593 — Node and PostgreSQL track LTS only, so an odd-numbered Node major never appears as a suggestion.",
       "matchPackageNames": ["node", "@types/node"],
       "allowedVersions": "<25.0.0",
       "automerge": false,
-      "labels": ["needs-review", "BR-1593"]
+      "addLabels": ["needs-review", "BR-1593"]
     }
   ],
 
