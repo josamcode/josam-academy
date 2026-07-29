@@ -98,3 +98,34 @@ export {
   PhoneField,
   type PhoneFieldProps,
 } from './fields/identity-fields.js';
+
+/**
+ * Choice fields (PH-0.24). Radix-backed where Radix has the primitive; built to the WAI-ARIA
+ * patterns where it does not. BR-1528 — no Radix type appears in any prop, and nothing Radix is
+ * re-exported from this package.
+ */
+export {
+  Checkbox,
+  type CheckboxProps,
+  type ChoiceOption,
+  RadioCard,
+  type RadioCardProps,
+  RadioGroup,
+  type RadioGroupProps,
+  Slider,
+  type SliderProps,
+  Switch,
+  type SwitchProps,
+} from './fields/choice-toggles.js';
+export {
+  Combobox,
+  type ComboboxProps,
+  MultiSelect,
+  type MultiSelectProps,
+  RatingInput,
+  type RatingInputProps,
+  Select,
+  type SelectProps,
+  TagsInput,
+  type TagsInputProps,
+} from './fields/choice-composites.js';

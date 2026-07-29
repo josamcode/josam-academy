@@ -335,6 +335,67 @@ else
 fi
 rm -f apps/web/app/__probe.css
 
+# ── 26. react-hooks/rules-of-hooks — activated at PH-0.24 ─────────────────────────────────
+# Added because nothing in the toolchain could see that a hook had been called inside a render
+# prop. It reported seven real problems the moment it was switched on, two of them exactly that.
+# A hook in a render prop lands in the PARENT's hook sequence: stable while the call is
+# unconditional, and one early return away from a corrupted one. Types cannot see it, tests pass
+# on it, and it fails later under a condition nobody wrote a test for.
+hr; echo "26. react-hooks/rules-of-hooks — a hook inside a callback fails the build"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { useState } from 'react';
+
+export function Violation({ render }: { render: (n: number) => React.ReactNode }) {
+  return <div>{render(0)}</div>;
+}
+
+export function Caller() {
+  return (
+    <Violation
+      render={() => {
+        const [n] = useState(0);
+        return <span>{n}</span>;
+      }}
+    />
+  );
+}
+TSX
+check "hook in a render prop" "pnpm --filter @josam/ui run lint" "rules-of-hooks|React Hook"
+rm -f packages/ui/src/__violation.tsx
+
+# ── 27. react-hooks/exhaustive-deps — the half of the plugin that is easy to leave as a warning ──
+# Kept at `error`, not `warn`. A stale closure is a correctness bug that renders correctly on the
+# first pass and wrongly on every later one, which is the hardest kind to attribute to its cause.
+hr; echo "27. react-hooks/exhaustive-deps — a missing dependency fails the build"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { useCallback } from 'react';
+
+export function Violation({ value }: { value: string }) {
+  const read = useCallback(() => value.length, []);
+  return <span>{read()}</span>;
+}
+TSX
+check "missing dependency" "pnpm --filter @josam/ui run lint" "exhaustive-deps|missing dependency"
+rm -f packages/ui/src/__violation.tsx
+
+# ── 28. jsx-a11y/control-has-associated-label is scoped OFF for field bodies, ON everywhere else ──
+# `fieldLabelScoping` disables one rule for `src/fields/**`, where `FormField` owns the label and
+# the rule can only ever produce false positives. Scoping a rule is indistinguishable from
+# disabling it unless the remaining coverage is proven, so this asserts the rule still bites in
+# apps/web — the place feature code would actually write a nameless control.
+hr; echo "28. the scoped-off a11y rule is still active OUTSIDE packages/ui/src/fields"
+cat > apps/web/app/__violation.tsx <<'TSX'
+export default function Violation() {
+  return (
+    <div>
+      <input type="text" />
+    </div>
+  );
+}
+TSX
+check "nameless control in a feature file" "pnpm --filter @josam/web run lint" "control-has-associated-label|label"
+rm -f apps/web/app/__violation.tsx
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

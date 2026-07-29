@@ -22,6 +22,20 @@ export interface FormFieldContextValue {
   id: string;
   /** The RHF field name. The control registers itself with this. */
   name: string;
+  /**
+   * The `<label>`'s own id, for `aria-labelledby`.
+   *
+   * `<label for>` names only **labelable** elements — `input`, `select`, `textarea`, `button`,
+   * `meter`, `output`, `progress`. It does nothing for a custom widget built on a `div` or `span`
+   * carrying a `role`, which is what most Radix controls render. Wiring `htmlFor`/`id` on one of
+   * those looks correct in the markup, passes review, and leaves the control with **no accessible
+   * name at all**.
+   *
+   * Radix's `Slider` is exactly that case: `role="slider"` sits on a `span`. axe caught it as
+   * `aria-input-field-name` at `PH-0.24`. Any control whose focusable element is not labelable
+   * must use this instead of relying on `id`.
+   */
+  labelledBy: string;
   /** For the control's `aria-describedby` — hint and/or error, whichever exist. */
   describedBy: string | undefined;
   /** For the control's `aria-invalid`. */
@@ -59,6 +73,7 @@ export interface FormFieldProps {
 export function FormField({ name, label, children, hint, required = false }: FormFieldProps) {
   const generated = useId();
   const id = `${generated}-${name}`;
+  const labelId = `${id}-label`;
   const hintId = hint === undefined ? undefined : `${id}-hint`;
   const errorId = `${id}-error`;
 
@@ -76,6 +91,7 @@ export function FormField({ name, label, children, hint, required = false }: For
   const value: FormFieldContextValue = {
     id,
     name,
+    labelledBy: labelId,
     describedBy,
     invalid: message !== undefined,
     required,
@@ -84,7 +100,7 @@ export function FormField({ name, label, children, hint, required = false }: For
   return (
     <FormFieldContext.Provider value={value}>
       <Stack gap="1">
-        <label htmlFor={id}>
+        <label id={labelId} htmlFor={id}>
           <Text size="sm" weight="medium">
             {label}
           </Text>

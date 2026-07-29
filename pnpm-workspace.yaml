@@ -20,3 +20,9 @@ allowBuilds:
   esbuild: true
   prisma: true
   sharp: true
+
+minimumReleaseAgeExclude:
+  - jsdom@30.0.1
+
+patchedDependencies:
+  jsdom@30.0.0: patches/jsdom@30.0.0.patch

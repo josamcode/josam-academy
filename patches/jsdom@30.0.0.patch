@@ -1,0 +1,26 @@
+diff --git a/lib/jsdom/living/css/helpers/font-sizes.js b/lib/jsdom/living/css/helpers/font-sizes.js
+index 48b90f91b98259bdb5db7e73dda8c3dd68bac285..f57db4e13f694ed0457d3babeb0df9061eaaec97 100644
+--- a/lib/jsdom/living/css/helpers/font-sizes.js
++++ b/lib/jsdom/living/css/helpers/font-sizes.js
+@@ -113,8 +113,19 @@ function resolveLengthInPixels(elementImpl, size, dimension, isFontSize) {
+         format: "computedValue"
+       });
+     }
+-    const [, value] = FONT_SIZE_REGEXP.exec(resolvedSize);
+-    return Number(value);
++    const calcMatch = FONT_SIZE_REGEXP.exec(resolvedSize);
++    if (calcMatch) {
++      return Number(calcMatch[1]);
++    }
++    // resolveCalc() could not reduce this to an absolute length. The common case is a calc()
++    // mixing a percentage with a length -- e.g. `left: calc(50% + 4px)` -- which needs a
++    // containing block that jsdom, having no layout engine, cannot supply. Without this guard
++    // the destructuring above throws `TypeError: object null is not iterable` and takes down
++    // getComputedStyle() for the whole element, which breaks every role query and axe run over
++    // any tree containing such a value.
++    //
++    // Falling through to the as-is fallback at the end of this function is exactly how the
++    // percentage branch below already handles an unresolvable percentage.
+   }
+ 
+   const match = LENGTH_REGEXP.exec(size);

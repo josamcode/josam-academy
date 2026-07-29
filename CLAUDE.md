@@ -11,7 +11,7 @@
 | **Current phase**   | Phase 0 — Foundation                      |
 | **Scope authority** | `docs/16-task-breakdown.md`, Phase 0 only |
 | **Last updated**    | 2026-07-29                                |
-| **Updated after**   | `PH-0.19` — Pino, correlation IDs, Sentry |
+| **Updated after**   | `PH-0.24` — the ten choice fields         |
 
 ---
 
@@ -164,13 +164,13 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.21` | `Form` + `FormField` (label, hint, required, error, ARIA)                                                                                                                                                               |  A   | `0.17`         |   1 |   ✅   |    0.7 | Focus + dirty asserted against a real DOM            |
 | `PH-0.22` | Text fields: `TextField` `TextArea` `PasswordField` `NumberField` `CurrencyField` `CodeField`                                                                                                                           |  A   | `0.21`         |   1 |   ✅   |    0.5 | 29 specs on submitted values, not on props           |
 | `PH-0.23` | Identity fields: `PhoneField` `EmailField` `OTPField`                                                                                                                                                                   |  A   | `0.21`         |   1 |   ✅   |    0.5 | LTR survives RTL doc; paste fills all six            |
-| `PH-0.24` | Choice fields: `Select` `Combobox` `MultiSelect` `RadioGroup` `RadioCard` `Checkbox` `Switch` `Slider` `TagsInput` `RatingInput`                                                                                        |  A   | `0.21`         |   2 |   ⬜   |      — | Radix-based, fully keyboard operable                 |
+| `PH-0.24` | Choice fields: `Select` `Combobox` `MultiSelect` `RadioGroup` `RadioCard` `Checkbox` `Switch` `Slider` `TagsInput` `RatingInput`                                                                                        |  A   | `0.21`         |   2 |   ✅   |   1.15 | 10 components; 28/28 fitness; jsdom patched          |
 | `PH-0.25` | Time/file fields: `DatePicker` `DurationField` `TimestampField` `FileDrop` `ImageDrop`                                                                                                                                  |  A   | `0.21`         | 1.5 |   ⬜   |      — | RTL calendar; MIME validation                        |
 | `PH-0.26` | Layout & nav: `AppShell` `TopBar` `SideNav` `BottomNav` `PageHeader` `PageFooter` `Breadcrumb` `Tabs` `SkipLink`                                                                                                        |  A   | `0.17`         | 1.5 |   ⬜   |      — | `PageHeader` enforces one primary action             |
 | `PH-0.27` | Feedback: `Toast` `InlineAlert` `Dialog` `ConfirmDialog` `Drawer` `Popover` `Tooltip` `DropdownMenu` `Skeleton` `ProgressBar` `ProgressRing` `EmptyState` `ErrorState` `OfflineBanner` `ReadOnlyBanner` `QueryBoundary` |  A   | `0.17`         |   2 |   ⬜   |      — | `QueryBoundary` requires all three states            |
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified; scope = Josam DB only (SB-24)      |
 
-**Progress: 19 / 28 · 67.9%** · Estimated total 19.0 d · Actual to date 8.3 d authored + founder execution
+**Progress: 20 / 28 · 71.4%** · Estimated total 19.0 d · Actual to date 9.5 d authored + founder execution
 
 > **The Redis health indicator is registered in the same task that installs `ioredis` — never
 > "later" (`SB-16`).** `11 §API-21` lists `redis` among the `GET /health` checks. `PH-0.6` built
@@ -194,6 +194,27 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 > is a Type-A task executed by AI with every version already resolved by the pre-`PH-0.1` pass.
 > One data point, and the least representative kind. Do not recalibrate anything on it — the ratio
 > only becomes meaningful once type-B tasks and the component tasks have real numbers against them.
+
+> **Three things from `PH-0.24` bind the remaining component tasks.**
+>
+> 1. **`<label for>` names only _labelable_ elements** — `input`, `select`, `textarea`, `button`,
+>    `meter`, `output`, `progress`. A `div` or `span` carrying a `role` gets **no accessible name**
+>    from it, and the markup looks entirely correct. Any control whose focusable element is not
+>    labelable must take `labelledBy` from `useFormField()` and set `aria-labelledby`. This caught
+>    `Slider` only because axe runs per component; it is invisible to review. `PH-0.25`'s
+>    `FileDrop`/`ImageDrop` and much of `PH-0.27` are the same shape.
+>
+> 2. **Radix roving focus cannot be tested with `user.keyboard('{ArrowDown}')`.** Radix defers the
+>    focus move into a `setTimeout` so it lands after the key event reaches `document`, where its
+>    "arrow key is down" flag lives. userEvent fires keydown and keyup back to back, so the flag is
+>    already cleared: focus moves, selection does not follow, and a correct component looks broken.
+>    Use the `pressArrow()` helper (press, tick, release). Raising userEvent's `delay` does not
+>    work — it sits between keystrokes, not within one. `PH-0.26`'s `Tabs` and `SideNav` need this.
+>
+> 3. **A real `<button>` synthesises a click from `Enter` and `Space`.** A keydown handler that
+>    also toggles state runs twice and nets to nothing — inert to a keyboard, perfect with a mouse.
+>    `preventDefault()` on both keys, and test every control by keyboard alone; the pointer tests
+>    passed throughout on the broken `MultiSelect`.
 
 ---
 

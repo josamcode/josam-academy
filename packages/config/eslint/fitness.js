@@ -1,5 +1,6 @@
 import boundaries from 'eslint-plugin-boundaries';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import reactHooks from 'eslint-plugin-react-hooks';
 
 import { noHardcodedStrings } from './rules/no-hardcoded-strings.js';
 import { noPrismaOutsideRepository } from './rules/no-prisma-outside-repository.js';
@@ -142,6 +143,53 @@ export const accessibility = {
   },
 };
 
+/**
+ * `control-has-associated-label` is switched off for the field **bodies** only.
+ *
+ * This is scoping with a reason, not silencing. In this architecture `FormField` owns the
+ * `<label htmlFor>` and each field body owns the control carrying the matching `id` — so the
+ * association is real at runtime and structurally invisible to a rule that reads one JSX tree at
+ * a time. Left on, it fires on every field component in the library and on nothing else.
+ *
+ * The compensating controls are **stronger than the rule**, which is the only reason this is
+ * acceptable:
+ *   - `useFormField()` throws outside a `FormField`, so a control with no label wiring cannot
+ *     render at all (`BR-1402`).
+ *   - Every field spec locates its control with `getByLabelText`, which resolves through the
+ *     accessibility tree and fails outright if `htmlFor`/`id` do not match.
+ *   - axe runs over every rendered field in four theme/direction combinations.
+ *
+ * The rule stays ON everywhere else, including `apps/web`, where a label and its control do live
+ * in the same tree.
+ */
+export const fieldLabelScoping = {
+  files: ['packages/ui/src/fields/**/*.tsx', '**/src/fields/**/*.tsx'],
+  rules: {
+    'jsx-a11y/control-has-associated-label': 'off',
+  },
+};
+
+/**
+ * The Rules of Hooks.
+ *
+ * Activated at `PH-0.24`, the first task with enough JSX for the rule to have anything to say —
+ * and it immediately found real violations: hooks called inside a React Hook Form `Controller`
+ * `render` prop. That code *appears* to work, because the render prop is invoked inside
+ * `Controller`'s own body and the hook order stays stable while the call is unconditional. It is
+ * one early return away from a corrupted hook sequence, and nothing else in the toolchain sees it.
+ *
+ * `exhaustive-deps` is an error, not a warning. A stale closure over a dependency the linter can
+ * see is a bug that reproduces once in twenty runs and is attributed to something else.
+ */
+export const reactHooksRules = {
+  files: ['**/*.tsx'],
+  plugins: { 'react-hooks': reactHooks },
+  rules: {
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'error',
+  },
+};
+
 /** `BR-523` / `BR-1357` — no hardcoded user-facing strings. */
 export const noHardcodedStringsConfig = {
   files: ['**/*.tsx'],
@@ -244,5 +292,7 @@ export const fitness = [
   restrictedSyntax,
   noConsole,
   accessibility,
+  fieldLabelScoping,
+  reactHooksRules,
   noHardcodedStringsConfig,
 ];
