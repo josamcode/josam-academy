@@ -18,18 +18,30 @@ import { Text } from '../primitives/Text.js';
 export type AlertTone = 'info' | 'success' | 'warning' | 'danger';
 
 /**
- * Each tone is a **surface token and a text token**, never one colour used for both.
+ * Each tone is a **boundary colour and a text colour**, on an ordinary surface.
  *
- * `SB-18` — a status colour that clears 4.5:1 as text is too dark to be a background, and one that
- * works as a background fails as text. The pairs were computed and pinned at `PH-0.12`.
+ * `SB-18` defined exactly two tokens per status, and `packages/tokens/src/color.spec.ts` pins
+ * exactly those two: `--{status}` clears **3:1 on `bg-base`** as a UI boundary, and
+ * `--{status}-text` clears **4.5:1 on `bg-base`** as body text.
+ *
+ * `PH-0.27` used `bg-{status}` as a **filled** background with text on top — a third composition
+ * the token system does not have and never tested. Nothing could catch it: jsdom applies no CSS,
+ * so the component specs' axe runs had no colours to measure. The Storybook sweep at `PH-0.30`,
+ * in a real browser, measured `#18181b` on `#dc2626` at **3.66:1** and `#fafafa` on `#60a5fa` at
+ * **2.43:1**.
+ *
+ * The fix uses only what was specified. The surface is `bg-bg-surface`, where body text is already
+ * pinned at 4.5:1; the status colour becomes the **border**, which is what a 3:1 boundary token is
+ * for; and `--{status}-text` colours the icon. Filling a panel with a status colour would need a
+ * `--{status}-subtle` surface token that does not exist, and inventing one is a design decision
+ * rather than a fix.
  */
-const TONE: Record<AlertTone, { surface: string; icon: typeof Info }> = {
-  info: { surface: 'bg-info border-info-text text-info-text', icon: Info },
-  success: { surface: 'bg-success border-success-text text-success-text', icon: CheckCircle2 },
-  warning: { surface: 'bg-warning border-warning-text text-warning-text', icon: AlertTriangle },
-  danger: { surface: 'bg-danger border-danger-text text-danger-text', icon: XCircle },
+const TONE: Record<AlertTone, { border: string; accent: string; icon: typeof Info }> = {
+  info: { border: 'border-info', accent: 'text-info-text', icon: Info },
+  success: { border: 'border-success', accent: 'text-success-text', icon: CheckCircle2 },
+  warning: { border: 'border-warning', accent: 'text-warning-text', icon: AlertTriangle },
+  danger: { border: 'border-danger', accent: 'text-danger-text', icon: XCircle },
 };
-
 export interface InlineAlertProps {
   tone: AlertTone;
   /** Pre-translated. */
@@ -49,12 +61,12 @@ export interface InlineAlertProps {
 }
 
 export function InlineAlert({ tone, title, body, action, assertive = false }: InlineAlertProps) {
-  const { surface, icon: Icon } = TONE[tone];
+  const { border, accent, icon: Icon } = TONE[tone];
 
   return (
     <div
       role={assertive ? 'alert' : 'status'}
-      className={`flex flex-row items-start gap-3 rounded-md border p-3 ${surface}`}
+      className={`flex flex-row items-start gap-3 rounded-md border-2 bg-bg-surface p-3 text-text-primary ${border}`}
     >
       {/*
         The icon is decorative: the tone is already carried by role and by the text. An
@@ -65,7 +77,8 @@ export function InlineAlert({ tone, title, body, action, assertive = false }: In
         height={18}
         aria-hidden="true"
         focusable="false"
-        className="mt-0.5 shrink-0"
+        // The status colour lives here, on the one element whose only job is to signal it.
+        className={`mt-0.5 shrink-0 ${accent}`}
       />
       <Stack gap="1">
         <Text size="sm" weight="medium">
@@ -123,7 +136,7 @@ export function OfflineBanner({ message, offline }: OfflineBannerProps) {
   return (
     <div
       role="status"
-      className="flex flex-row items-center justify-center gap-2 border-b border-warning-text bg-warning p-2 text-warning-text"
+      className="flex flex-row items-center justify-center gap-2 border-b-2 border-warning bg-bg-surface p-2 text-text-primary"
     >
       <WifiOff width={16} height={16} aria-hidden="true" focusable="false" />
       <Text size="sm">{message}</Text>
@@ -149,7 +162,7 @@ export function ReadOnlyBanner({ message, reason }: ReadOnlyBannerProps) {
   return (
     <div
       role="status"
-      className="flex flex-row items-center gap-2 rounded-md border border-info-text bg-info p-3 text-info-text"
+      className="flex flex-row items-center gap-2 rounded-md border-2 border-info bg-bg-surface p-3 text-text-primary"
     >
       <Lock width={16} height={16} aria-hidden="true" focusable="false" className="shrink-0" />
       <Inline gap="2">

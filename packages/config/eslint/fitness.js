@@ -3,6 +3,7 @@ import jsxA11y from 'eslint-plugin-jsx-a11y';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 import { noHardcodedStrings } from './rules/no-hardcoded-strings.js';
+import { noBlanketUseClient } from './rules/no-blanket-use-client.js';
 import { noPrismaOutsideRepository } from './rules/no-prisma-outside-repository.js';
 
 /**
@@ -16,6 +17,7 @@ import { noPrismaOutsideRepository } from './rules/no-prisma-outside-repository.
 export const josamPlugin = {
   rules: {
     'no-hardcoded-strings': noHardcodedStrings,
+    'no-blanket-use-client': noBlanketUseClient,
     'no-prisma-outside-repository': noPrismaOutsideRepository,
   },
 };
@@ -191,6 +193,32 @@ export const accessibility = {
  * The rule stays ON everywhere else, including `apps/web`, where a label and its control do live
  * in the same tree.
  */
+/**
+ * `BR-1502`, scoped to the route tree.
+ *
+ * Its own rule name, so scoping it touches nothing else. Putting the selector in the shared
+ * `no-restricted-syntax` array and disabling that rule outside `apps/web/app` would have switched
+ * off `BR-855`, `BR-1429` and `BR-1544` across `packages/**` at the same time — ESLint replaces a
+ * rule's options rather than merging them (`SB-16`).
+ */
+export const clientDirectiveScoping = {
+  //
+  // `**/app/**` rather than `apps/web/app/**`: a flat-config `files` pattern resolves against the
+  // config file's own directory, and this config is loaded from BOTH the repository root
+  // (`lint:hook`) and from inside `apps/web` (`turbo run lint`). The absolute-looking pattern
+  // matched only the first, so the rule existed on one lint path and not the other — the SB-15
+  // asymmetry again. `apps/web` is the only workspace with a Next `app/` directory.
+  files: ['**/app/**/*.tsx', '**/app/**/*.ts'],
+  // The plugin must be declared in a config object that MATCHES the file. `prismaContainment`
+  // registers it for `**/*.ts` only, so without this line the rule silently does not exist for
+  // `.tsx` — which is every file in the route tree. Caught by fitness case 39 reporting NOT
+  // CAUGHT, which is the whole reason the case exists (`BR-1830`).
+  plugins: { josam: josamPlugin },
+  rules: {
+    'josam/no-blanket-use-client': 'error',
+  },
+};
+
 export const fieldLabelScoping = {
   files: ['packages/ui/src/fields/**/*.tsx', '**/src/fields/**/*.tsx'],
   rules: {
@@ -321,6 +349,7 @@ export const fitness = [
   restrictedSyntax,
   noConsole,
   accessibility,
+  clientDirectiveScoping,
   fieldLabelScoping,
   reactHooksRules,
   noHardcodedStringsConfig,

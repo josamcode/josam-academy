@@ -21,6 +21,7 @@
     "prepare": "husky",
     "check:catalogs": "node scripts/check-catalogs.mjs",
     "check:renovate": "renovate-config-validator --strict renovate.json",
+    "check:size": "size-limit",
     "check:deps": "depcruise apps packages --config .dependency-cruiser.mjs",
     "fitness": "pnpm lint && pnpm lint:css && pnpm check:deps && pnpm check:catalogs && pnpm check:renovate",
     "verify:fitness": "bash scripts/verify-fitness.sh"
@@ -30,6 +31,7 @@
     "@commitlint/config-conventional": "21.2.0",
     "@eslint/js": "10.0.1",
     "@josam/config": "workspace:*",
+    "@size-limit/file": "13.0.1",
     "@types/node": "24.13.3",
     "dependency-cruiser": "18.1.0",
     "eslint": "10.8.0",
@@ -43,6 +45,7 @@
     "lint-staged": "17.2.0",
     "prettier": "3.9.6",
     "renovate": "43.285.6",
+    "size-limit": "13.0.1",
     "stylelint": "17.14.1",
     "stylelint-config-standard": "40.0.0",
     "turbo": "2.10.7",

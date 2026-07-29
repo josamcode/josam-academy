@@ -44,7 +44,13 @@ const VARIANT: Record<ButtonVariant, string> = {
     'bg-bg-elevated text-text-primary border border-border-strong hover:bg-bg-surface active:bg-bg-inset',
   ghost: 'bg-transparent text-text-secondary hover:bg-bg-surface active:bg-bg-inset',
   // BR-1344 — red is reserved for destructive and error states only.
-  danger: 'bg-danger text-accent-contrast hover:opacity-90 active:opacity-80',
+  //
+  // `text-inverse`, not `accent-contrast`. `--accent-contrast` was computed and pinned against the
+  // ACCENT at PH-0.12 (SB-18) and is qualified for nothing else; on `--danger` it measured
+  // 3.67:1 in light theme — below AA body — while passing at 7.15:1 in dark, which is why a
+  // single-theme look would have missed it. `--text-inverse` flips per theme and clears both:
+  // 7.15:1 dark, 4.83:1 light. Pinned in packages/tokens/src/color.spec.ts (PH-0.30).
+  danger: 'bg-danger text-text-inverse hover:opacity-90 active:opacity-80',
 };
 
 const SIZE: Record<ButtonSize, string> = {

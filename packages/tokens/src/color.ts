@@ -76,7 +76,12 @@ export const darkColors: ColorTokens = {
 
   textPrimary: '#FAFAFA',
   textSecondary: '#A2A2AB',
-  textMuted: '#6E6E78',
+  // PH-0.30 — was #6E6E78, which measured 3.40:1 at worst against the four surfaces. Muted
+  // carries hints and counters at `text-xs`; that is body text and needs 4.5:1, not the 3:1
+  // large-text allowance. Lightness raised until the worst surface cleared; hue and
+  // saturation untouched, so it still reads as the same grey and stays clearly below
+  // secondary (4.52 against 6.78).
+  textMuted: '#82828D',
   textInverse: '#0A0A0B',
 
   accent: '#E8B04B',
@@ -116,7 +121,8 @@ export const lightColors: ColorTokens = {
 
   textPrimary: '#18181B',
   textSecondary: '#52525B',
-  textMuted: '#8A8A93',
+  // PH-0.30 — was #8A8A93, 3.11:1 at worst. Same reasoning as dark, darkened instead.
+  textMuted: '#6F6F79',
   textInverse: '#FFFFFF',
 
   accent: '#A97A18',

@@ -32,6 +32,11 @@ allowBuilds:
   #
   # Denying rather than approving is the whole point of this list. Proven by running the validator
   # after the denial — fitness case 37.
+  #
+  # @swc/core arrives with @storybook/test-runner's jest transform. Denied for the same reason:
+  # its install script fetches a prebuilt binary, and pnpm already resolves the right
+  # platform package as an optional dependency. Proven by running the runner after the denial.
+  '@swc/core': false
   core-js-pure: false
   dtrace-provider: false
   re2: false
@@ -41,3 +46,32 @@ minimumReleaseAgeExclude:
 
 patchedDependencies:
   jsdom@30.0.0: patches/jsdom@30.0.0.patch
+
+# ── Security overrides and accepted advisories (PH-0.30, BR-1468) ────────────────────────────
+#
+# `pnpm audit --prod` runs in CI. These entries are what it takes to make that gate meaningful
+# rather than permanently red — a check that is always failing is a check nobody reads.
+
+overrides:
+  # Three advisories (GHSA-qx2v-qp2m-jg93, GHSA-6g55-p6wh-862q, GHSA-r28c-9q8g-f849) all resolve
+  # at postcss >= 8.5.18. Next pulls in 8.4.31 transitively while 8.5.23 was ALREADY in the tree
+  # for another consumer, so this forces one copy rather than adding a new dependency. Same major,
+  # and the version was already being loaded by something else in this install.
+  postcss: '8.5.23'
+
+auditConfig:
+  # Not "ignored" — ACCEPTED, each with the reason it cannot be fixed here and the condition that
+  # retires it. An entry that outlives its condition is worse than no entry, so both are dated and
+  # carried in STATUS.md §8 as SB-31 rather than living only in this file.
+  ignoreGhsas:
+    # sharp 0.34.5 — libvips CVE-2026-33327. Patched at sharp >= 0.35.0, which `next` 16.2.12 does
+    # not yet accept; forcing it overrides a native image pipeline Next controls, which is a larger
+    # risk than the advisory. RETIRE when a Next release accepts sharp 0.35 — Renovate will open
+    # that PR under the manual-review rule.
+    - GHSA-f88m-g3jw-g9cj
+    # brace-expansion — DoS via unbounded expansion. Reached only through
+    # eslint-plugin-jsx-a11y > minimatch, a LINT-TIME dependency that is never shipped to a user
+    # and never processes untrusted input. It appears under `--prod` because pnpm treats every
+    # workspace project's own `dependencies` as production, and `packages/config` correctly
+    # declares its plugins there. RETIRE when jsx-a11y ships a patched minimatch.
+    - GHSA-mh99-v99m-4gvg

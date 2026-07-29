@@ -17,8 +17,9 @@
 
 ## 1. Hard Scope Boundary
 
-- Execute **only** tasks with IDs `PH-0.1` – `PH-0.29` as defined in `docs/16-task-breakdown.md`.
-  `PH-0.29` is remedial, added by founder decision after `PH-0.27` (`SB-28`).
+- Execute **only** tasks with IDs `PH-0.1` – `PH-0.30` as defined in `docs/16-task-breakdown.md`.
+  `PH-0.29` and `PH-0.30` are remedial, added by founder decision after `PH-0.27` and after the
+  Phase 0 status report respectively.
 - **Never** start a `PH-1.x` or later task, even if it looks trivial, unblocking, or "while we're here".
 - **Never** create a database table, an auth flow, a payment concept, a course model, a domain
   entity, or any business logic. Phase 0 has no features. It has infrastructure, tokens, i18n,
@@ -72,7 +73,7 @@ For every task, in this exact order. **Do not batch tasks.** One task, one verif
 
 ## 3. Task Classification
 
-### Type A — executed fully in this repo (23 tasks)
+### Type A — executed fully in this repo (24 tasks)
 
 `PH-0.1` `0.2` `0.3` `0.4` `0.5` `0.6` `0.12` `0.13` `0.14` `0.15` `0.16` `0.17` `0.18` `0.19`
 `0.20` `0.21` `0.22` `0.23` `0.24` `0.25` `0.26` `0.27`
@@ -171,8 +172,9 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.27` | Feedback: `Toast` `InlineAlert` `Dialog` `ConfirmDialog` `Drawer` `Popover` `Tooltip` `DropdownMenu` `Skeleton` `ProgressBar` `ProgressRing` `EmptyState` `ErrorState` `OfflineBanner` `ReadOnlyBanner` `QueryBoundary` |  A   | `0.17`         |   2 |   ✅   |    1.1 | 3 states required = TS2741 (case 31)                 |
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified; scope = Josam DB only (SB-24)      |
 | `PH-0.29` | **`BR-1544` conformance** — `readOnly`/`disabled` distinct on all 24 fields, `disabled` carrying a reason, plus a fitness function                                                                                      |  A   | `0.27`         | 0.5 |   ✅   |   0.45 | Bare `disabled?: boolean` fails lint (case 33)       |
+| `PH-0.30` | **Phase 0 conformance closure** — criterion 6 in a real browser, roster gate, the four unowned checks, Redis health indicator                                                                                           |  A   | `0.27`, `0.10` |   1 |   ✅   |    1.1 | 40/40 fitness; 49 stories × 4 combos green           |
 
-**Progress: 25 / 29 · 86.2%** · Estimated total 19.5 d · Actual to date 13.75 d authored + founder execution
+**Progress: 26 / 30 · 86.7%** · Estimated total 20.5 d · Actual to date 14.85 d authored + founder execution
 
 > **The Redis health indicator is registered in the same task that installs `ioredis` — never
 > "later" (`SB-16`).** `11 §API-21` lists `redis` among the `GET /health` checks. `PH-0.6` built
@@ -208,7 +210,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 > 2 controls · 2 form · 24 fields · 9 layout/navigation · 16 feedback. All 22 Type-A tasks are
 > done. What remains in Phase 0 is the five founder-gated infrastructure tasks — `PH-0.8`, `0.9`,
 > `0.10`, `0.11`, `0.28` — plus the exit criteria in §7, which include **re-running**
-> `pnpm verify:fitness` (37 cases) rather than re-reading this line (`BR-1832`).
+> `pnpm verify:fitness` (40 cases) rather than re-reading this line (`BR-1832`).
 
 > **Estimate-ratio caution (`DEC-56`, `BR-1802`).** `PH-0.1` came in at half its estimate, but it
 > is a Type-A task executed by AI with every version already resolved by the pre-`PH-0.1` pass.
@@ -273,7 +275,7 @@ Phase 0 is not done until **all** of these are true and evidenced.
 ☐ Every story passes axe in both themes and both directions
 ☐ Fitness functions active: boundaries · tokens · logical properties
     · hardcoded strings · prohibited copy terms
-☐ `pnpm verify:fitness` (37 cases) RE-RUN at exit — not re-read — and every case still caught
+☐ `pnpm verify:fitness` (40 cases) RE-RUN at exit — not re-read — and every case still caught
     (`BR-1832`). The recorded table in STATUS.md §4 is evidence of a past run, never
     a substitute for a present one (`BR-1768`).
 ☐ All 20 checks in `12 §19` reconciled: active, or recorded against the task that

@@ -115,7 +115,10 @@ describe('PageFooter', () => {
 describe('Breadcrumb — BR-1366', () => {
   it('renders nothing at two levels or fewer', () => {
     const { container } = render(
-      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Courses' }]} />,
+      <Breadcrumb
+        label="مسار أ · Trail A"
+        items={[{ label: 'Home', href: '/' }, { label: 'Courses' }]}
+      />,
     );
     expect(container.innerHTML).toBe('');
   });
@@ -123,6 +126,7 @@ describe('Breadcrumb — BR-1366', () => {
   it('renders from three levels up', () => {
     render(
       <Breadcrumb
+        label="مسار ب · Trail B"
         items={[
           { label: 'Home', href: '/' },
           { label: 'Courses', href: '/courses' },
@@ -137,6 +141,7 @@ describe('Breadcrumb — BR-1366', () => {
   it('marks the last crumb aria-current and does NOT link it to itself', () => {
     render(
       <Breadcrumb
+        label="مسار ج · Trail C"
         items={[
           { label: 'Home', href: '/' },
           { label: 'Courses', href: '/courses' },
@@ -152,6 +157,7 @@ describe('Breadcrumb — BR-1366', () => {
   it('mirrors its separator, so the trail reads outwards in both directions', () => {
     render(
       <Breadcrumb
+        label="مسار د · Trail D"
         items={[{ label: 'A', href: '/' }, { label: 'B', href: '/b' }, { label: 'C' }]}
       />,
     );
@@ -451,6 +457,7 @@ describe('token discipline and axe, across all nine', () => {
     [
       'Breadcrumb',
       <Breadcrumb
+        label="مسار هـ · Trail E"
         key="3"
         items={[{ label: 'A', href: '/' }, { label: 'B', href: '/b' }, { label: 'C' }]}
       />,

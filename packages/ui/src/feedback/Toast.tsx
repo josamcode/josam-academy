@@ -30,11 +30,16 @@ import type { AlertTone } from './banners.js';
  *    action in this product sits at the block end of its page or dialog.
  */
 
+/**
+ * Same correction as `InlineAlert` — see the note there. `--{status}` is a 3:1 boundary token, not
+ * a filled surface, so it colours the border while the text sits on `bg-bg-surface`, where it is
+ * already pinned at 4.5:1 (`PH-0.30`).
+ */
 const TONE: Record<AlertTone, string> = {
-  info: 'border-info-text bg-info text-info-text',
-  success: 'border-success-text bg-success text-success-text',
-  warning: 'border-warning-text bg-warning text-warning-text',
-  danger: 'border-danger-text bg-danger text-danger-text',
+  info: 'border-info bg-bg-surface text-text-primary',
+  success: 'border-success bg-bg-surface text-text-primary',
+  warning: 'border-warning bg-bg-surface text-text-primary',
+  danger: 'border-danger bg-bg-surface text-text-primary',
 };
 
 /** `BR-1550` — six seconds is the floor, not the default. */
@@ -86,6 +91,67 @@ export function useToast(): ToastApi {
   return api;
 }
 
+export interface ToastProps {
+  toast: ToastInput;
+  /** Pre-translated, labels the dismiss control. */
+  dismissLabel: string;
+  onDismiss: () => void;
+}
+
+/**
+ * A single toast.
+ *
+ * Exported as a component in its own right because `12 §20.12.1` lists it as one, and because the
+ * roster gate at `PH-0.30` caught that it was not — the library shipped `ToastProvider` and
+ * `useToast` and no `Toast`, so the reported "69/69" was really 68. `ToastProvider` renders these;
+ * a caller who wants one in a story or a fixed position can render it directly.
+ *
+ * `BR-1550` — the duration floor is applied here, at the element that owns the timer, so it holds
+ * however the toast was created.
+ */
+export function Toast({ toast, dismissLabel, onDismiss }: ToastProps) {
+  return (
+    <RadixToast.Root
+      duration={Math.max(MIN_TOAST_DURATION_MS, toast.durationMs ?? MIN_TOAST_DURATION_MS)}
+      onOpenChange={(open) => {
+        if (!open) onDismiss();
+      }}
+      className={`flex flex-row items-start gap-3 rounded-md border-2 p-3 shadow-lg ${TONE[toast.tone]}`}
+    >
+      <Stack gap="1">
+        <RadixToast.Title asChild>
+          <Text size="sm" weight="medium">
+            {toast.title}
+          </Text>
+        </RadixToast.Title>
+        {toast.body === undefined ? null : (
+          <RadixToast.Description asChild>
+            <Text size="sm">{toast.body}</Text>
+          </RadixToast.Description>
+        )}
+      </Stack>
+
+      <Inline gap="2">
+        {toast.undo === undefined ? null : (
+          <RadixToast.Action
+            altText={toast.undo.label}
+            onClick={toast.undo.onUndo}
+            className="ms-auto rounded-sm p-2 text-sm underline outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+          >
+            {toast.undo.label}
+          </RadixToast.Action>
+        )}
+        <RadixToast.Close
+          aria-label={dismissLabel}
+          className="rounded-sm p-2 outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+        >
+          <X width={14} height={14} aria-hidden="true" focusable="false" />
+        </RadixToast.Close>
+      </Inline>
+    </RadixToast.Root>
+  );
+}
+
 export interface ToastProviderProps {
   children: ReactNode;
   /** Pre-translated, labels the dismiss control on every toast. */
@@ -120,47 +186,14 @@ export function ToastProvider({ children, dismissLabel, regionLabel }: ToastProv
         {children}
 
         {toasts.map((item) => (
-          <RadixToast.Root
+          <Toast
             key={item.id}
-            // BR-1550 — the floor is enforced here, where it cannot be forgotten. A caller may ask
-            // for longer; `Math.max` means asking for shorter simply has no effect.
-            duration={Math.max(MIN_TOAST_DURATION_MS, item.durationMs ?? MIN_TOAST_DURATION_MS)}
-            onOpenChange={(open) => {
-              if (!open) dismiss(item.id);
+            toast={item}
+            dismissLabel={dismissLabel}
+            onDismiss={() => {
+              dismiss(item.id);
             }}
-            className={`flex flex-row items-start gap-3 rounded-md border p-3 shadow-lg ${TONE[item.tone]}`}
-          >
-            <Stack gap="1">
-              <RadixToast.Title asChild>
-                <Text size="sm" weight="medium">
-                  {item.title}
-                </Text>
-              </RadixToast.Title>
-              {item.body === undefined ? null : (
-                <RadixToast.Description asChild>
-                  <Text size="sm">{item.body}</Text>
-                </RadixToast.Description>
-              )}
-            </Stack>
-
-            <Inline gap="2">
-              {item.undo === undefined ? null : (
-                <RadixToast.Action
-                  altText={item.undo.label}
-                  onClick={item.undo.onUndo}
-                  className="ms-auto rounded-sm p-2 text-sm underline outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-                >
-                  {item.undo.label}
-                </RadixToast.Action>
-              )}
-              <RadixToast.Close
-                aria-label={dismissLabel}
-                className="rounded-sm p-2 outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-              >
-                <X width={14} height={14} aria-hidden="true" focusable="false" />
-              </RadixToast.Close>
-            </Inline>
-          </RadixToast.Root>
+          />
         ))}
 
         {/*

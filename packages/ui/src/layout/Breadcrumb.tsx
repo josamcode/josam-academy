@@ -19,8 +19,19 @@ export interface BreadcrumbItem {
 
 export interface BreadcrumbProps {
   items: BreadcrumbItem[];
-  /** Pre-translated, e.g. "You are here". */
-  label?: string;
+  /**
+   * Pre-translated, e.g. "You are here". **Required**, for two reasons found together at
+   * `PH-0.30`.
+   *
+   * It defaulted to the literal string `'Breadcrumb'`, which is a hardcoded user-facing string in
+   * a library whose entire contract is that copy comes from `@josam/i18n` (`BR-525`) — and in an
+   * Arabic-first product it made a screen reader announce an English word.
+   *
+   * It also made every breadcrumb on a page share one accessible name. axe reported
+   * `landmark-unique`: two `navigation` landmarks a user cannot tell apart, which is worse than
+   * one unnamed landmark because the list of landmarks looks navigable and is not.
+   */
+  label: string;
 }
 
 /**
@@ -35,7 +46,7 @@ export function Breadcrumb({ items, label }: BreadcrumbProps) {
   if (items.length <= 2) return null;
 
   return (
-    <nav aria-label={label ?? 'Breadcrumb'}>
+    <nav aria-label={label}>
       <ol className="flex flex-row flex-wrap items-center gap-2">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;

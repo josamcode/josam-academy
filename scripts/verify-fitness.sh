@@ -559,6 +559,44 @@ node -e '
 check "invalid renovate key" "pnpm check:renovate" "Invalid configuration option|_comment"
 mv -f renovate.json.bak renovate.json
 
+# ── 38. BR-1486 — the bundle budget, activated at PH-0.30 ────────────────────────────────
+# Row 14 of 12 §19 named size-limit and 13 §18.1 pinned it at PH-0.16. It was never installed, and
+# the row pointed at a task that had already closed — it had no owner until now.
+hr; echo "38. BR-1486 — a bundle over the 200 KB budget fails the build"
+cp .size-limit.mjs .size-limit.mjs.bak
+sed -i "s/limit: '200 KB'/limit: '1 KB'/" .size-limit.mjs
+check "bundle over budget" "pnpm check:size" "exceeded|has exceeded"
+mv -f .size-limit.mjs.bak .size-limit.mjs
+
+# ── 39. BR-1502 — a blanket "use client" in the route tree ───────────────────────────────
+# Row 17. It had been waiting for a client component to exist; twenty do. Its own rule name rather
+# than another no-restricted-syntax selector, because ESLint REPLACES a rule's options and scoping
+# that rule off outside apps/web/app would have killed BR-855, BR-1429 and BR-1544 in packages/**.
+hr; echo "39. BR-1502 — a blanket use client in the route tree fails the build"
+mkdir -p apps/web/app/__violation
+cat > apps/web/app/__violation/page.tsx <<'TSX'
+'use client';
+
+export default function Violation() {
+  return <p>opted the whole route out of server rendering</p>;
+}
+TSX
+check "blanket use client" "pnpm exec eslint apps/web/app/__violation/page.tsx" "BR-1502|no-blanket-use-client"
+rm -rf apps/web/app/__violation
+
+# ── 40. 12 §20.12.1 — the Wave 1 roster is checked, not counted ──────────────────────────
+# The Phase 0 report had to say "69/69, but that is a count I did, not a gate". The gate found that
+# the real figure was 68: `Toast` was in the roster and not exported.
+hr; echo "40. 12 §20.12.1 — a component missing from the package surface fails the build"
+cp packages/ui/src/index.ts packages/ui/src/index.ts.bak
+node -e '
+  const fs = require("fs");
+  const s = fs.readFileSync("packages/ui/src/index.ts", "utf8").replace(/^\s*Skeleton,$/m, "");
+  fs.writeFileSync("packages/ui/src/index.ts", s);
+'
+check "component missing from the roster" "pnpm --filter @josam/ui exec vitest run src/roster.spec.ts" "Skeleton|roster"
+mv -f packages/ui/src/index.ts.bak packages/ui/src/index.ts
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

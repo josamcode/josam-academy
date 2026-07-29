@@ -64,6 +64,23 @@ describe.each([
     expect(contrast(c.textSecondary, surface)).toBeGreaterThanOrEqual(4.5);
   });
 
+  /**
+   * `textMuted` was absent from this suite until `PH-0.30`, and that absence is the whole story:
+   * the palette had a text token nothing checked, so it sat at 3.40:1 (dark) and 3.11:1 (light)
+   * through twenty-two tasks while every contrast test passed.
+   *
+   * It is body text — hints, counters and timestamps at `text-xs` — so it takes the 4.5:1
+   * threshold, not the 3:1 large-text allowance. Found by the Storybook axe sweep, in a real
+   * browser, because that is the only place resolved colours exist.
+   */
+  it.each(surfaces)('MUTED text reaches 4.5:1 on %s', (_surfaceName, surface) => {
+    expect(contrast(c.textMuted, surface)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('muted stays visibly lighter than secondary — the hierarchy still exists', () => {
+    expect(contrast(c.textMuted, c.bgBase)).toBeLessThan(contrast(c.textSecondary, c.bgBase));
+  });
+
   it('the accent itself reaches 3:1 on the base — it is a UI boundary and large text', () => {
     expect(contrast(c.accent, c.bgBase)).toBeGreaterThanOrEqual(3);
   });
@@ -94,6 +111,38 @@ describe.each([
  * the fix holds, and they are pinned to the computed value so that any future palette edit which
  * erodes the margin fails here first.
  */
+/**
+ * `PH-0.30` — the filled DANGER control.
+ *
+ * `--accent-contrast` was computed and pinned against the **accent** and is qualified for nothing
+ * else. `Button variant="danger"` used it on `--danger`, where it measured 3.67:1 in light theme
+ * and 7.15:1 in dark — a failure visible in exactly one of the two themes, which is why looking at
+ * the component in the default theme would never have shown it.
+ */
+describe('PH-0.30 — a filled danger control has a legible foreground', () => {
+  it.each([
+    ['dark', darkColors],
+    ['light', lightColors],
+  ])('%s: text-inverse on danger reaches 4.5:1', (_n, c: ColorTokens) => {
+    expect(contrast(c.textInverse, c.danger)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('accent-contrast is NOT a general-purpose foreground — it fails on danger in light', () => {
+    // Pinned as a fact, not an aspiration: if someone reaches for it again, this states why not.
+    expect(contrast(lightColors.accentContrast, lightColors.danger)).toBeLessThan(4.5);
+  });
+});
+
+describe('PH-0.30 — muted contrast, pinned to the computed values', () => {
+  it('dark: muted on the base measures 5.21:1, worst surface 4.52:1', () => {
+    expect(contrast(darkColors.textMuted, darkColors.bgBase)).toBeCloseTo(5.21, 1);
+  });
+
+  it('light: muted on the base measures 4.80:1, worst surface 4.51:1', () => {
+    expect(contrast(lightColors.textMuted, lightColors.bgBase)).toBeCloseTo(4.8, 1);
+  });
+});
+
 describe('SB-18 — accent contrast, resolved', () => {
   it('dark: a dark foreground on the accent measures 10.12:1', () => {
     expect(contrast(darkColors.accentContrast, darkColors.accent)).toBeCloseTo(10.124, 2);

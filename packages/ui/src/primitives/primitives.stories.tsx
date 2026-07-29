@@ -51,7 +51,6 @@ export const Tones: Story = {
       <Text tone="primary">primary</Text>
       <Text tone="secondary">secondary</Text>
       <Text tone="muted">muted</Text>
-      <Text tone="accent">accent</Text>
       <Text tone="success">success</Text>
       <Text tone="warning">warning</Text>
       <Text tone="danger">danger</Text>
@@ -147,7 +146,9 @@ export const Composed: Story = {
         </Text>
         <Inline gap="2">
           <Icon icon={ArrowRight} flip label="Continue" />
-          <Text size="sm" tone="accent">
+          {/* PH-0.30 — `accent` is no longer a Text tone. It is a 3:1 boundary colour and
+              measured 3.70:1 as light-theme body text. Emphasis here is weight, not brand colour. */}
+          <Text size="sm" weight="medium">
             Continue
           </Text>
         </Inline>

@@ -98,6 +98,43 @@ focusable and its value stays readable and copyable. Rendering a value the user 
 It runs **before** the exit check rather than after Phase 1, because every form built in Phase 1
 inherits these components, and the same change costs more with each screen that consumes them.
 
+| `PH-0.30` | **Phase 0 conformance closure**: criterion 6 automated in a real browser, a roster gate, the four unowned enforcement items, the Redis health indicator | `0.27`, `0.10` | 1 | Every story passes axe in 4 combinations; 69/69 checked | `BR-1571`, `BR-1486`, `BR-1502`, `BR-892` |
+
+**`PH-0.30` is the second remedial task**, added after the Phase 0 status report. It closes the two
+exit criteria that were failing on evidence and the four `12 §19` checks that had no owning task —
+each of which was keyed to a task that had already closed, so none of them would ever have happened.
+
+---
+
+## Type-B estimates, split (`PH-0.30`)
+
+The `16 §Phase 0` estimates were single figures covering **authoring and execution together**, so
+the Phase 0 report could not produce a Type-B ratio: the one recorded number (`PH-0.7`, 0.3 d) was
+the founder's execution measured against an estimate that included the authoring too. Split here so
+the remaining four produce a usable ratio.
+
+The split is a judgement, and the reasoning matters more than the numbers:
+
+| Task | Total | Authoring | Execution | Why this split |
+| --- | ---: | ---: | ---: | --- |
+| `PH-0.8` Cloudflare Tunnel | 0.5 | **0.35** | **0.15** | Authoring-heavy. The runbook has to solve the ordering problem — the tunnel proven working *before* port 8000 closes, never the reverse — and document recovery for a founder whose clients' control panel depends on it. Execution is a `cloudflared` install and a DNS record. |
+| `PH-0.9` Coolify hardening | 0.5 | **0.2** | **0.3** | Execution-heavy, and the only one where that is true. The authoring is short because the OOM constraint is already written; the execution is measuring real headroom on a shared box, sizing five limits against it, and rotating a credential on a machine serving five live client apps. |
+| `PH-0.11` Deploy + rollback | 0.5 | **0.3** | **0.2** | Authoring covers the Coolify wiring, the migration-before-cutover order (`BR-887`) and a rollback procedure that must be *tested*, not described. Execution is two deploys and one rollback. |
+| `PH-0.28` Backups + monitoring | 1.0 | **0.65** | **0.35** | Authoring-heavy: `scripts/backup.sh`, `scripts/restore-verify.sh`, the R2 wiring and the alert configuration are all code, and `DEC-57` requires the restore to be *verified from a clean database*, which is the script that takes the time. Execution is running them and confirming an alert arrives. |
+| **Total** | **2.5** | **1.5** | **1.0** | |
+
+Two things this split assumes, stated so they can be checked rather than discovered:
+
+- **Authoring is measured the way Type-A work is** — written, reviewed against the Refs, and
+  verified as far as it can be without the server. `PH-0.10` is the calibration point: 1.15 d
+  actual against 1.0 estimated, and both overruns were `BR-1838`-class defects rather than the
+  writing.
+- **Execution excludes waiting.** A DNS propagation window or an R2 bucket provisioning is not
+  founder time and is not in these figures. If it turns out to dominate, that is worth knowing and
+  is not what these numbers measure.
+
+---
+
 **Phase 0 exit:** `15 §Phase 0` criteria all passing.
 
 ---

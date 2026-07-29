@@ -19,3 +19,36 @@
  * classes that exist in the DOM and in no stylesheet.
  */
 @source '../../../packages/ui/src';
+
+/*
+ * The page's base surface.
+ *
+ * Found at PH-0.30 by the Storybook axe sweep, which measured near-white text (#fafafa) on a
+ * WHITE background at a contrast ratio of 1.04 — eighty times. The tokens were never wrong:
+ * `packages/tokens/src/color.spec.ts` pins every pair and passes. Nothing was applying them to
+ * the document, so in dark theme the page was the browser's default white behind dark-theme text.
+ *
+ * `AppShell` sets `bg-bg-base text-text-primary` on its own wrapper, which is why no screen built
+ * so far looked broken — and why this went unnoticed. Anything rendered outside `AppShell`, and
+ * every Storybook story, had no base surface at all.
+ *
+ * On `html` rather than `body` so the colour extends past the body box — an over-scrolled page
+ * would otherwise show white beyond the content in dark theme.
+ *
+ * `color-scheme` makes the browser's own chrome follow: form controls, scrollbars and the
+ * caret. Without it a dark page keeps light scrollbars and a nearly invisible caret.
+ */
+@layer base {
+  html {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+  }
+
+  :root[data-theme='light'] {
+    color-scheme: light;
+  }
+}

@@ -52,6 +52,12 @@ export interface PageHeaderProps {
    * refuses to render at or below two, so passing a short trail is harmless rather than wrong.
    */
   breadcrumb?: BreadcrumbItem[];
+  /**
+   * Pre-translated, names the breadcrumb's navigation landmark. Required whenever `breadcrumb` is
+   * given — `Breadcrumb` no longer defaults it, because the default was a hardcoded English string
+   * and made every breadcrumb on a page share one landmark name (`PH-0.30`).
+   */
+  breadcrumbLabel?: string;
   primaryAction?: PrimaryAction;
   secondaryActions?: SecondaryAction[];
   /** Status chips, counts, timestamps — anything that describes the page rather than acts on it. */
@@ -84,13 +90,16 @@ export function PageHeader({
   title,
   description,
   breadcrumb,
+  breadcrumbLabel,
   primaryAction,
   secondaryActions,
   meta,
 }: PageHeaderProps) {
   return (
     <Stack gap="3">
-      {breadcrumb === undefined ? null : <Breadcrumb items={breadcrumb} />}
+      {breadcrumb === undefined ? null : (
+        <Breadcrumb items={breadcrumb} label={breadcrumbLabel ?? 'Breadcrumb'} />
+      )}
 
       {/*
         `flex-wrap` rather than a fixed two-column layout: at 320px the actions belong under the

@@ -15,6 +15,16 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().max(65535).default(4000),
 
+  /**
+   * PH-0.30. The compose stack has run Redis since PH-0.5 and nothing connected to it, so
+   * `GET /health` reported ok while watching one of two dependencies (`SB-16`, `BR-892`).
+   *
+   * Required, not optional: unlike SENTRY_DSN this is not a credential the founder holds, it is
+   * part of the local stack, and an API that boots without knowing where Redis is will report a
+   * healthy Redis it never contacted.
+   */
+  REDIS_URL: z.string().url(),
+
   // PH-0.19 — observability. FEAT-217: production defaults to info.
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 

@@ -15,16 +15,21 @@ import type { ElementType, ReactNode } from 'react';
  * There is no `className` prop, and that is deliberate: it would be an escape hatch straight past
  * `BR-1342` and `BR-1533`, and an escape hatch that exists is an escape hatch that gets used.
  */
+/**
+ * `accent` is deliberately absent.
+ *
+ * The accent is specified and pinned as a **3:1 UI-boundary and large-text** colour (`SB-18`), and
+ * in light theme it measures **3.70:1** on the base — correct for what it is, and below AA body.
+ * Offering it as a `Text` tone invited exactly one thing: brand-coloured body copy that fails AA
+ * in half the product's themes. Found at `PH-0.30` by the Storybook sweep, which is the only place
+ * a resolved colour exists.
+ *
+ * Changing the accent to clear 4.5:1 would be a brand decision, not arithmetic, and `SB-18`
+ * settled that the accent hex does not move. So the colour stays where it is proven — interactive
+ * surfaces, borders, focus rings — and emphasis in body text is carried by `weight`.
+ */
 export type TextTone =
-  | 'primary'
-  | 'secondary'
-  | 'muted'
-  | 'inverse'
-  | 'accent'
-  | 'success'
-  | 'warning'
-  | 'danger'
-  | 'info';
+  'primary' | 'secondary' | 'muted' | 'inverse' | 'success' | 'warning' | 'danger' | 'info';
 
 export type TextWeight = 'regular' | 'medium' | 'semibold';
 
@@ -55,7 +60,6 @@ const TONE: Record<TextTone, string> = {
   secondary: 'text-text-secondary',
   muted: 'text-text-muted',
   inverse: 'text-text-inverse',
-  accent: 'text-accent',
   // The `-text` variants, per SB-18: these clear 4.5:1 as body text, while the bare
   // `--success` etc. are surface/border tokens that only clear 3:1.
   success: 'text-success-text',

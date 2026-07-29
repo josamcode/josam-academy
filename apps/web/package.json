@@ -12,21 +12,29 @@
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests",
     "storybook": "storybook dev --port 6006",
-    "build:storybook": "storybook build"
+    "build:storybook": "storybook build",
+    "test:storybook": "test-storybook --maxWorkers=2",
+    "test:a11y": "concurrently -k -s first -n SB,TEST \"http-server storybook-static --port 6006 --silent\" \"wait-on tcp:6006 && test-storybook --maxWorkers=2\""
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
     "@josam/config": "workspace:*",
     "@storybook/addon-a11y": "10.5.5",
     "@storybook/nextjs-vite": "10.5.5",
+    "@storybook/test-runner": "0.24.4",
     "@tailwindcss/postcss": "4.3.3",
     "@types/jsdom": "28.0.3",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.4",
     "axe-core": "4.12.1",
+    "concurrently": "10.0.4",
+    "http-server": "14.1.1",
     "jsdom": "30.0.0",
+    "playwright": "1.62.0",
     "storybook": "10.5.5",
-    "tailwindcss": "4.3.3"
+    "tailwindcss": "4.3.3",
+    "wait-on": "9.1.0"
   },
   "dependencies": {
     "@josam/i18n": "workspace:*",

@@ -110,11 +110,16 @@ export const BreadcrumbStates: Story = {
       <Text size="sm" tone="secondary">
         أول اثنين لا يعرضان شيئًا · The first two render nothing
       </Text>
-      <Breadcrumb items={[{ label: 'الرئيسية · Home', href: '/' }]} />
       <Breadcrumb
+        label="مسار قصير · Short trail"
+        items={[{ label: 'الرئيسية · Home', href: '/' }]}
+      />
+      <Breadcrumb
+        label="مسار من مستويين · Two-level trail"
         items={[{ label: 'الرئيسية · Home', href: '/' }, { label: 'الدورات · Courses' }]}
       />
       <Breadcrumb
+        label="مسار من ثلاثة · Three-level trail"
         items={[
           { label: 'الرئيسية · Home', href: '/' },
           { label: 'الدورات · Courses', href: '/courses' },
@@ -122,6 +127,7 @@ export const BreadcrumbStates: Story = {
         ]}
       />
       <Breadcrumb
+        label="مسار من أربعة · Four-level trail"
         items={[
           { label: 'الرئيسية · Home', href: '/' },
           { label: 'الدورات · Courses', href: '/courses' },

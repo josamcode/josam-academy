@@ -263,7 +263,9 @@ export {
 } from './feedback/states.js';
 export {
   MIN_TOAST_DURATION_MS,
+  Toast,
   type ToastInput,
+  type ToastProps,
   ToastProvider,
   type ToastProviderProps,
   useToast,
