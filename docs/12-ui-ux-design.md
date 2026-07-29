@@ -1094,6 +1094,36 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
 | Unknown or unmaintained dependency | CI dependency audit | `BR-1468` |
 | Endpoint not present in the contract | Generated client types | `BR-1447` |
 
+### 19.1 Every Mechanism Is Proven By A Deliberate Violation
+
+- `BR-1830` — **An enforcement mechanism is proven by a deliberate violation at the moment it is
+  written, not when it is next needed.** Write the violation, watch the tool reject it, then
+  remove it. A rule that loads without a configuration error is *not* a rule that works, and an
+  unproven rule is worse than no rule: it buys confidence that nothing is checking.
+
+  This is not hypothetical. Three of the mechanisms added at `PH-0.16` were **silently dead** when
+  first written — each loaded cleanly, reported nothing, and enforced nothing. These are the
+  shapes the failure takes, and they are worth recognising by sight:
+
+  | Failure mode | What it looked like |
+  |---|---|
+  | **Tool API drift across a major** | `eslint-plugin-boundaries` v7 renamed `element-types` → `dependencies`, `rules` → `policies`, requires `{ element: { type } }` rather than bare `{ type }`, and switched to `{{ }}` templates. The v5 form loads without error and matches nothing. |
+  | **Unresolvable module specifiers** | The same plugin then still matched nothing: it could not resolve nodenext `.js` specifiers onto `.ts` files, so every dependency resolved to `isUnknown`. Visible only with the plugin's own debug output. |
+  | **Config merge replacing, not merging** | ESLint merges flat configs by **replacing** a rule's options. Two `no-restricted-syntax` blocks meant the later one silently deleted the earlier one's selectors. |
+  | **Glob patterns that cannot match the input** | `no-restricted-imports` matches `group` patterns with minimatch, and `**` never crosses a leading `..`, so no glob catches `../../generated/prisma/client.js`. |
+
+- `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
+  described. A proof that only re-runs when somebody remembers is not a safety net. In this
+  repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.
+
+- `BR-1832` — At Phase 0 exit the suite is **re-run, not re-read**. The exit criterion is satisfied
+  by observed output, never by the record of a previous run (`BR-1768`).
+
+- `BR-1833` — A check in `§19` that is not yet active is recorded against **the specific task that
+  activates it**. "Deferred" without a named task is indistinguishable from forgotten, and the
+  exit count must reconcile against the full table rather than against whatever happens to be
+  switched on.
+
 - `BR-1522` — A failing check blocks merge. It is never downgraded to a warning to unblock work.
 - `BR-1523` — When a defect escapes to production, the first question is which automated check would have caught it — and that check is added.
 

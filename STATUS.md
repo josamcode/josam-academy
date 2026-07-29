@@ -980,6 +980,57 @@ functioning in TypeScript 7.0`, exit 2.
 
 ---
 
+## 8a. Enforcement Coverage Ledger — `12 §19` + `09 §enforcement`
+
+> `BR-1833` — a check that is not active is recorded against **the specific task that activates
+> it**. "Deferred" without a named task is indistinguishable from forgotten. The Phase 0 exit
+> check reconciles against this whole table, not against whatever happens to be switched on.
+>
+> `BR-1832` — status below is the record of a past run. At exit, `pnpm verify:fitness` is
+> **re-run**, not re-read.
+
+### `12 §19` — all 20 rows
+
+|   # | Check                                         | Enforces             | Status                      | Proof / activating task                                                                                                                                                    |
+| --: | --------------------------------------------- | -------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|   1 | Raw colours / palette utilities in components | `BR-1342`            | ✅ active                   | `PH-0.16` violation 1; `PH-0.14` deleted the palette outright                                                                                                              |
+|   2 | Physical CSS direction properties             | `BR-1392`            | ✅ active                   | `PH-0.16` violation 2                                                                                                                                                      |
+|   3 | Off-scale spacing and font sizes (CSS)        | `BR-1329`, `BR-1317` | ✅ active                   | `PH-0.16` violation 5                                                                                                                                                      |
+|   4 | Hardcoded user-facing strings                 | `BR-1357`            | ✅ active                   | `PH-0.16` violations 6 and 7                                                                                                                                               |
+|   5 | Prohibited copy terms in i18n catalogs        | `BR-1365`            | ✅ active                   | `PH-0.16` violation 16                                                                                                                                                     |
+|   6 | Missing Arabic key in a bilingual string      | `BR-524`             | ✅ active                   | `PH-0.16` violation 17 — and type-level since `PH-0.13`                                                                                                                    |
+|   7 | `!important`                                  | `BR-1353`            | ✅ active                   | `PH-0.16` violation 3                                                                                                                                                      |
+|   8 | `any`, `@ts-ignore`, type assertions          | `BR-1497`            | ✅ active                   | `PH-0.2`, proven by violation there                                                                                                                                        |
+|   9 | `console.*` at merge                          | `BR-1501`            | ✅ active                   | `PH-0.16` violation 11                                                                                                                                                     |
+|  10 | Clickable non-semantic elements               | `BR-1469`            | ⬜ **`PH-0.17`**            | needs JSX to lint; `jsx-a11y` activates with the primitives                                                                                                                |
+|  11 | Missing `aria-label` on icon buttons          | `BR-1471`            | ⬜ **`PH-0.20`**            | `IconButton` is built there; the rule is meaningless before it                                                                                                             |
+|  12 | Array index as a React key                    | `BR-1429`            | 🟡 **configured, UNPROVEN** | selector exists since `PH-0.16` but was **not** among the 17 violations. Proven at **`PH-0.17`**, when there is a list to write. Recorded rather than counted (`BR-1830`). |
+|  13 | `transition: all`                             | `BR-1493`            | ✅ active                   | `PH-0.16` violation 4                                                                                                                                                      |
+|  14 | Bundle size budget                            | `BR-1486`            | ⬜ **`PH-0.10`**            | `size-limit` needs a built app and CI to be meaningful                                                                                                                     |
+|  15 | Core Web Vitals                               | `BR-1486`            | ⬜ **`PH-0.10`**            | Lighthouse CI needs a deployed URL                                                                                                                                         |
+|  16 | Contrast ratios                               | `BR-1216`            | ✅ active                   | `PH-0.12` pins every ratio; `PH-0.15` runs axe on every story                                                                                                              |
+|  17 | Blanket `"use client"`                        | `BR-1502`            | ⬜ **`PH-0.17`**            | no client component exists yet; the rule has nothing to check                                                                                                              |
+|  18 | Unknown or unmaintained dependency            | `BR-1468`            | ⬜ **`PH-0.10`**            | `pnpm audit` + Renovate belong to the CI pipeline (`13 §16.1`)                                                                                                             |
+|  19 | Endpoint not present in the contract          | `BR-1447`            | ⬜ **`PH-1.8`**             | requires `packages/contracts`, which is Phase 1                                                                                                                            |
+|  20 | Scope decorator present                       | `BR-918`             | ⬜ **Phase 1**              | there is no scoped query, and no `_can`, until the domain exists                                                                                                           |
+
+**`12 §19` score: 12 active · 1 configured-but-unproven · 7 deferred to a named task.**
+
+### `09 §enforcement` — the architectural rows
+
+| Check                              | Enforces          | Status         | Proof                                                                                             |
+| ---------------------------------- | ----------------- | -------------- | ------------------------------------------------------------------------------------------------- |
+| Module import boundaries           | `BR-901`          | ✅ active      | `PH-0.16` violation 12                                                                            |
+| No circular dependencies           | Tier model        | ✅ active      | `PH-0.16` violation 14                                                                            |
+| Layer direction                    | `BR-895`–`BR-898` | ✅ active      | `PH-0.16` violation 13 — encodes `09`'s description; the rule texts were never authored (`SB-11`) |
+| No vendor SDK outside `providers/` | `BR-899`          | ✅ active      | `PH-0.16` violation 9                                                                             |
+| No Prisma outside repositories     | `BR-897`          | ✅ active      | `PH-0.16` violation 8                                                                             |
+| No `localStorage` for tokens       | `BR-855`          | ✅ active      | `PH-0.16` violation 10                                                                            |
+| `packages/ui` independent of apps  | `BR-1575`         | ✅ active      | `PH-0.16` violation 15                                                                            |
+| Migration is expand-only           | `BR-888`          | ⬜ **Phase 1** | the first non-empty migration is Phase 1                                                          |
+
+---
+
 ## 9. Metrics
 
 > Populated after launch. Targets from `01 §5`.

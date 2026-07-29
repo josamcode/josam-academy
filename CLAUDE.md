@@ -174,6 +174,11 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 > lines. A `/health` that reports `status: ok` while silently omitting a dependency the founder
 > believes is being watched is worse than one that never claimed to check it (`BR-892`).
 
+> **`PH-0.10` must run `pnpm verify:fitness` in CI** (`BR-1831`). The deliberate-violation suite
+> is what makes the 17 fitness functions trustworthy, and three of them were _silently dead_ when
+> written — loading cleanly and enforcing nothing. A proof that only re-runs when somebody
+> remembers is not a safety net. It runs on every push, next to lint.
+
 > **`PH-0.10` must run lint by BOTH paths — `turbo run lint` _and_ a single root-level
 > `eslint` invocation over changed files, the way the pre-commit hook does.** They are not
 > equivalent: turbo runs `eslint .` inside each workspace (one TSConfig root), the hook runs it
@@ -216,6 +221,11 @@ Phase 0 is not done until **all** of these are true and evidenced.
 ☐ Every story passes axe in both themes and both directions
 ☐ Fitness functions active: boundaries · tokens · logical properties
     · hardcoded strings · prohibited copy terms
+☐ `pnpm verify:fitness` RE-RUN at exit — not re-read — and every case still caught
+    (`BR-1832`). The recorded table in STATUS.md §4 is evidence of a past run, never
+    a substitute for a present one (`BR-1768`).
+☐ All 20 checks in `12 §19` reconciled: active, or recorded against the task that
+    activates them (`BR-1833`). The count is 20, not "the ones switched on".
 ☐ A raw hex color in a component fails the build (verified by deliberate violation)
 ☐ Health endpoint reports database, Redis, queue, storage, last backup
 ☐ STATUS.md shows 28/28 with honest actual-vs-estimate times per task
