@@ -1134,6 +1134,25 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   semantics-preserving by design; its only real authority here is over `.md`, which is why the
   frozen specification documents are in `.prettierignore`.
 
+- `BR-1836` — **Hardening a system can silence the monitoring that watches it.** A control and its
+  detector are verified **together, after both are in place** — never separately, and never at the
+  moment each is installed.
+
+  Observed at `PH-0.7`. `AuthenticationMethods publickey` was set, which is correct. fail2ban was
+  installed and its `sshd` jail reported `active`, which is also correct. But `sshd` now rejects at
+  **preauth** and logs `Connection reset by authenticating user … [preauth]`, while the stock
+  filter matches `Failed password` — a line the server no longer emits. **Eight deliberate failed
+  logins moved the ban counter by zero.** Each step was individually right; the combination was
+  inert, and `fail2ban-client status` reported health throughout.
+
+  This is `BR-1830`'s shape in a new place: a mechanism that loads, reports healthy, and enforces
+  nothing. It generalises past linters. The detector must be shown to **fire on the events the
+  hardened system actually produces**, which for a log-watcher means matching real log lines
+  (`fail2ban-regex`, matched-count > 0) and, ultimately, producing a real ban.
+
+  The corollary is that **the order is a trap**: install the detector, verify it, harden, and the
+  verification is now stale. Verify the detector **after** the hardening it is meant to survive.
+
 - `BR-1835` — **A test that passes on its first run is not yet evidence.** Make it fail
   deliberately — break the input, or break the code — and confirm it fails for the reason it
   claims to check, before trusting it.

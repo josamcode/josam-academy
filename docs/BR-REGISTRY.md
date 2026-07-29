@@ -61,7 +61,7 @@ document that defines rules in a table not listed here will be undercounted unti
 | `10-database-design-part-2` | — | `BR-1025` – `BR-1104` | 80 | — |
 | `11-api-contract-part-1` | — | `BR-1105` – `BR-1152` | 48 | — |
 | `11-api-contract-part-2` | — | `BR-1153` – `BR-1210` | 58 | — |
-| `12-ui-ux-design` | `BR-1211` – `BR-1594` | `BR-1211` – `BR-1576` (complete, 14 of them in the `§17.2` table) · `BR-1812` – `BR-1813` · `BR-1830` – `BR-1835` (`§19.1`) | 374 | ⚠️ over-declared; `1577`–`1594` belong to `13` |
+| `12-ui-ux-design` | `BR-1211` – `BR-1594` | `BR-1211` – `BR-1576` (complete, 14 of them in the `§17.2` table) · `BR-1812` – `BR-1813` · `BR-1830` – `BR-1836` (`§19.1`) | 375 | ⚠️ over-declared; `1577`–`1594` belong to `13` |
 | `13-tech-stack` | `BR-1577` – `BR-1604` · `BR-1805` – `BR-1811` · `BR-1814` – `BR-1819` · `BR-1826` – `BR-1829` | same | 45 | ✅ corrected 2026-07-28; `BR-1819` allocated 2026-07-29 (`PH-0.6`); `BR-1826`–`BR-1829` allocated 2026-07-29 (`§16.1` Renovate policy, `OQ-24`) |
 | `14-security-design` | `BR-1605` – `BR-1704` | `BR-1605` – `BR-1718` | 114 | ⚠️ under-declared by 14 — **the collision source** |
 | `15-implementation-roadmap` | `BR-1719` – `BR-1760` | `BR-1719` – `BR-1748` | 30 | ⚠️ over-declared; `1749`–`1760` unused |
@@ -83,7 +83,8 @@ The per-document counts above sum to the same figure.
 
 | Range | Status |
 |---|---|
-| **`BR-1836` onward** | ✅ **Next free block — use this.** Contiguous and unused. |
+| **`BR-1837` onward** | ✅ **Next free block — use this.** Contiguous and unused. |
+| `BR-1836` | ❌ taken by `12 §19.1` — hardening can silence its own monitoring. Allocated 2026-07-29 (`PH-0.7` execution). |
 | `BR-1834` – `BR-1835` | ❌ taken by `12 §19.1` — autofixer output assertion, and deliberate failure of every test. Allocated 2026-07-29 (`PH-0.20` close-out). |
 | `BR-1830` – `BR-1833` | ❌ taken by `12 §19.1` — deliberate-violation proof of every enforcement mechanism, allocated 2026-07-29 (`PH-0.16` close-out). |
 | `BR-1826` – `BR-1829` | ❌ taken by `13 §16.1` — Renovate policy, allocated 2026-07-29 closing `OQ-24`. |

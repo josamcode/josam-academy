@@ -1,14 +1,16 @@
 # Runbook — `PH-0.7` VPS Hardening
 
-| Field                | Value                                                                    |
-| -------------------- | ------------------------------------------------------------------------ |
-| **Task**             | `PH-0.7` — SSH keys, disable root, fail2ban, ufw, unattended-upgrades    |
-| **Type**             | **B** — authored here, executed by the founder                           |
-| **Authority**        | `14 §12`, `BR-1700` – `BR-1704`                                          |
-| **Server**           | Ubuntu 24.04 · 2 vCPU / 8 GB / 100 GB · Frankfurt                        |
-| **Critical context** | **Live box, ~90 days uptime.** Root password login enabled. No firewall. |
-| **Also running**     | **Coolify**, pre-installed from a provider template, currently serving   |
-| **Written**          | 2026-07-29                                                               |
+| Field                | Value                                                                                        |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| **Task**             | `PH-0.7` — SSH keys, disable root, fail2ban, ufw, unattended-upgrades                        |
+| **Type**             | **B** — authored here, executed by the founder                                               |
+| **Authority**        | `14 §12`, `BR-1700` – `BR-1704`                                                              |
+| **Server**           | Ubuntu 24.04 · 2 vCPU / 8 GB / 100 GB · Frankfurt                                            |
+| **Critical context** | **Live box, ~90 days uptime.** Root password login enabled. No firewall.                     |
+| **Also running**     | **Coolify**, pre-installed from a provider template, currently serving                       |
+| **Written**          | 2026-07-29                                                                                   |
+| **Executed**         | **2026-07-29 by the founder.** Verification output pasted back; `PH-0.7` closed.             |
+| **Deviations**       | Three, all deliberate: §3 (port), §5.6 (port 8000), §6 (fail2ban filter). Recorded in place. |
 
 ---
 
@@ -212,85 +214,43 @@ sudo whoami     # expect: root
 
 ---
 
-## 3. SSH port
+## 3. SSH port — **not changed. Decision, not omission.**
 
-`14 §12` specifies a non-default port. It is not a security control on its own — a port scan finds
-it in seconds — but it removes essentially all opportunistic bot traffic, which keeps the fail2ban
-logs of §6 small enough that a real intrusion attempt is visible in them.
-
-### Step 3.1 — Choose and open the new port FIRST
-
-Pick `<SSH_PORT>` above 1024 and outside the list you recorded in Step 1.3. **Do not reuse a port
-already in that list** — you would break whatever owns it.
-
-```bash
-# Ubuntu 24.04 uses socket activation for ssh. Setting Port in sshd_config alone does NOT change
-# the listening port, because systemd owns the socket. This is the most common reason a port
-# change "does not take".
-systemctl is-active ssh.socket && echo 'SOCKET-ACTIVATED' || echo 'CLASSIC'
-```
-
-**↳ If SOCKET-ACTIVATED:**
-
-```bash
-sudo mkdir -p /etc/systemd/system/ssh.socket.d
-sudo tee /etc/systemd/system/ssh.socket.d/override.conf > /dev/null <<'EOF'
-[Socket]
-# Clearing first is required — ListenStream appends, so without the empty value the old port
-# stays open alongside the new one.
-ListenStream=
-ListenStream=<SSH_PORT>
-EOF
-sudo systemctl daemon-reload
-```
-
-**↳ If CLASSIC:**
-
-```bash
-sudo tee /etc/ssh/sshd_config.d/10-josam-port.conf > /dev/null <<'EOF'
-Port <SSH_PORT>
-EOF
-```
-
-> **Deliberately additive at this stage.** The old port stays reachable until Step 3.3, so a
-> mistake costs a retry rather than the machine.
-
-### Step 3.2 — Validate the configuration BEFORE applying it
-
-```bash
-sudo sshd -t && echo 'CONFIG OK' || echo 'CONFIG BROKEN — do not reload'
-```
-
-- [ ] `CONFIG OK`.
-
-> `sshd -t` parses the whole configuration including drop-ins. Reloading a broken config can leave
-> `sshd` refusing to start, and then only the web console gets you back in.
-
-### Step 3.3 — Apply, then prove
-
-```bash
-# For socket activation:
-sudo systemctl restart ssh.socket
-
-# For classic:
-sudo systemctl reload ssh
-
-sudo ss -tulpn | grep -E 'sshd|ssh.socket'
-```
-
-**Open a fourth terminal:**
-
-```bash
-ssh -i <KEY_PATH> -p <SSH_PORT> <ADMIN_USER>@<SERVER_IP>
-```
-
-- [ ] New session connects on `<SSH_PORT>`.
-- [ ] Terminals A and B are **still open**.
-
-> ### 🚦 GATE
+> ### ✅ Executed 2026-07-29: **the port stays 22.** This section was skipped deliberately.
 >
-> Do not proceed until a session on `<SSH_PORT>` is established. §5 is about to allow only this
-> port through the firewall.
+> **Why the runbook originally called for a change.** `14 §12` lists a non-default port, and §3's
+> own justification was noise reduction — keeping the fail2ban log small enough that a real
+> intrusion attempt is visible among the bot traffic.
+>
+> **Why it was not done.** This box serves **live client projects** — five application containers
+> with their own Postgres and Redis, deployed through Coolify. A port change on a machine carrying
+> other people's traffic is real operational risk against no security return: an unfamiliar port
+> is found by a scan in seconds and stops nothing that matters. `14 §12`'s intent is a hardened
+> SSH surface, and that is delivered by key-only authentication, `PermitRootLogin no` and
+> `AuthenticationMethods publickey` — §4, which was executed in full.
+>
+> **What covers the original justification.** fail2ban (§6) does the noise reduction the port
+> change was there for, and does it by banning the source rather than by hiding the door.
+>
+> **Consequence for the rest of this runbook.** `<SSH_PORT>` is `22` throughout. §5.2's SSH allow
+> rule is `22/tcp`, and §6's jail watches `22`. Nothing else changes.
+>
+> **If a port change is ever revisited**, the procedure below is correct and was written to be
+> safe on a live box — keep it. It is retained rather than deleted so a future decision has the
+> steps rather than having to reconstruct them.
+
+<details>
+<summary>Retained procedure, should the port ever be changed</summary>
+
+The original §3 required: choose a port outside the list recorded in Step 1.3; detect whether
+`ssh.socket` is socket-activated (Ubuntu 24.04 is, so `Port` in `sshd_config` alone changes
+nothing) and write the matching override; validate with `sshd -t` **before** applying; then prove
+a session on the new port from a fresh terminal **before** §5 narrows the firewall to it.
+
+The gate mattered more than the change: never let the firewall allow only a port you have not yet
+proven you can reach.
+
+</details>
 
 ---
 
@@ -477,7 +437,58 @@ nc -zv -w 5 <SERVER_IP> 6379    # expect: timed out / refused
 
 ---
 
+### Step 5.6 — ⚠️ **Port 8000 (Coolify dashboard) is reachable from the internet. This is a live gap.**
+
+> **Status: OPEN. Owner: `PH-0.8`. Not covered by this task.**
+>
+> The Coolify dashboard is published by Docker, so — per the box at the top of §5 — `ufw` does not
+> filter it and never did. It is password-protected, not open, but a password-protected admin panel
+> on a public port is not an acceptable long-term posture for a machine holding client projects.
+>
+> **Why it was not closed here.** The obvious fix is a `ufw`/provider allow-list restricted to the
+> founder's address. That address is **dynamic**. An allow-list would lock the founder out of their
+> own clients' control panel at the next reconnection — trading a security gap for an availability
+> failure on someone else's production systems, which is a worse trade.
+>
+> **What `PH-0.8` must therefore do.** Close port 8000 **without an IP allow-list**. Cloudflare
+> Tunnel (or an equivalent identity-based reverse proxy) removes the public listener entirely
+> rather than filtering who reaches it, and survives a changing client address by design. `PH-0.8`
+> must not "solve" this with an allow-list; that is the approach already rejected here.
+>
+> Until `PH-0.8` executes, this port is exposed and known to be exposed. It is recorded in
+> `STATUS.md §5` as an open blocker rather than left inside a runbook nobody re-reads.
+
+---
+
 ## 6. fail2ban
+
+> ### ⚠️ Executed 2026-07-29 — **the default filter matched nothing, and this is the important finding of the task.**
+>
+> **What happened.** fail2ban was installed and reported the `sshd` jail active. Eight deliberate
+> failed logins moved the counter by **zero**. The jail was running, healthy, and watching for an
+> event that this server no longer produces.
+>
+> **Why.** §4 set `AuthenticationMethods publickey`, so `sshd` now rejects at **preauth** and logs
+>
+> ```
+> Connection reset by authenticating user <user> <addr> port <port> [preauth]
+> ```
+>
+> The stock filter looks for `Failed password`. That line is never emitted once password
+> authentication is gone — so **the hardening in §4 silenced the monitoring in §6.** Each step was
+> individually correct and the combination was inert.
+>
+> **This is the shape recorded in `12 §19.1`.** It is the same failure as the three dead fitness
+> functions at `PH-0.16` and the stylelint rewrite at `PH-0.17`: a mechanism that loads, reports
+> healthy, and enforces nothing. Recorded there as **`BR-1836`** — hardening a system can silence
+> the monitoring that watches it, and the two must be verified **together**, after both are in
+> place, never separately.
+>
+> **The fix:** `mode = aggressive`, which includes the preauth patterns.
+>
+> **Proven the hard way.** After the fix, five attempts produced a **real ban that locked the
+> founder out**, recovered through the provider web console (§10). That is the only evidence that
+> counts — a jail reporting `active` is not evidence it bans anything.
 
 ```bash
 systemctl is-enabled fail2ban 2>/dev/null || echo 'ABSENT'
@@ -491,37 +502,60 @@ sudo apt-get install -y fail2ban
 sudo tee /etc/fail2ban/jail.d/josam-sshd.local > /dev/null <<'EOF'
 [sshd]
 enabled  = true
-# Must match the real port, or the jail watches an address nothing connects to and bans nobody.
 port     = <SSH_PORT>
 backend  = systemd
-maxretry = 3
+
+# REQUIRED. The default filter matches `Failed password`, which sshd never emits once
+# AuthenticationMethods is publickey — rejection happens at preauth. `aggressive` includes the
+# preauth patterns. Without this the jail runs, reports active, and bans nobody. See BR-1836.
+mode     = aggressive
+
+# Tuned for a DYNAMIC founder address. A low threshold plus an escalating ban is a self-inflicted
+# outage: one fat-fingered session, and the address that is about to change is banned for hours.
+# 6 attempts is still far below what a bot needs, and 15 minutes still breaks any useful rate.
+maxretry = 6
 findtime = 10m
-bantime  = 1h
-# Escalates for repeat offenders rather than banning the same bot for an hour forever.
-bantime.increment = true
+bantime  = 15m
+# Deliberately OFF, for the same reason. Escalation punishes the operator, not the bot, when the
+# operator's address is not stable.
+bantime.increment = false
 EOF
 
 sudo systemctl enable --now fail2ban
 ```
 
-**↳ If already enabled:** check the port matches, since a pre-existing jail will still be watching
-`<OLD_PORT>`:
+**↳ If already enabled:** check both the port **and the mode**, since a pre-existing jail will be
+watching `<OLD_PORT>` with the default filter:
 
 ```bash
 sudo fail2ban-client get sshd port
+sudo fail2ban-client get sshd logpath
 ```
 
-### Verify
+### Verify — the jail must be shown to BAN, not merely to run
 
 ```bash
 sudo fail2ban-client status sshd
 ```
 
-- [ ] Status prints, jail is active, and the port is `<SSH_PORT>`.
+- [ ] Status prints and the jail is active on `<SSH_PORT>`.
+- [ ] **The filter matches the log lines this server actually produces:**
 
-> **Add your own address to `ignoreip` only if you have a static one.** A dynamic address in that
-> list eventually belongs to someone else. Being banned by your own fail2ban is a survivable
-> lockout — see §8 — and is preferable to a permanent allow for an address you no longer hold.
+```bash
+# The real test. Zero matches means the jail is inert, however healthy it reports.
+sudo fail2ban-regex systemd-journal   /etc/fail2ban/filter.d/sshd.conf --journalmatch '_SYSTEMD_UNIT=ssh.service' | tail -20
+```
+
+- [ ] **Matched lines is greater than zero.**
+
+> **↳ If matched lines is zero**, the jail is watching for an event that does not occur. Set
+> `mode = aggressive` and re-run. Do not proceed on the strength of `status` alone — that is
+> exactly the trap this section documents.
+
+> **Do not add your address to `ignoreip` if it is dynamic.** It eventually belongs to someone
+> else, and you would be permanently allowing an address you no longer hold. Being banned by your
+> own fail2ban is survivable — §10 — and the founder did exactly that during execution and
+> recovered through the console in minutes.
 
 ---
 
@@ -630,6 +664,17 @@ marked done on a claim.
 
 ## 9. Because this box was exposed for ninety days
 
+> ### ✅ Executed 2026-07-29 — **clean. The question is closed.**
+>
+> - Exactly **one** uid-0 account (`root`).
+> - **Two** `authorized_keys` entries, both known to the founder.
+> - Every recorded login from the founder's own addresses.
+> - No unexplained cron entry, timer or listener.
+>
+> No rebuild needed. This does not make the ninety-day exposure retroactively safe — it makes it
+> _checked_, which is the most that can be claimed. Recorded in `STATUS.md §7` so the question is
+> not reopened from memory later.
+
 Hardening closes the door. It does not establish that nobody came in. These checks are cheap, and
 running them now is the only chance to see anything before the logs rotate.
 
@@ -683,42 +728,89 @@ unaffected by anything below.
 
 ## 11. What this task does **not** do
 
-Recorded so the gaps are not mistaken for coverage.
+Recorded so the gaps are not mistaken for coverage. **Updated after execution.**
 
-| Not done here                                    | Where it belongs                                                                        |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| Provider network firewall (currently zero rules) | **`PH-0.8`** — the layer that actually closes container ports (§5)                      |
-| Restricting 80/443 to Cloudflare ranges          | **`PH-0.8`**, `BR-1702`                                                                 |
-| `DOCKER-USER` chain restrictions                 | **`PH-0.8`** — decision recorded in §5, deliberately not risked here                    |
-| Coolify credential rotation, dashboard binding   | **`PH-0.9`** — Coolify is verified running here, not reconfigured                       |
-| Container memory limits (`BR-878`)               | **`PH-0.9`**, `08 §11.1`                                                                |
-| Container non-root / read-only fs (`BR-1703`)    | **`PH-0.9`** / `PH-0.11`                                                                |
-| Backups and restore verification                 | **`PH-0.28`**. The provider's weekly VM snapshots are **not** backup coverage (`SB-17`) |
+| Not done here                                         | Where it belongs                                                                                                                   |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Port 8000 — Coolify dashboard, publicly reachable** | **`PH-0.8`**, and it must be closed **without an IP allow-list** — the founder's address is dynamic (§5.6). **LIVE GAP.**          |
+| Provider network firewall (currently zero rules)      | **`PH-0.8`** — the layer that actually closes container ports (§5)                                                                 |
+| Restricting 80/443 to Cloudflare ranges               | **`PH-0.8`**, `BR-1702`                                                                                                            |
+| `DOCKER-USER` chain restrictions                      | **`PH-0.8`** — decision recorded in §5, deliberately not risked here                                                               |
+| SSH port change                                       | **Not planned.** Decided against at execution; see §3.                                                                             |
+| Coolify credential rotation, dashboard binding        | **`PH-0.9`** — Coolify is verified running here, not reconfigured                                                                  |
+| Container memory limits (`BR-878`)                    | **`PH-0.9`** — and `08 §11.1`'s figures **no longer apply**; see §12                                                               |
+| Memory limits on the **client** containers            | **Out of scope permanently.** They are not Josam Academy's to constrain (§12).                                                     |
+| Container non-root / read-only fs (`BR-1703`)         | **`PH-0.9`** / `PH-0.11`                                                                                                           |
+| 26 pending package updates, one unappliable           | **Deferred** — needs a reboot window on a box serving client traffic. `STATUS.md §8`.                                              |
+| Backups and restore verification                      | **`PH-0.28`** — and its scope is **Josam Academy's database only**; see §12. Provider VM snapshots are **not** coverage (`SB-17`). |
 
 ---
 
-## 12. Founder checklist
+## 12. What execution revealed: this box is shared
+
+> **Discovered during execution, and it changes two later tasks.**
+
+The server does **not** host a provider template. It hosts **live client projects**: 13 containers
+in total — 5 application containers, their own `postgres:18-alpine` and `redis:7.2`, plus the
+Coolify stack. Memory at rest is roughly **22% of 8 GB**.
+
+Every earlier document assumed the whole machine belongs to Josam Academy. It does not.
+
+### `PH-0.9` — `08 §11.1`'s memory budget is invalid as written
+
+`08 §11.1` allocates 6.9 GB of 8 GB to Josam Academy components with 1.1 GB of headroom. That
+sums to the whole box and leaves nothing for the client stack, which is already running.
+
+**`PH-0.9` must recalculate against actual free headroom and record the split.** It must **not**
+apply limits to the existing client containers — they are not this project's to constrain.
+
+There is a real risk to state plainly: **the client containers are unlimited.** Josam Academy's
+containers will have declared limits and the client ones will not, so under memory pressure the
+kernel's OOM killer is more likely to select a limited container than an unlimited one. Declaring
+limits on our side is still correct (`BR-878`), but it does not protect us from growth on the
+other side. Sizing `PH-0.9` conservatively is the mitigation available; constraining the client
+containers is not.
+
+### `PH-0.28` — backup scope must name what it does **not** cover
+
+`PH-0.28` covers **Josam Academy's database only**. The client `postgres:18-alpine` instance is
+**out of scope**. This must be stated in the backup runbook itself, not only here: a backup job
+running on a box with two Postgres instances is exactly the situation in which someone later
+assumes both are covered. Combined with `SB-17` — provider VM snapshots are not backup coverage —
+the client database currently has **no verified backup**, and that is the client's arrangement to
+make, not this project's to assume.
+
+---
+
+## 13. Founder checklist
 
 Everything that must be run manually, in order. No step may be skipped, and the three gates may
 not be passed on assumption.
 
-- [ ] **1.1** Provider web console proven working ← **gate**
-- [ ] **1.2** Two SSH sessions open, both staying open
-- [ ] **1.3** Current state recorded; `<OLD_PORT>` and the listening-port list noted
-- [ ] **2.1** `<ADMIN_USER>` exists, in `sudo` and `docker`
-- [ ] **2.2** Public key installed, permissions `700` / `600`
-- [ ] **2.3** Key login proven in a new session ← **gate**
-- [ ] **3.1–3.3** New port configured, `sshd -t` clean, new session proven on it ← **gate**
-- [ ] **4.1–4.3** Root disabled, passwords disabled, **all three login tests run**
-- [ ] **5.1–5.4** ufw rules added **before** enable; new session proven after ← **gate**
-- [ ] **5.5** Postgres and Redis refused **from outside the host**
-- [ ] **6** fail2ban active on `<SSH_PORT>`
-- [ ] **7** unattended-upgrades enabled, dry run clean
-- [ ] **8.1** Final verification block run in a fresh session
-- [ ] **8.2** **Coolify still serving** ← regression check
-- [ ] **8.3** Rescue sessions closed only after a new session is proven
-- [ ] **9** Ninety-day exposure checks run, findings reported
-- [ ] **8.4** Output pasted back, IP and port redacted
+- [x] **1.1** Provider web console proven working ← **gate**
+- [x] **1.2** Two SSH sessions open, both staying open
+- [x] **1.3** Current state recorded; `<OLD_PORT>` and the listening-port list noted
+- [x] **2.1** `<ADMIN_USER>` exists, in `sudo` and `docker`
+- [x] **2.2** Public key installed, permissions `700` / `600`
+- [x] **2.3** Key login proven in a new session ← **gate**
+- [x] **3** SSH port — **deliberately not changed**; decision recorded in §3
+- [x] **4.1–4.3** Root disabled, passwords disabled, **all three login tests run**
+- [x] **5.1–5.4** ufw rules added **before** enable; new session proven after ← **gate**
+- [x] **5.5** Postgres and Redis refused **from outside the host**
+- [x] **6** fail2ban active on `22` — **and proven to ban**, after `mode = aggressive` (see §6)
+- [x] **7** unattended-upgrades enabled, dry run clean
+- [x] **8.1** Final verification block run in a fresh session
+- [x] **8.2** **Coolify still serving** ← regression check
+- [x] **8.3** Rescue sessions closed only after a new session is proven
+- [x] **9** Ninety-day exposure checks run — **clean**, no rebuild needed
+- [x] **8.4** Output pasted back, IP and port redacted
 
 **`PH-0.7` is marked done only when Step 8.1's output has been pasted back** (`BR-1761`,
 `BR-1768`). Not when this file is committed.
+
+> ### ✅ **Done — 2026-07-29.** Output pasted back and recorded in `STATUS.md §4`.
+>
+> Three deviations, all deliberate and all recorded in place: §3 (port unchanged), §5.6 (port 8000
+> deferred to `PH-0.8` with a named constraint), §6 (fail2ban required `mode = aggressive`).
+>
+> One live gap remains and is tracked as an open blocker, not as covered: **port 8000**.
