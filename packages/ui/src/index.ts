@@ -88,3 +88,13 @@ export {
   TextField,
   type TextFieldProps,
 } from './fields/text-fields.js';
+
+/** Identity fields (PH-0.23). All three are LTR-isolated whatever the interface direction. */
+export {
+  EmailField,
+  type EmailFieldProps,
+  OTPField,
+  type OTPFieldProps,
+  PhoneField,
+  type PhoneFieldProps,
+} from './fields/identity-fields.js';

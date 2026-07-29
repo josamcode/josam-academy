@@ -206,10 +206,10 @@ describe('CodeField — an identifier, isolated and normalised', () => {
 
   it('stops accepting input at its length', async () => {
     const { user } = harness(<CodeField length={4} />);
-    const input = screen.getByLabelText(/Value/);
+    const input = screen.getByLabelText<HTMLInputElement>(/Value/);
 
     await user.type(input, 'ABCDEFGH');
-    expect((input as HTMLInputElement).value).toHaveLength(4);
+    expect(input.value).toHaveLength(4);
   });
 });
 

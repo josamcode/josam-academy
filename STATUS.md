@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.22` execution)                                                                                                                                                                      |
+| **Updated by**     | AI (`PH-0.23` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.22` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.23` — Identity fields: `PhoneField` `EmailField` `OTPField`                                                                                                                             |
+| **Current task**   | _None in progress_ — `PH-0.23` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.24` — Choice fields: `Select` `Combobox` `MultiSelect` `RadioGroup` `RadioCard` `Checkbox` `Switch` `Slider` `TagsInput` `RatingInput`                                                  |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -91,6 +91,52 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.23 — Identity fields: PhoneField, EmailField, OTPField
+
+**By:** AI
+**Time:** estimated 1.0 d -> actual 0.5 d
+**Output:**
+
+- Three fields in `packages/ui/src/fields/identity-fields.tsx`, all on `useFieldControl`.
+- All three are **always LTR**, whatever the interface direction. A phone number, an address and
+  a one-time code are identifiers: their character order has nothing to do with the reading
+  direction of the page around them (`BR-1396`, `BR-1393`).
+
+**Verified:** 20 specs, all against a real DOM, asserting submitted values and focus movement.
+
+- **LTR isolation** — `PhoneField` and `EmailField` are `dir="ltr"`, the OTP group is `dir="ltr"`,
+  and the isolation survives `document.documentElement` being set to `rtl`. It is on the control,
+  not inherited, which is the whole point.
+- **`BR-1409`** — `PhoneField` is `type="tel"`, asserted **not** to be `type="number"`. A number
+  input strips the leading zero, refuses `+`, and offers a spinner for a value with no arithmetic
+  meaning.
+- **E.164 normalisation** — `100 123 4567`, `0100-123-4567`, `(0100) 123 4567` and `01001234567`
+  all store `+201001234567`; asserted as a set of size 1, because the point is that four
+  presentations of one person do not become four records.
+- **`EmailField`** lower-cases and trims, so one person cannot own two accounts by capitalisation.
+- **OTP paste distribution** — pasting `482913` into segment 1 fills all six and fires
+  `onComplete('482913')`; `482-913` works too (non-digits stripped); overflow is ignored rather
+  than wrapped; the form receives the **joined** string, not six fields.
+- Auto-advance on entry but **not** on delete — advancing as someone clears a digit makes
+  correcting a typo impossible. Backspace in an empty segment steps back and clears. Arrow keys
+  move without changing anything.
+- Only segment 1 carries `autocomplete="one-time-code"`.
+- `pnpm build` 5/5 . `lint` 9/9 . `typecheck` 8/8 . `test` 9/9 . **217 specs in `packages/ui`** .
+  `check:deps` clean . `format:check` clean . `verify:fitness` 25/25 . `storybook build` succeeds.
+
+**Diverged:** none.
+
+**Notes:**
+
+- The OTP segments are presentation; the **field value is the joined string**. Registering six
+  separate fields would push reassembly into every caller and make validation report on a digit
+  rather than on the code.
+- I reached for an `eslint-disable` on the segment `key` and removed it: `BR-1512` prohibits
+  silencing a rule, and the rule would not have fired on a template literal in any case. The
+  reflex is worth noting more than the line was.
 
 ---
 
