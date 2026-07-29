@@ -17,7 +17,8 @@
     "./eslint/base": "./eslint/base.js",
     "./eslint/node": "./eslint/node.js",
     "./stylelint": "./stylelint/index.js",
-    "./prettier": "./prettier/index.js"
+    "./prettier": "./prettier/index.js",
+    "./eslint/fitness": "./eslint/fitness.js"
   },
   "scripts": {
     "lint": "eslint .",
@@ -34,6 +35,7 @@
     "eslint-config-prettier": "10.1.8",
     "globals": "17.8.0",
     "stylelint-config-standard": "40.0.0",
-    "typescript-eslint": "8.65.0"
+    "typescript-eslint": "8.65.0",
+    "eslint-plugin-boundaries": "7.1.0"
   }
 }

@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { HealthModule } from './modules/health/health.module.js';
 import { ObservabilityModule } from './shared/common/observability.module.js';
 import { DatabaseModule } from './shared/database/database.module.js';
+import { SharedHealthModule } from './shared/health/health.module.js';
 
 /**
  * The modular monolith root (08 §4.1). The 17 domain modules — identity, access, commerce,
@@ -11,6 +12,6 @@ import { DatabaseModule } from './shared/database/database.module.js';
  * imported here as each is built. Phase 0 has infrastructure only; it has no domain.
  */
 @Module({
-  imports: [ObservabilityModule, DatabaseModule, HealthModule],
+  imports: [ObservabilityModule, SharedHealthModule, DatabaseModule, HealthModule],
 })
 export class AppModule {}

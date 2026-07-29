@@ -17,7 +17,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "dev": "turbo run dev",
-    "prepare": "husky"
+    "prepare": "husky",
+    "check:catalogs": "node scripts/check-catalogs.mjs",
+    "check:deps": "depcruise apps packages --config .dependency-cruiser.mjs",
+    "fitness": "pnpm lint && pnpm lint:css && pnpm check:deps && pnpm check:catalogs",
+    "verify:fitness": "bash scripts/verify-fitness.sh"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.1",
@@ -25,8 +29,11 @@
     "@eslint/js": "10.0.1",
     "@josam/config": "workspace:*",
     "@types/node": "24.13.3",
+    "dependency-cruiser": "18.1.0",
     "eslint": "10.8.0",
     "eslint-config-prettier": "10.1.8",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-boundaries": "7.1.0",
     "globals": "17.8.0",
     "husky": "9.1.7",
     "lint-staged": "17.2.0",

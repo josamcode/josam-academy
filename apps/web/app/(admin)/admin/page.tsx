@@ -4,5 +4,5 @@
  * bundle never contains admin code.
  */
 export default function AdminPage() {
-  return <main data-route-group="admin">admin</main>;
+  return <main data-route-group="admin" />;
 }

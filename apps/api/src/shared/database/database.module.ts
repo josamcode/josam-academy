@@ -1,6 +1,5 @@
 import { Global, Module } from '@nestjs/common';
 
-import { HealthModule } from '../../modules/health/health.module.js';
 import { DatabaseHealthIndicator } from './database-health.indicator.js';
 import { PrismaService } from './prisma.service.js';
 
@@ -8,10 +7,12 @@ import { PrismaService } from './prisma.service.js';
  * Global so repositories can inject PrismaService without every module re-importing this one.
  * Only PrismaService is exported — the PrismaClient class itself never leaves this directory
  * (BR-1580).
+ *
+ * No import of modules/health: the indicator registers into shared/health's registry, which is
+ * beneath both. See shared/health/health-registry.ts for why that direction matters.
  */
 @Global()
 @Module({
-  imports: [HealthModule],
   providers: [PrismaService, DatabaseHealthIndicator],
   exports: [PrismaService],
 })

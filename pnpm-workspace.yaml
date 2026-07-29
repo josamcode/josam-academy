@@ -10,7 +10,12 @@ packages:
 #   esbuild         — the bundler under Vite and Storybook 10; ships a platform binary (PH-0.4).
 #   prisma          — the CLI; prepares its query engine (PH-0.6).
 #   @prisma/engines — downloads the query engine binary itself (PH-0.6).
+#   unrs-resolver   — native resolver under eslint-import-resolver-typescript, which
+#                     eslint-plugin-boundaries needs to map nodenext `.js` specifiers to `.ts`
+#                     files. Without it every cross-element dependency resolves to unknown and
+#                     the boundary rules silently match nothing (PH-0.16).
 allowBuilds:
+  unrs-resolver: true
   '@prisma/engines': true
   esbuild: true
   prisma: true

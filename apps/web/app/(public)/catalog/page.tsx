@@ -12,7 +12,7 @@ export default function CatalogPage() {
 
   return (
     <main data-route-group="public" data-isr="60">
-      <span data-generated-at={generatedAt}>catalog</span>
+      <span data-generated-at={generatedAt} />
     </main>
   );
 }

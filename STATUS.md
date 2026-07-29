@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.15` execution)                                                                                                                                                                      |
+| **Updated by**     | AI (`PH-0.16` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.15` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.16` — **Fitness functions**: boundaries, dependency-cruiser, custom lint rules (`0.2`)                                                                                                  |
+| **Current task**   | _None in progress_ — `PH-0.16` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.17` — Primitives: `Text` `Heading` `Stack` `Inline` `Grid` `Box` `Icon` `Surface`                                                                                                       |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -91,6 +91,86 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.16 — Fitness functions: boundaries, dependency-cruiser, custom lint rules
+
+**By:** AI
+**Time:** estimated 1.5 d -> actual 0.9 d
+**Output:**
+
+- `packages/config/eslint/fitness.js` — Prisma containment, vendor-SDK containment, restricted
+  syntax (`BR-855`, `BR-1429`), `no-console`, hardcoded strings, module boundaries.
+- `packages/config/eslint/rules/` — two custom rules: `no-hardcoded-strings` and
+  `no-prisma-outside-repository`.
+- `packages/config/stylelint/index.js` — raw colour, physical direction properties, `!important`,
+  `transition: all`, off-scale units.
+- `.dependency-cruiser.mjs` — cycles, layer direction, package independence, dev-deps in src.
+- `scripts/check-catalogs.mjs` — prohibited copy terms (`BR-811`) and Arabic-source (`BR-524`).
+- `scripts/verify-fitness.sh` + `pnpm verify:fitness` — the `BR-1725` proof, committed so it can
+  be re-run rather than believed.
+- Pinned: dependency-cruiser **18.1.0**, eslint-plugin-boundaries **7.1.0** (both match `13 §18.1`),
+  eslint-import-resolver-typescript **4.4.5**.
+
+**Verified — `BR-1725`, every one written, failed, and removed. 17 caught, 0 missed:**
+
+| #   | Rule                        | Proof                                                         |
+| --- | --------------------------- | ------------------------------------------------------------- |
+| 1   | `BR-1220` raw hex           | `Disallowed value "#ff0000" for property "color"`             |
+| 2   | `BR-1232` physical property | `Disallowed property "margin-left"`                           |
+| 3   | `BR-1353` `!important`      | `Disallowed !important`                                       |
+| 4   | `BR-1493` `transition: all` | `Disallowed value "all 200ms"`                                |
+| 5   | `BR-1329` off-scale unit    | `Disallowed unit "px" for property "padding"`                 |
+| 6   | `BR-523` hardcoded string   | `Hardcoded user-facing string "Welcome back to the academy"`  |
+| 7   | `BR-523` in an attribute    | `Hardcoded user-facing string in \`aria-label\``              |
+| 8   | `BR-1580` Prisma leak       | `Prisma is confined to shared/database`                       |
+| 9   | `BR-1599` vendor SDK        | `'@sentry/node' import is restricted`                         |
+| 10  | `BR-855` web storage        | `web storage is readable by any script on the page`           |
+| 11  | `BR-1501` `console.log`     | `Unexpected console statement`                                |
+| 12  | `BR-901` module boundary    | `this import crosses an element boundary that is not allowed` |
+| 13  | Layer direction             | `shared-must-not-depend-on-modules`                           |
+| 14  | No cycles                   | `no-circular`                                                 |
+| 15  | `BR-1575` ui independence   | `ui-must-not-depend-on-apps`                                  |
+| 16  | `BR-811` prohibited copy    | `contains prohibited Failure language: "failed"`              |
+| 17  | `BR-524` Arabic source      | `en["orphan.key"] has no Arabic source`                       |
+
+- `pnpm build` 5/5 · `pnpm lint` 8/8 · `pnpm typecheck` 7/7 · `pnpm test` 8/8 ·
+  `lint:css` clean · `check:deps` no violations · `check:catalogs` 42 strings · `format:check` clean.
+
+**Diverged:**
+
+1. **A real layer inversion was found in `PH-0.6`'s code and fixed.** `shared/database` imported
+   `modules/health` so its indicator could self-register — infrastructure reaching upward into a
+   domain module. It compiled and worked. The `HealthIndicator` interface and a `HealthRegistry`
+   now live in `shared/health/`, so the arrow points down: infrastructure registers into
+   infrastructure and `modules/health` reads the registry. `/health` still returns
+   `{"status":"ok","checks":{"database":"ok"}}` — verified after the change, not assumed.
+2. **`BR-895`–`BR-899` are cited but were never authored (`SB-11`).** The layer-direction rule
+   encodes the _description_ in `09 §enforcement`, not a quotation of a rule text that does not
+   exist. Flagged rather than invented.
+3. **`12 §19` lists 20 checks; 17 are active.** Not yet enforced: bundle size (`size-limit`),
+   Core Web Vitals (Lighthouse CI) and contract conformance — all three need CI or a deployed app
+   and belong to `PH-0.10`. `jsx-a11y` is `PH-0.17`, when there is JSX to lint. Listed here so the
+   coverage is not overstated.
+
+**Notes:**
+
+- **Three fitness functions were silently dead when first written, and only the deliberate-violation
+  pass found them.** Each is the same failure mode — configuration that loads without error and
+  matches nothing:
+  - `eslint-plugin-boundaries` v7 renamed `element-types` → `dependencies`, moved `rules` →
+    `policies`, requires `{ element: { type } }` rather than bare `{ type }`, and uses `{{ }}`
+    templates. Written in the v5 form it loads clean and matches nothing. Worse, it _still_
+    matched nothing after that fix: it could not resolve our nodenext `.js` specifiers to `.ts`
+    files, so every dependency was `isUnknown`. Only `boundaries/debug` revealed it.
+  - Two `no-restricted-syntax` config objects: ESLint merges flat configs by **replacing** a
+    rule's options, so the later block deleted the `BR-855` selectors for every `.tsx` file. All
+    `no-restricted-syntax` selectors now live in one block, with a comment saying why.
+  - `no-restricted-imports` globs cannot match a specifier starting with `..`, so the Prisma
+    containment rule never saw `../../generated/prisma/client.js`. Replaced with a custom rule.
+- **This is the argument for `BR-1725` in three concrete examples.** Every one of them looked
+  correct in review, produced no configuration error, and enforced nothing.
 
 ---
 

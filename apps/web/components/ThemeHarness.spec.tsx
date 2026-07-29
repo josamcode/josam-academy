@@ -4,7 +4,15 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import { directionOf, type Locale } from '@josam/i18n';
 
-import { ThemeHarness } from './ThemeHarness.js';
+import { ThemeHarness, type ThemeHarnessProps } from './ThemeHarness.js';
+
+/** Mirrors the story's `args`. Copy in a spec is fixture data, not product copy (BR-523). */
+const HARNESS_ARGS: ThemeHarnessProps = {
+  heading: 'Josam Academy',
+  body: 'A paragraph, so the direction toggle has running text to reverse.',
+  actionLabel: 'Primary action',
+  statusLabels: { success: 'Success', warning: 'Warning', danger: 'Danger', info: 'Info' },
+};
 
 /**
  * BR-1570 — every story renders in both themes and both directions.
@@ -23,7 +31,7 @@ const COMBINATIONS: { theme: 'dark' | 'light'; locale: Locale }[] = [
 
 /** Mirrors what `.storybook/preview.ts`'s decorator does to the document root. */
 function documentFor(theme: string, locale: Locale): JSDOM {
-  const markup = renderToStaticMarkup(<ThemeHarness heading="Josam Academy" />);
+  const markup = renderToStaticMarkup(<ThemeHarness {...HARNESS_ARGS} />);
   return new JSDOM(
     `<!doctype html><html lang="${locale}" dir="${directionOf(locale)}" data-theme="${theme}"><head><title>Story</title></head><body><div id="storybook-root">${markup}</div></body></html>`,
     // Required for `window.eval` to define anything on the window, which is how axe is loaded
@@ -49,7 +57,7 @@ describe.each(COMBINATIONS)('BR-1570 — renders in $theme / $locale', ({ theme,
   });
 
   it('uses only token utilities — no hex, no palette class (BR-1220, BR-1342)', () => {
-    const markup = renderToStaticMarkup(<ThemeHarness heading="x" />);
+    const markup = renderToStaticMarkup(<ThemeHarness {...HARNESS_ARGS} />);
     expect(markup).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
     expect(markup).not.toMatch(/\b(?:text|bg|border)-(?:gray|slate|zinc|blue|red|green)-\d{2,3}\b/);
   });

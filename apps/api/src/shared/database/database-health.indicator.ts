@@ -1,6 +1,6 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
 
-import { HealthService, type HealthIndicator } from '../../modules/health/health.service.js';
+import { type HealthIndicator, HealthRegistry } from '../health/health-registry.js';
 import { PrismaService } from './prisma.service.js';
 
 /**
@@ -19,11 +19,11 @@ export class DatabaseHealthIndicator implements HealthIndicator, OnModuleInit {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly health: HealthService,
+    private readonly registry: HealthRegistry,
   ) {}
 
   onModuleInit(): void {
-    this.health.register(this);
+    this.registry.register(this);
   }
 
   async check(): Promise<string> {
