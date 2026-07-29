@@ -241,6 +241,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@josam/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       '@josam/tokens':
         specifier: workspace:*
         version: link:../tokens

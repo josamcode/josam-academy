@@ -30,3 +30,21 @@ export {
   type SurfaceLevel,
   type SurfaceProps,
 } from './primitives/layout.js';
+
+/**
+ * Architectural components (PH-0.18, `12 §20.6`). Not visual — they are what keep every screen
+ * correct: bilingual fields, bidi isolation, and every number a learner reads.
+ */
+export { Bidi, type BidiProps, type BilingualValue, T, type TProps } from './architectural/text.js';
+export {
+  Duration,
+  type DurationProps,
+  Money,
+  type MoneyProps,
+  Num,
+  type NumProps,
+  Percent,
+  type PercentProps,
+} from './architectural/format.js';
+export { When, type WhenFormat, type WhenProps } from './architectural/When.js';
+export { CopyableId, type CopyableIdProps } from './architectural/CopyableId.js';

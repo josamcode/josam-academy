@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.17` execution)                                                                                                                                                                      |
+| **Updated by**     | AI (`PH-0.18` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.17` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.18` — Architectural: `T` `Bidi` `Money` `Num` `Percent` `Duration` `When` `CopyableId`                                                                                                  |
+| **Current task**   | _None in progress_ — `PH-0.18` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.20` — `Button` `IconButton`, all variants and states                                                                                                                                    |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -91,6 +91,65 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.18 — Architectural: T, Bidi, Money, Num, Percent, Duration, When, CopyableId
+
+**By:** AI
+**Time:** estimated 1.0 d -> actual 0.5 d
+**Output:**
+
+- `packages/ui/src/architectural/` — eight components from `12 §20.6`. Not visual; they are what
+  keep every screen correct.
+- All eight delegate formatting to `@josam/i18n` rather than reimplementing it. A second
+  formatting path is how one screen shows Arabic-Indic digits while the next shows Western ones.
+- Stories in both languages, so the toolbar demonstrates the behaviour rather than describing it.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **Bilingual + LTR isolation verified — the task Output.** 27 specs in
+  `architectural.spec.tsx`, 110 in `packages/ui` overall.
+  - `T` renders Arabic for `ar`, English for `en`, and **falls back to Arabic** when English is
+    missing — tagging the fallback `lang="ar"` so a screen reader does not announce Arabic in an
+    English voice. There is no reverse fallback: `ar` is required by the type (`BR-524`).
+  - `Bidi` emits `<bdi dir="ltr">`. Asserted in a real RTL DOM: the isolated run reads
+    `example.com` and the surrounding text reads the sentence with the full stop on the correct
+    side (`BR-1393`, `BR-1236`).
+  - `Money` scales by the **currency exponent** — EGP 12345 to `123.45`, JOD to `12.345`,
+    JPY to `12,345` — with tabular figures and `dir="ltr"` (`BR-826`, `BR-1428`, `BR-1341`).
+  - `Duration` renders `0:00`, `0:05`, `1:05`, `12:05`, `1:00:00`, `1:02:05`, always LTR:
+    mirroring `12:05` would render `05:12`, which is not a formatting quirk but a different time
+    (`BR-1234`).
+  - `When` renders one instant as `Jul 30, 2026` in Cairo and `Jul 29, 2026` in Los Angeles, and
+    always emits the UTC instant as the machine-readable `dateTime` (`BR-825`).
+  - Arabic output carries **no Arabic-Indic digits** for money, numbers, percentages or dates
+    (`BR-1226`).
+- `pnpm build` 5/5 . `lint` 9/9 . `typecheck` 8/8 . `test` 9/9 . `check:deps` clean .
+  `format:check` clean . `verify:fitness` 21/21 . `storybook build` succeeds.
+
+**Diverged:** none.
+
+**Notes:**
+
+- **A test of mine passed for the wrong reason and was corrected.** The timezone check originally
+  compared Cairo against Tokyo — but 21:30 UTC is the 30th in **both**, so the assertion was only
+  ever true because of the clock, never the date. Recomputed against actual `Intl` output and
+  split into two: a date-boundary case (Cairo vs Los Angeles) and a clock-time case. An assertion
+  that cannot distinguish the thing it names is not a test.
+- **`locale` is an explicit prop on all eight, not a context.** `PH-0.13` already deferred
+  per-request locale resolution to Phase 1, and there is no locale segment in the router yet. An
+  explicit prop also keeps seven of the eight server-renderable — a client context provider would
+  turn every number formatter into client JavaScript for text that never changes after render.
+  When Phase 1 adds locale routing it can add a provider feeding this prop; nothing here changes.
+- **`CopyableId` is the first `"use client"` in the codebase**, and deliberately the smallest
+  possible one: a single leaf that needs a click handler and the clipboard. `BR-1502` prohibits a
+  _blanket_ `"use client"` at a layout boundary, which is the opposite of this.
+- `When` requires `timeZone` rather than defaulting it. Omitted, `Intl` falls back to the
+  runtime's zone — UTC on the server, the device's in the browser — so a deadline would differ
+  between SSR output and hydration, and both renderings look like plausible times.
+- `Money` has no default currency. A default is silently wrong the first time the platform sells
+  in a second one, and the failure surfaces as a number on a receipt rather than as an error.
 
 ---
 
