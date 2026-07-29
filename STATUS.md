@@ -268,6 +268,76 @@ that consumes it is not a config file that works. If a tool ships a validator, i
 
 ---
 
+### 2026-07-29 · PH-0.8 — Cloudflare Tunnel runbook (authored; not executed)
+
+**By:** AI authored · **founder executes**
+**Time:** estimated 0.35 d authoring → actual 0.3 d. Execution estimated 0.15 d, not yet run.
+**Status:** 🟡 **Authored, not done.** `BR-1768` — a type-B task is not done until the founder
+pastes back verification output. `SB-22` stays open until then.
+
+**Output:** `docs/runbooks/cloudflare-tunnel.md`. Placeholders only — no IP, hostname, email, token
+or tunnel UUID, verified by grep before commit.
+
+**The finding that shaped the whole runbook: the Coolify dashboard is not one port.** The panel is
+served on 8000, but **live deployment logs (6001) and the in-browser terminal (6002) are separate
+WebSocket services**. A tunnel routing only 8000 produces a dashboard that logs in, renders and
+looks entirely correct, and then never streams a log and never opens a terminal.
+
+If port 8000 were already closed when that was discovered, there would be no working panel to go
+back to — on the control panel for five live client applications.
+
+So the acceptance gate is **not** "the login page loads". §7 requires: the panel loads · a wrong
+identity is **refused** · **a deployment log streams** · **a terminal opens** — and all four again
+after a restart _and_ a reboot. §1.3 runs the same three checks on port 8000 **before** any change,
+so a later failure is attributable to the tunnel rather than to a pre-existing condition.
+
+**Ordering, written as the file's one rule:** the tunnel is added alongside existing access, proven,
+and only then is 8000 closed. If §7 fails at any point, the instruction is to **stop and leave 8000
+open** — a half-working tunnel is worse than none, because the failure surfaces at the moment it is
+needed.
+
+**Routing decision, stated with its cost.** Two options, and they fail differently. **Option A**
+(recommended) routes the tunnel directly at `localhost:8000`, independent of `coolify-proxy` — the
+most likely reason to urgently need the dashboard is that the proxy or an app is broken, and
+routing the panel _through_ the broken thing is how an outage becomes unfixable. It costs extra
+configuration for the WebSocket services. **Option B** routes through Coolify's own proxy: simpler,
+realtime handled for you, but the panel's availability then depends on the component also serving
+five clients. The runbook says explicitly: if A's realtime cannot be made to work in the session,
+switch to B rather than closing 8000 with a half-working panel.
+
+**Ports, investigated rather than assumed.** 22 stays (`PH-0.7` decision). 80/443 restricted to
+Cloudflare ranges, **both IPv4 and IPv6** — restricting one family applies the rule to half the
+internet. 8000 closed after the gate. 6001/6002 closed **only if** the gate proved the tunnel
+carries them. **8080 is not decided in advance**: §2.1 identifies the listener and its container
+first, because on a shared box it may be a client application, and the instruction was not to close
+a port Coolify needs. If it cannot be identified confidently, the runbook says leave it open and
+record it as unexplained — a known exposure beats a client outage.
+
+**Recovery (§10), to `PH-0.7 §10`'s standard**, every path starting at the provider web console.
+The one that matters: **tunnel unrecoverable → re-open port 8000 at the provider firewall and use
+the IP directly.** That is why the provider firewall is the mechanism rather than a host rule — it
+is reversible from a browser in under a minute with no shell. It also records that a Cloudflare or
+Zero Trust outage is a real dependency and the fallback is the same.
+
+One client-safety note carried through §8.1: 80 and 443 serve five live client applications, so the
+runbook requires verifying a client site loads **after** applying the Cloudflare-range restriction
+and before continuing, and §10 states that restoring client uptime outranks completing this task.
+
+**Decision stated rather than asked (§11): `josamacademy.com` does NOT go through the tunnel.**
+Application traffic stays on the proxied `A` record through `coolify-proxy` at `PH-0.11`. Five
+reasons, the first of which is the point of the task: sharing the tunnel means a `cloudflared`
+outage takes down the site _and_ the ability to log in and fix it. Also — `cloudflared` becomes a
+single userspace process in front of paying learners; lesson video over `hls.js` is a poor fit for
+a tunnel hop on mid-range Android over 4G (`02 §7`); Coolify's proxy already does per-app routing
+and certificates; and the security requirements are opposite, since the panel must sit behind
+Access with one identity while the public site must have none — one tunnel serving both makes a
+policy mistake that locks learners out possible rather than impossible. The honest counter-argument
+is recorded too: a tunnel would let 80/443 be closed entirely rather than restricted, and
+`BR-1702` is satisfied by the restriction. Revisit trigger is measurable: the origin address
+leaking despite §9 and being actively abused.
+
+---
+
 ### 2026-07-29 · PH-0.30 (follow-up) — can any other indicator latch?
 
 **By:** AI · founder-instructed after `PH-0.30`
