@@ -268,6 +268,34 @@ that consumes it is not a config file that works. If a tool ships a validator, i
 
 ---
 
+### 2026-07-29 · PH-0.30 (follow-up) — can any other indicator latch?
+
+**By:** AI · founder-instructed after `PH-0.30`
+**Time:** +0.05 d
+
+Two indicators exist. The Redis one latched and was fixed; the question was whether `database`
+does the same. Tested rather than reasoned about — stop the container, observe, start it, observe:
+
+```
+baseline:        {"database":"ok","redis":"ok"}          status ok
+postgres down:   {"database":"error","redis":"ok"}       status degraded
+postgres back:   {"database":"ok","redis":"ok"}          status ok
+8 s later:       {"database":"ok","redis":"ok"}          status ok
+```
+
+**It does not latch.** Prisma reaches Postgres through `@prisma/adapter-pg`, whose `pg.Pool`
+discards a broken connection and dials a new one on the next query, so every `$queryRaw` is a fresh
+attempt. That is a property of the pool rather than of anything I wrote, which is exactly why it
+was worth confirming instead of assuming.
+
+**2 of 2 verified in both directions.** Queue, storage and `last_backup` do not exist yet, and the
+requirement is now recorded on the `HealthIndicator` interface itself — with the failure, the two
+verified indicators and the reason each recovers — so the next person adding one reads it at the
+point of writing rather than in a runbook. A new indicator is not done until both transitions have
+been observed; the recovery half is the one that gets skipped, and it is the one that latches.
+
+---
+
 ### 2026-07-29 · PH-0.30 — Phase 0 conformance closure
 
 **By:** AI · **remedial, founder-instructed after the Phase 0 status report**

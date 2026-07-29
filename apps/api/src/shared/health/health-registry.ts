@@ -6,6 +6,30 @@ import { Injectable } from '@nestjs/common';
  */
 export interface HealthIndicator {
   readonly name: string;
+
+  /**
+   * Must be able to report `ok` again after reporting a failure.
+   *
+   * **An indicator that latches into error for the process lifetime is worse than no indicator**,
+   * because it trains whoever reads `GET /health` to ignore the field — and the field they learn
+   * to ignore is the one that will matter.
+   *
+   * `PH-0.30` shipped exactly that and caught it only by testing the recovery: `RedisService`'s
+   * `retryStrategy` returned `null` after three attempts to limit log noise, and ioredis reads
+   * that as *stop reconnecting permanently*. The endpoint went `ok` -> `degraded` correctly and
+   * then stayed `degraded` forever.
+   *
+   * Both current indicators are verified against a real container, in both directions:
+   *
+   * | indicator  | down       | back up | why it recovers                                   |
+   * | ---------- | ---------- | ------- | ------------------------------------------------- |
+   * | `database` | `degraded` | `ok`    | `pg.Pool` discards broken connections, dials anew  |
+   * | `redis`    | `degraded` | `ok`    | backoff caps at 2 s and never returns `null`       |
+   *
+   * A new indicator is not done until the same two transitions have been observed. Stop the
+   * dependency, see the failure, start it, see the recovery — the second half is the one that gets
+   * skipped, and it is the one that latches.
+   */
   check(): Promise<unknown>;
 }
 
