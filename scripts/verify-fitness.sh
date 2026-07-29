@@ -256,5 +256,31 @@ check "off-scale is a type error" "pnpm --filter @josam/ui exec tsc -p tsconfig.
 rm -f packages/ui/src/__violation.tsx
 
 hr
+# ── 22. BR-1347 — a disabled control that does not explain why ────────────────────────────
+hr; echo "22. BR-1347 — a disabled control with no stated reason fails to COMPILE"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { ArrowRight } from 'lucide-react';
+
+import { Button, IconButton } from './index.js';
+
+export const a = <Button disabled>Enrol</Button>;
+export const b = <IconButton icon={ArrowRight} label="Next" disabled />;
+TSX
+check "disabled without reason" "pnpm --filter @josam/ui exec tsc -p tsconfig.json --noEmit" "disabledReason.*is missing"
+rm -f packages/ui/src/__violation.tsx
+
+# ── 23. BR-1471 — an icon button with no accessible name ──────────────────────────────────
+hr; echo "23. BR-1471 — an icon-only button with no accessible name fails to COMPILE"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { ArrowRight } from 'lucide-react';
+
+import { IconButton } from './index.js';
+
+export const c = <IconButton icon={ArrowRight} />;
+TSX
+check "icon button unnamed" "pnpm --filter @josam/ui exec tsc -p tsconfig.json --noEmit" "'label' is missing"
+rm -f packages/ui/src/__violation.tsx
+
+hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

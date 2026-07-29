@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.18` execution)                                                                                                                                                                      |
+| **Updated by**     | AI (`PH-0.20` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.18` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.20` — `Button` `IconButton`, all variants and states                                                                                                                                    |
+| **Current task**   | _None in progress_ — `PH-0.20` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.21` — `Form` + `FormField` (label, hint, required, error, ARIA)                                                                                                                         |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -91,6 +91,64 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.20 — Button and IconButton, all variants and states
+
+**By:** AI
+**Time:** estimated 0.5 d -> actual 0.4 d
+**Output:**
+
+- `packages/ui/src/controls/Button.tsx` — `Button` (4 variants x 3 sizes) and `IconButton`.
+  Closed variant and size sets, no `className`: both are the escape hatches through which a
+  second Button arrives without anyone deciding to build one (`BR-1350`).
+- 5 stories: variants, sizes, the five states side by side, the disabled-explains case, and icon
+  buttons. Keyboard map documented in the story (`BR-1531`).
+- 40 Button specs; 150 in `packages/ui` overall.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **Five states in Storybook — the task Output**, and each asserted as _distinct_ rather than
+  merely present: `hover:bg-accent-hover`, `active:bg-accent-pressed`, `focus-visible:ring-2`,
+  `disabled:opacity-50`, and loading as `aria-busy="true"` **plus** the `disabled` attribute
+  (`BR-1346`).
+- **`BR-1347` is enforced by the type system, not by convention.** `disabled` without
+  `disabledReason` does not compile:
+
+  ```
+  error TS2322: Property 'disabledReason' is missing in type '{ children: string; disabled: true; }'
+      but required in type '{ disabled: true; disabledReason: string; }'.
+  ```
+
+- **`BR-1471` likewise**: `<IconButton icon={ArrowRight} />` fails with
+  `Property 'label' is missing`.
+- Both added permanently to `verify:fitness` as cases 22 and 23 — **23 caught, 0 missed**.
+- `focus-visible`, never `focus`: asserted with a negative lookbehind so a mouse user never gets a
+  ring and a keyboard user always does.
+- Loading is `disabled` as well as busy — the double-submit guard is the behaviour, not the
+  styling. A second click never reaches the handler.
+- `BR-1217` / `BR-1344` — only `primary` uses the accent, only `danger` uses red, and `primary`
+  pairs the accent with `accent-contrast`, the `SB-18` token that clears 4.5:1.
+- Every state rendered in **both themes and both directions with axe clean** — 5 specimens x 4
+  combinations.
+- `pnpm build` 5/5 . `lint` 9/9 . `typecheck` 8/8 . `test` 9/9 . `check:deps` clean .
+  `format:check` clean . `verify:fitness` 23/23 . `storybook build` succeeds.
+
+**Diverged:** none.
+
+**Notes:**
+
+- `Button` has exactly 8 props and `IconButton` 8. `BR-1351` calls more than 8 a signal the
+  component is doing too much, so that ceiling was a design constraint rather than a coincidence —
+  it is why `fullWidth` and an `icon` slot were left out of `Button` rather than added "while we
+  are here".
+- Both are `"use client"`. They need a click handler, so the boundary is real; it is still a leaf
+  boundary, not the blanket layout-level `"use client"` that `BR-1502` prohibits.
+- `title` carries the disabled reason. It is the widest-reaching mechanism available without a
+  `Tooltip`, which is `PH-0.27`. When `Tooltip` lands, `BR-1347`'s presentation should be revisited
+  — `title` is not keyboard-accessible on every platform, and the reason deserves better than a
+  hover affordance.
 
 ---
 

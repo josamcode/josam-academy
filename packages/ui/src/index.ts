@@ -48,3 +48,14 @@ export {
 } from './architectural/format.js';
 export { When, type WhenFormat, type WhenProps } from './architectural/When.js';
 export { CopyableId, type CopyableIdProps } from './architectural/CopyableId.js';
+
+/** Controls (PH-0.20). `BR-1350` — never a second Button; extend these or raise the gap. */
+export {
+  Button,
+  type ButtonProps,
+  type ButtonSize,
+  type ButtonVariant,
+  type DisabledState,
+  IconButton,
+  type IconButtonProps,
+} from './controls/Button.js';
