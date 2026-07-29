@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.14` execution)                                                                                                                                                                      |
+| **Updated by**     | AI (`PH-0.15` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.14` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.15` — Storybook with theme + direction toolbars, axe addon (`0.12`)                                                                                                                     |
+| **Current task**   | _None in progress_ — `PH-0.15` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.16` — **Fitness functions**: boundaries, dependency-cruiser, custom lint rules (`0.2`)                                                                                                  |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -61,7 +61,7 @@
 | ----------- | -------------------------- | ------------------ | -------------------------------------------------------------------------------------------------- |
 | Production  | `josamacademy.com`         | ⬜ Not provisioned | Ubuntu 24.04 · 2 vCPU/8 GB/100 GB · Frankfurt. Live ~90 days, root password login on, no firewall. |
 | Local       | `localhost:3000` / `:4000` | 🟡 Partial         | api + web run; Docker stack healthy (127.0.0.1 only)                                               |
-| Storybook   | `localhost:6006`           | ⬜ Not set up      | —                                                                                                  |
+| Storybook   | `localhost:6006`           | ✅ Configured      | Theme + locale toolbars, axe on every story                                                        |
 
 **Infrastructure state**
 
@@ -91,6 +91,55 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.15 — Storybook with theme + direction toolbars, axe addon
+
+**By:** AI
+**Time:** estimated 1.0 d -> actual 0.4 d
+**Output:**
+
+- `.storybook/preview.ts` — `globalTypes` toolbars for **theme** and **locale**, a decorator that
+  writes `data-theme`, `lang` and `dir` onto the document root, and `a11y: { test: 'error' }`.
+- `components/ThemeHarness.tsx` — the harness the toolbars act on until `PH-0.17` builds the
+  primitives. Token utilities only, no hex, no palette class.
+- `vitest.config.ts` for `apps/web` with the React plugin — component specs could not parse
+  without a JSX transform, and every component task from `PH-0.17` needs it.
+- Scripts: `storybook`, `build:storybook`. Pinned: axe-core **4.12.1**, jsdom **30.0.0**,
+  @vitejs/plugin-react **6.0.4**, @types/jsdom.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **Stories render in 4 combinations — the task Output.** 17 passing specs render the story as
+  dark/ar, dark/en, light/ar, light/en and assert `data-theme`, `lang` and `dir` on the root plus
+  the rendered content in each.
+- **axe genuinely runs, and has teeth.** The real `axe-core` engine is injected into a JSDOM
+  window per combination and run against the story root. Proven by deliberate violation: an
+  unnamed `<button>` and an `<img>` with no `alt` produced `button-name` and `image-alt` failures
+  across **all four** combinations; restored, and back to 17 passing.
+- `storybook build` completes with the a11y addon loaded.
+- `pnpm build` 5/5 · `pnpm lint` 8/8 · `pnpm typecheck` 7/7 · `pnpm test` 8/8.
+
+**Diverged:** none.
+
+**Notes:**
+
+- **The direction toolbar selects a locale, not a direction.** Direction is a consequence of
+  language (`directionOf`, `BR-1237`); offering them independently would let a story be signed off
+  in Arabic-with-LTR, a combination the product can never produce.
+- `data-theme` is set on `document.documentElement`, not on a wrapper. The stylesheet keys off
+  `:root[data-theme]`, so a wrapper would silently do nothing and every story would render in the
+  default theme while the toolbar appeared to work.
+- **`color-contrast` is disabled in the axe run, deliberately and not as a dodge.** jsdom applies
+  no stylesheet, so every element reports as black-on-transparent and the rule would produce
+  meaningless results either way it went. Contrast is checked where it can actually be measured —
+  `packages/tokens/src/color.spec.ts`, against the real hex values, with every ratio pinned.
+- Two rules failed initially and were correctly ignored as page-level: `document-title` and
+  landmark structure belong to the page a component sits on. The run is scoped to the story root,
+  which is what the Storybook a11y addon checks.
+- **`BR-1571` says a11y runs on every story in CI.** It runs on every story _here_, in
+  `pnpm test`. Wiring the Storybook test-runner over the built static site is `PH-0.10`.
 
 ---
 
