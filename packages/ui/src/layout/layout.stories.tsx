@@ -243,7 +243,9 @@ export const TabsStates: Story = {
             id: 'settings',
             label: 'الإعدادات · Settings',
             content: <Text size="sm">—</Text>,
+            // BR-1347 — a tab the user can see and cannot open must say what would open it.
             disabled: true,
+            disabledReason: 'متاح بعد نشر الدورة · Available once the course is published',
           },
         ]}
       />

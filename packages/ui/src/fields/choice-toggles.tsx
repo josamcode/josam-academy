@@ -7,6 +7,7 @@ import * as RadixSwitch from '@radix-ui/react-switch';
 import { Check } from 'lucide-react';
 import { Controller, useFormContext } from 'react-hook-form';
 
+import { type Availability, availability, type OptionAvailability } from '../form/availability.js';
 import { useFormField } from '../form/FormField.js';
 import { Inline, Stack } from '../primitives/layout.js';
 import { Text } from '../primitives/Text.js';
@@ -23,6 +24,12 @@ import { Text } from '../primitives/Text.js';
  * libraries handle direction inconsistently, so `dir` is passed where Radix accepts it and the
  * layout uses logical utilities everywhere else.
  *
+ * `BR-1544` / `PH-0.29` — all five take `Availability`. Radix has **no `readOnly`**: its controls
+ * are either interactive or `disabled`, so read-only is implemented here as `aria-readonly` plus a
+ * change handler that declines. That is the honest shape — `readOnly` means focusable, readable and
+ * copyable but not editable, and `disabled` removes the control from the keyboard and the
+ * accessibility tree entirely, which is wrong for a value the user is meant to see.
+ *
  * All five use RHF's `Controller` rather than `register`. Radix controls are **controlled** — they
  * emit a value, not a DOM change event — so `register`'s uncontrolled `ref`/`onChange` contract
  * does not apply and silently binds nothing.
@@ -38,12 +45,12 @@ const DISABLED = 'disabled:opacity-50 disabled:cursor-not-allowed';
 export interface CheckboxProps {
   /** `BR-1402` — clicking the label activates the control. Pre-translated. */
   label: string;
-  disabled?: boolean;
 }
 
-export function Checkbox({ label, disabled = false }: CheckboxProps) {
+export function Checkbox({ label, ...rest }: CheckboxProps & Availability) {
   const { id, name, describedBy, invalid } = useFormField();
   const { control } = useFormContext();
+  const { disabled, readOnly, title } = availability(rest);
 
   return (
     <Controller
@@ -55,10 +62,13 @@ export function Checkbox({ label, disabled = false }: CheckboxProps) {
             id={id}
             checked={field.value === true}
             onCheckedChange={(checked) => {
+              if (readOnly) return;
               field.onChange(checked === true);
             }}
             onBlur={field.onBlur}
             disabled={disabled}
+            aria-readonly={readOnly ? true : undefined}
+            title={title}
             aria-describedby={describedBy}
             aria-invalid={invalid}
             className={`size-5 shrink-0 rounded-sm border border-border-strong bg-bg-inset data-[state=checked]:bg-accent data-[state=checked]:border-accent ${FOCUS} ${DISABLED}`}
@@ -80,7 +90,6 @@ export function Checkbox({ label, disabled = false }: CheckboxProps) {
 // ── Switch ───────────────────────────────────────────────────────────────────────────────
 export interface SwitchProps {
   label: string;
-  disabled?: boolean;
 }
 
 /**
@@ -88,9 +97,10 @@ export interface SwitchProps {
  * submitted with a form. They are not interchangeable, which is why both exist rather than one
  * with a `variant`.
  */
-export function Switch({ label, disabled = false }: SwitchProps) {
+export function Switch({ label, ...rest }: SwitchProps & Availability) {
   const { id, name, describedBy, invalid } = useFormField();
   const { control } = useFormContext();
+  const { disabled, readOnly, title } = availability(rest);
 
   return (
     <Controller
@@ -102,10 +112,13 @@ export function Switch({ label, disabled = false }: SwitchProps) {
             id={id}
             checked={field.value === true}
             onCheckedChange={(checked) => {
+              if (readOnly) return;
               field.onChange(checked);
             }}
             onBlur={field.onBlur}
             disabled={disabled}
+            aria-readonly={readOnly ? true : undefined}
+            title={title}
             aria-describedby={describedBy}
             aria-invalid={invalid}
             className={`h-6 w-11 shrink-0 rounded-full border border-border-strong bg-bg-inset data-[state=checked]:bg-accent ${FOCUS} ${DISABLED}`}
@@ -127,18 +140,24 @@ export function Switch({ label, disabled = false }: SwitchProps) {
 }
 
 // ── RadioGroup and RadioCard ─────────────────────────────────────────────────────────────
-export interface ChoiceOption {
+/**
+ * `BR-1347` one level down. A greyed-out option with no explanation is the same defect as a
+ * disabled field with no explanation, and arguably worse: the user can see the thing they want,
+ * cannot choose it, and is told nothing about why or what would change it.
+ *
+ * `OptionAvailability` rather than `Availability` because an option has no `readOnly` state — an
+ * option is not edited, it is picked, so the third state does not exist for it.
+ */
+export type ChoiceOption = {
   value: string;
   /** Pre-translated. */
   label: string;
   /** Pre-translated. `RadioCard` renders it; `RadioGroup` ignores it. */
   description?: string;
-  disabled?: boolean;
-}
+} & OptionAvailability;
 
 export interface RadioGroupProps {
   options: ChoiceOption[];
-  disabled?: boolean;
 }
 
 /**
@@ -149,9 +168,10 @@ export interface RadioGroupProps {
  *
  * Arrow keys follow the document direction in RTL because `dir` is passed through.
  */
-export function RadioGroup({ options, disabled = false }: RadioGroupProps) {
+export function RadioGroup({ options, ...rest }: RadioGroupProps & Availability) {
   const { id, name, describedBy, invalid } = useFormField();
   const { control } = useFormContext();
+  const { disabled, readOnly, title } = availability(rest);
 
   return (
     <Controller
@@ -161,8 +181,13 @@ export function RadioGroup({ options, disabled = false }: RadioGroupProps) {
         <RadixRadioGroup.Root
           id={id}
           value={typeof field.value === 'string' ? field.value : ''}
-          onValueChange={field.onChange}
+          onValueChange={(next) => {
+            if (readOnly) return;
+            field.onChange(next);
+          }}
           disabled={disabled}
+          aria-readonly={readOnly ? true : undefined}
+          title={title}
           aria-describedby={describedBy}
           aria-invalid={invalid}
           className="flex flex-col gap-2"
@@ -173,6 +198,7 @@ export function RadioGroup({ options, disabled = false }: RadioGroupProps) {
                 id={`${id}-${option.value}`}
                 value={option.value}
                 disabled={option.disabled ?? false}
+                title={option.disabled === true ? option.disabledReason : undefined}
                 className={`size-5 shrink-0 rounded-full border border-border-strong bg-bg-inset data-[state=checked]:border-accent ${FOCUS} ${DISABLED}`}
               >
                 <RadixRadioGroup.Indicator className="flex size-full items-center justify-center after:block after:size-2.5 after:rounded-full after:bg-accent" />
@@ -196,9 +222,10 @@ export interface RadioCardProps extends RadioGroupProps {
  * The onboarding pattern (`SCR-12`). Visually a card, semantically the same radio group — the
  * whole card is the label, so the entire surface is the hit target rather than a 20px circle.
  */
-export function RadioCard({ options, columns = 1, disabled = false }: RadioCardProps) {
+export function RadioCard({ options, columns = 1, ...rest }: RadioCardProps & Availability) {
   const { id, name, describedBy, invalid } = useFormField();
   const { control } = useFormContext();
+  const { disabled, readOnly, title } = availability(rest);
 
   const grid = columns === 1 ? 'grid-cols-1' : columns === 2 ? 'grid-cols-2' : 'grid-cols-3';
 
@@ -210,8 +237,13 @@ export function RadioCard({ options, columns = 1, disabled = false }: RadioCardP
         <RadixRadioGroup.Root
           id={id}
           value={typeof field.value === 'string' ? field.value : ''}
-          onValueChange={field.onChange}
+          onValueChange={(next) => {
+            if (readOnly) return;
+            field.onChange(next);
+          }}
           disabled={disabled}
+          aria-readonly={readOnly ? true : undefined}
+          title={title}
           aria-describedby={describedBy}
           aria-invalid={invalid}
           className={`grid gap-3 ${grid}`}
@@ -221,6 +253,7 @@ export function RadioCard({ options, columns = 1, disabled = false }: RadioCardP
               key={option.value}
               value={option.value}
               disabled={option.disabled ?? false}
+              title={option.disabled === true ? option.disabledReason : undefined}
               className={`rounded-lg border border-border-subtle bg-bg-surface p-4 text-start data-[state=checked]:border-accent data-[state=checked]:bg-accent-subtle ${FOCUS} ${DISABLED}`}
             >
               <Stack gap="1">
@@ -248,7 +281,6 @@ export interface SliderProps {
   step?: number;
   /** Renders the current value beside the track. Pre-translated formatter. */
   formatValue?: (value: number) => string;
-  disabled?: boolean;
 }
 
 /**
@@ -257,9 +289,10 @@ export interface SliderProps {
  * A slider is unusable without a visible value, so `formatValue` renders one and the thumb also
  * carries `aria-valuetext`: "3" alone tells a screen-reader user nothing about what three means.
  */
-export function Slider({ min, max, step = 1, formatValue, disabled = false }: SliderProps) {
+export function Slider({ min, max, step = 1, formatValue, ...rest }: SliderProps & Availability) {
   const { id, name, labelledBy, describedBy, invalid } = useFormField();
   const { control } = useFormContext();
+  const { disabled, readOnly, title } = availability(rest);
 
   return (
     <Controller
@@ -274,6 +307,7 @@ export function Slider({ min, max, step = 1, formatValue, disabled = false }: Sl
             <RadixSlider.Root
               value={[current]}
               onValueChange={(next) => {
+                if (readOnly) return;
                 field.onChange(next[0]);
               }}
               onValueCommit={field.onBlur}
@@ -303,6 +337,8 @@ export function Slider({ min, max, step = 1, formatValue, disabled = false }: Sl
               <RadixSlider.Thumb
                 id={id}
                 aria-labelledby={labelledBy}
+                aria-readonly={readOnly ? true : undefined}
+                title={title}
                 aria-valuetext={text}
                 aria-describedby={describedBy}
                 aria-invalid={invalid}

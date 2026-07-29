@@ -4,6 +4,7 @@ import { Upload, X } from 'lucide-react';
 import { type DragEvent, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
+import type { Availability } from '../form/availability.js';
 import { useFormField } from '../form/FormField.js';
 import { Inline, Stack } from '../primitives/layout.js';
 import { Text } from '../primitives/Text.js';
@@ -42,11 +43,6 @@ interface FieldBinding {
   onChange: (value: unknown) => void;
   onBlur: () => void;
 }
-
-/** `BR-1544` — see the note in `time-fields.tsx`. */
-type Availability =
-  | { disabled: true; disabledReason: string; readOnly?: never }
-  | { disabled?: false; disabledReason?: never; readOnly?: boolean };
 
 export interface FileDropLabels {
   /** Pre-translated. e.g. "Drop a file here, or browse". */

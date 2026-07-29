@@ -478,6 +478,49 @@ TSX
 check "EmptyState without action" "pnpm --filter @josam/ui run typecheck" "TS2739|TS2741|action"
 rm -f packages/ui/src/__violation.tsx
 
+# ── 33. BR-1544 / BR-1347 — a bare `disabled?: boolean` on a field ───────────────────────
+# Added at PH-0.29. Nineteen of twenty-four fields carried this shape for twenty-two tasks while
+# BR-1347 sat in the specification and `Button` had enforced it since PH-0.20. The rule is what
+# stops it coming back the next time somebody adds a field in a hurry.
+hr; echo "33. BR-1544 — a field declaring a bare disabled?: boolean fails the build"
+cat > packages/ui/src/__violation.ts <<'TS'
+export interface ViolationFieldProps {
+  label: string;
+  disabled?: boolean;
+}
+TS
+check "bare disabled prop" "pnpm --filter @josam/ui run lint" "BR-1544|no-restricted-syntax"
+rm -f packages/ui/src/__violation.ts
+
+# ── 34. BR-1347 — and the union it points to must actually require the reason ─────────────
+# Case 33 proves the wrong shape is rejected. This proves the RIGHT shape is load-bearing rather
+# than decorative: `Availability` with `disabled: true` and no reason must not compile. Without
+# this, case 33 would only be enforcing a naming convention.
+hr; echo "34. BR-1347 — Availability with disabled but no reason fails the build"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { TextField } from './fields/text-fields.js';
+
+export function Violation() {
+  return <TextField disabled />;
+}
+TSX
+check "disabled field with no reason" "pnpm --filter @josam/ui run typecheck" "TS2322|disabledReason|not assignable"
+rm -f packages/ui/src/__violation.tsx
+
+# ── 35. BR-1544 — readOnly and disabled are mutually exclusive ───────────────────────────
+# A control declaring both leaves the reader to guess which one won, and leaves the component to
+# pick. The union's `readOnly?: never` arm makes the question unaskable.
+hr; echo "35. BR-1544 — a field that is both readOnly and disabled fails the build"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { TextField } from './fields/text-fields.js';
+
+export function Violation() {
+  return <TextField disabled disabledReason="because" readOnly />;
+}
+TSX
+check "readOnly and disabled together" "pnpm --filter @josam/ui run typecheck" "TS2322|readOnly|not assignable"
+rm -f packages/ui/src/__violation.tsx
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

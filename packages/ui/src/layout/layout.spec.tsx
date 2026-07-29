@@ -421,7 +421,14 @@ describe('Tabs — WAI-ARIA, manual activation', () => {
   it('skips a disabled tab rather than selecting it', async () => {
     const user = userEvent.setup();
     render(
-      <Tabs items={[ITEMS[0]!, { ...ITEMS[1]!, disabled: true }, ITEMS[2]!]} label="Sections" />,
+      <Tabs
+        items={[
+          ITEMS[0]!,
+          { ...ITEMS[1]!, disabled: true, disabledReason: 'أكمل النظرة العامة · Finish Overview' },
+          ITEMS[2]!,
+        ]}
+        label="Sections"
+      />,
     );
 
     await user.click(screen.getByRole('tab', { name: 'الدروس · Lessons' }));

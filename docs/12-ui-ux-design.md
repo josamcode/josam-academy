@@ -1163,6 +1163,38 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   against Tokyo — 21:30 UTC is the 30th in **both**, so the assertion was only ever true because
   of the clock and never the date it claimed to be testing.
 
+- `BR-1837` — **Assert the effect, not the marker.** Where a behaviour can be observed either by
+  the internal state that implements it or by the outcome a user would notice, the assertion is on
+  the outcome. A test written against the marker passes on a component that sets the marker and
+  does nothing with it — it agrees with the defect instead of catching it.
+
+  Observed at `PH-0.26`. `TopBar`, `SideNav` and `BottomNav` implement roving focus: exactly one
+  item carries `tabindex="0"` and the arrow keys move it. All three moved the `tabIndex` and **left
+  focus where it was**, so `ArrowDown` in the sidebar visibly did nothing. The DOM was entirely
+  correct — one tab stop, the right element marked — and the specs asserted *which element carried
+  `tabindex="0"`*, which is precisely what the broken version got right. Three components, three
+  green specs, one contract not met.
+
+  It surfaced only because `Tabs` had the **opposite** bug — it restored focus after every keydown
+  including `Tab`, trapping the user in the tablist — and that spec asserted `document.activeElement`,
+  so it failed immediately. The assertion style, not the code, is what decided which defects were
+  visible.
+
+  Known pairs in this codebase, marker → effect:
+
+  | Marker (do not assert) | Effect (assert this) |
+  | ---------------------- | -------------------- |
+  | `tabindex="0"` on the roving item | `document.activeElement` |
+  | `aria-invalid` on a field | the message a screen reader would receive via `aria-describedby` |
+  | a `focus()` call having been made | which element ends up focused |
+  | a handler prop being passed | the submitted value, or the DOM change |
+  | `aria-checked` after a pointer click | the value the form actually submits |
+
+  Same shape as `PH-0.21`'s focus-first-error (`SB-19`), which passed for four tests on React Hook
+  Form's built-in `shouldFocusError` — registration order, the very behaviour the code's comment
+  called wrong — because the assertions never checked which field received focus. `BR-1835` says
+  make the test fail first; this says make sure the thing it fails on is the thing that matters.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

@@ -8,6 +8,7 @@ import { X } from 'lucide-react';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { Button, type DisabledState } from '../controls/Button.js';
+import type { OptionAvailability } from '../form/availability.js';
 import { Heading } from '../primitives/Heading.js';
 import { Inline, Stack } from '../primitives/layout.js';
 import { Text } from '../primitives/Text.js';
@@ -397,14 +398,17 @@ export function Tooltip({ trigger, content, delayMs = 400 }: TooltipProps) {
   );
 }
 
-export interface MenuItem {
+/**
+ * `BR-1347` — a greyed-out menu item explains itself, exactly as a disabled field does. The user
+ * can see the action they want, cannot take it, and otherwise learns nothing about why.
+ */
+export type MenuItem = {
   /** Pre-translated. */
   label: string;
   onSelect: () => void;
   /** `BR-1344` — destructive items are separated and coloured, never just coloured. */
   destructive?: boolean;
-  disabled?: boolean;
-}
+} & OptionAvailability;
 
 export interface DropdownMenuProps {
   trigger: ReactNode;
@@ -428,6 +432,7 @@ export function DropdownMenu({ trigger, items, label }: DropdownMenuProps) {
     <RadixDropdown.Item
       key={item.label}
       disabled={item.disabled ?? false}
+      title={item.disabled === true ? item.disabledReason : undefined}
       onSelect={item.onSelect}
       className={`flex cursor-pointer items-center rounded-sm p-2 text-sm outline-none data-highlighted:bg-accent-subtle data-disabled:cursor-not-allowed data-disabled:opacity-50 ${
         item.destructive === true ? 'text-danger-text' : 'text-text-primary'

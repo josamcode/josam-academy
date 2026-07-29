@@ -85,6 +85,18 @@ Refs        the documents that specify it
 | `PH-0.26` | Layout & nav: `AppShell` `TopBar` `SideNav` `BottomNav` `PageHeader` `PageFooter` `Breadcrumb` `Tabs` `SkipLink` | `0.17` | 1.5 | `PageHeader` enforces one primary action | `BR-1549` |
 | `PH-0.27` | Feedback: `Toast` `InlineAlert` `Dialog` `ConfirmDialog` `Drawer` `Popover` `Tooltip` `DropdownMenu` `Skeleton` `ProgressBar` `ProgressRing` `EmptyState` `ErrorState` `OfflineBanner` `ReadOnlyBanner` `QueryBoundary` | `0.17` | 2 | `QueryBoundary` requires all three states | `DEC-41` |
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts | `0.9` | 1 | Restore verified from a clean database | `DEC-57` |
+| `PH-0.29` | **`BR-1544` conformance** across the `PH-0.22`–`PH-0.24` fields: `readOnly` and `disabled` distinct on all 24, `disabled` carrying a reason, stories and specs updated, plus a fitness function so it cannot recur | `0.27` | 0.5 | A bare `disabled?: boolean` fails the build | `BR-1544`, `BR-1347` |
+
+**`PH-0.29` is remedial, and added after `PH-0.27` rather than planned.** `BR-1544` has been in
+`12 §20.7` throughout, and `Button` has enforced `BR-1347` through its type since `PH-0.20` — yet
+nineteen of the twenty-four fields shipped with a bare `disabled?: boolean` and no `readOnly` at
+all. The two states are not synonyms: a **disabled** control is removed from the keyboard and from
+the accessibility tree, so a screen-reader user cannot reach it, while a **read-only** one stays
+focusable and its value stays readable and copyable. Rendering a value the user is meant to read as
+`disabled` makes it, to them, simply absent.
+
+It runs **before** the exit check rather than after Phase 1, because every form built in Phase 1
+inherits these components, and the same change costs more with each screen that consumes them.
 
 **Phase 0 exit:** `15 §Phase 0` criteria all passing.
 

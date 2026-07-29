@@ -4,6 +4,7 @@ import { Calendar, ChevronLeft, ChevronRight, Crosshair, X } from 'lucide-react'
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
+import type { Availability } from '../form/availability.js';
 import { useFormField } from '../form/FormField.js';
 import { Inline, Stack } from '../primitives/layout.js';
 import { Text } from '../primitives/Text.js';
@@ -45,16 +46,6 @@ interface FieldBinding {
   onChange: (value: unknown) => void;
   onBlur: () => void;
 }
-
-/**
- * `BR-1544` — `readOnly` and `disabled` are distinct, and `disabled` always carries a reason
- * (`BR-1347`). A read-only field still participates in the form and is still focusable, so its
- * value can be read and copied by a keyboard user; a disabled one is out of the flow entirely and
- * has to say why, because a control that refuses to work without explanation is a dead end.
- */
-type Availability =
-  | { disabled: true; disabledReason: string; readOnly?: never }
-  | { disabled?: false; disabledReason?: never; readOnly?: boolean };
 
 /**
  * The nearest declared direction.

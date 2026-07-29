@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react';
 
+import type { OptionAvailability } from '../form/availability.js';
 import { Text } from '../primitives/Text.js';
 
 /**
@@ -316,13 +317,17 @@ export function BottomNav({ navLabel, items }: BottomNavProps) {
 }
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────────────────
-export interface TabItem {
+/**
+ * `BR-1347` — a disabled tab says why. A tab the user can see and cannot open is the same dead end
+ * as a disabled field, and the reason ("finish the lessons first") is usually the only thing that
+ * tells them what to do next.
+ */
+export type TabItem = {
   id: string;
   /** Pre-translated. */
   label: string;
   content: ReactNode;
-  disabled?: boolean;
-}
+} & OptionAvailability;
 
 export interface TabsProps {
   items: TabItem[];
@@ -386,6 +391,7 @@ export function Tabs({ items, label, defaultId }: TabsProps) {
             aria-controls={`${baseId}-panel-${item.id}`}
             tabIndex={index === active ? 0 : -1}
             disabled={item.disabled ?? false}
+            title={item.disabled === true ? item.disabledReason : undefined}
             onClick={() => {
               activate(index);
             }}

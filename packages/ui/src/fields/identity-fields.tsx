@@ -3,6 +3,7 @@
 import { type ClipboardEvent, type KeyboardEvent, useCallback, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
+import { type Availability, availability } from '../form/availability.js';
 import { useFieldControl, useFormField } from '../form/FormField.js';
 import { Inline } from '../primitives/layout.js';
 
@@ -29,7 +30,6 @@ export interface PhoneFieldProps {
    * user to type, so the stored value is unambiguous.
    */
   countryCode: string;
-  disabled?: boolean;
 }
 
 /**
@@ -38,7 +38,8 @@ export interface PhoneFieldProps {
  *
  * `type="tel"` gives the phone keypad on mobile and leaves the string intact.
  */
-export function PhoneField({ countryCode, disabled = false }: PhoneFieldProps) {
+export function PhoneField({ countryCode, ...rest }: PhoneFieldProps & Availability) {
+  const { disabled, readOnly, title } = availability(rest);
   const control = useFieldControl({
     /**
      * `BR-1410` + E.164 normalisation: strip everything that is not a digit, drop a national
@@ -67,6 +68,8 @@ export function PhoneField({ countryCode, disabled = false }: PhoneFieldProps) {
         inputMode="tel"
         autoComplete="tel-national"
         disabled={disabled}
+        readOnly={readOnly}
+        title={title}
         className={CONTROL}
         {...control}
       />
@@ -74,11 +77,14 @@ export function PhoneField({ countryCode, disabled = false }: PhoneFieldProps) {
   );
 }
 
-export interface EmailFieldProps {
-  disabled?: boolean;
-}
+/**
+ * No props of its own — `Availability` is the whole surface. Kept as a named type anyway so the
+ * export shape matches every other field and a future prop has somewhere to land.
+ */
+export type EmailFieldProps = Availability;
 
-export function EmailField({ disabled = false }: EmailFieldProps) {
+export function EmailField({ ...rest }: EmailFieldProps) {
+  const { disabled, readOnly, title } = availability(rest);
   const control = useFieldControl({
     // Addresses are case-insensitive in the domain and conventionally in the local part too;
     // lower-casing on submit stops one person owning two accounts by capitalisation.
@@ -95,6 +101,8 @@ export function EmailField({ disabled = false }: EmailFieldProps) {
       autoCapitalize="off"
       spellCheck={false}
       disabled={disabled}
+      readOnly={readOnly}
+      title={title}
       className={CONTROL}
       {...control}
     />
@@ -110,7 +118,6 @@ export interface OTPFieldProps {
   digitLabel: (position: number) => string;
   /** Fires once every segment is filled. `12 §20.7` — auto-submit. */
   onComplete?: (code: string) => void;
-  disabled?: boolean;
 }
 
 /**
@@ -125,9 +132,10 @@ export function OTPField({
   groupLabel,
   digitLabel,
   onComplete,
-  disabled = false,
-}: OTPFieldProps) {
+  ...rest
+}: OTPFieldProps & Availability) {
   const { name, id, describedBy, invalid } = useFormField();
+  const { disabled, readOnly, title } = availability(rest);
   const { setValue } = useFormContext();
   const [digits, setDigits] = useState<string[]>(() => Array.from({ length }, () => ''));
   const refs = useRef<(HTMLInputElement | null)[]>([]);
@@ -205,6 +213,13 @@ export function OTPField({
       aria-describedby={describedBy}
       dir="ltr"
       id={id}
+      // BR-1544 — a read-only code is still a code the user must be able to read and copy, so the
+      // segments stay focusable rather than being disabled.
+      //
+      // `aria-readonly` does NOT go here: it is not a supported attribute on `role="group"`, and
+      // jsx-a11y rejected it. Each segment is a real `<input readOnly>`, which is what a screen
+      // reader actually announces; the group carries only the explanation.
+      title={title}
       className="flex gap-2"
     >
       {digits.map((digit, index) => (
@@ -219,16 +234,24 @@ export function OTPField({
           maxLength={1}
           value={digit}
           disabled={disabled}
+          readOnly={readOnly}
           aria-label={digitLabel(index + 1)}
           aria-invalid={invalid}
           className={`${CONTROL} w-12 text-center font-mono`}
           onChange={(event) => {
+            if (readOnly) return;
             setAt(index, event.currentTarget.value.replace(/\D/g, '').slice(-1));
           }}
           onPaste={(event) => {
+            // `readOnly` on an <input> blocks typing but NOT a paste that a handler performs
+            // itself — the handler writes to form state directly, so the native attribute never
+            // sees it. Guarding here is what makes read-only actually read-only.
+            if (readOnly) return;
             onPaste(event, index);
           }}
           onKeyDown={(event) => {
+            // Backspace clears through the same handler, and is likewise invisible to `readOnly`.
+            if (readOnly && (event.key === 'Backspace' || event.key === 'Delete')) return;
             onKeyDown(event, index);
           }}
         />

@@ -25,6 +25,11 @@ import { Combobox, MultiSelect, RatingInput, Select, TagsInput } from './choice-
  *
  * Strings are passed in pre-translated. The components hold no copy of their own (`BR-525`), so
  * every label, placeholder and formatter here is a story prop rather than a default.
+ *
+ * `BR-1544` / `PH-0.29` — every control shows **three** availability states, not two: available,
+ * `readOnly`, and `disabled` **with a reason**. Read-only keeps the control focusable and its value
+ * readable; disabled removes it from the keyboard and the accessibility tree entirely, which is
+ * why a value the user is meant to see must never be rendered `disabled`.
  */
 
 interface DemoProps {
@@ -62,7 +67,14 @@ const OPTIONS: ChoiceOption[] = [
   { value: 'beginner', label: 'مبتدئ · Beginner' },
   { value: 'intermediate', label: 'متوسط · Intermediate' },
   { value: 'advanced', label: 'متقدم · Advanced' },
-  { value: 'native', label: 'متحدث أصلي · Native', disabled: true },
+  {
+    value: 'native',
+    label: 'متحدث أصلي · Native',
+    // BR-1347 one level down: a greyed-out option says why, or it is a dead end with no
+    // explanation. Required by the type since PH-0.29.
+    disabled: true,
+    disabledReason: 'هذا المستوى ليس ضمن هذه الدورة · Not offered on this course',
+  },
 ];
 
 const meta = {
@@ -101,7 +113,19 @@ export const CheckboxStates: Story = {
         <Checkbox label="حالة خطأ · Error state" />
       </Demo>
       <Demo label="الشروط · Terms" defaultValue={false}>
-        <Checkbox label="معطل · Disabled" disabled />
+        <Checkbox
+          label="معطل · Disabled"
+          disabled
+          disabledReason="اقرأ الشروط أولًا · Read the terms first"
+        />
+      </Demo>
+      {/*
+        BR-1544 — read-only is NOT disabled. The control keeps its place in the tab order and its
+        value stays readable and copyable; a disabled control is removed from the keyboard and from
+        the accessibility tree, so a screen-reader user cannot reach it at all.
+      */}
+      <Demo label="الشروط · Terms" defaultValue={true}>
+        <Checkbox label="للقراءة فقط · Read only" readOnly />
       </Demo>
     </Stack>
   ),
@@ -126,7 +150,14 @@ export const SwitchStates: Story = {
         <Switch label="مفعل · On — thumb sits at the inline end in both directions" />
       </Demo>
       <Demo label="الإشعارات · Notifications" defaultValue={true}>
-        <Switch label="معطل · Disabled" disabled />
+        <Switch
+          label="معطل · Disabled"
+          disabled
+          disabledReason="مفعّل من إعدادات المؤسسة · Set by your organisation"
+        />
+      </Demo>
+      <Demo label="الإشعارات · Notifications" defaultValue={true}>
+        <Switch label="للقراءة فقط · Read only" readOnly />
       </Demo>
     </Stack>
   ),
@@ -156,7 +187,14 @@ export const RadioGroupStates: Story = {
         <RadioGroup options={OPTIONS} />
       </Demo>
       <Demo label="المستوى · Level" defaultValue="beginner">
-        <RadioGroup options={OPTIONS} disabled />
+        <RadioGroup
+          options={OPTIONS}
+          disabled
+          disabledReason="المستوى ثابت بعد بدء الدورة · Fixed once the course starts"
+        />
+      </Demo>
+      <Demo label="المستوى · Level" defaultValue="intermediate">
+        <RadioGroup options={OPTIONS} readOnly />
       </Demo>
     </Stack>
   ),
@@ -222,7 +260,16 @@ export const SliderStates: Story = {
         <Slider min={1} max={7} />
       </Demo>
       <Demo label="الالتزام الأسبوعي · Weekly commitment" defaultValue={2}>
-        <Slider min={1} max={7} formatValue={(v) => String(v)} disabled />
+        <Slider
+          min={1}
+          max={7}
+          formatValue={(v) => String(v)}
+          disabled
+          disabledReason="اختر خطة أولًا · Choose a plan first"
+        />
+      </Demo>
+      <Demo label="الالتزام الأسبوعي · Weekly commitment" defaultValue={4}>
+        <Slider min={1} max={7} formatValue={(v) => String(v)} readOnly />
       </Demo>
     </Stack>
   ),
@@ -247,7 +294,15 @@ export const SelectStates: Story = {
         <Select options={OPTIONS} placeholder="اختر · Choose one" />
       </Demo>
       <Demo label="المستوى · Level" defaultValue="">
-        <Select options={OPTIONS} placeholder="معطل · Disabled" disabled />
+        <Select
+          options={OPTIONS}
+          placeholder="معطل · Disabled"
+          disabled
+          disabledReason="أكمل ملفك الشخصي أولًا · Complete your profile first"
+        />
+      </Demo>
+      <Demo label="المستوى · Level" defaultValue="intermediate">
+        <Select options={OPTIONS} placeholder="اختر · Choose one" readOnly />
       </Demo>
     </Stack>
   ),
@@ -390,7 +445,14 @@ export const RatingInputStates: Story = {
         <RatingInput starLabel={(v) => `${String(v)} من 5 · ${String(v)} of 5`} />
       </Demo>
       <Demo label="التقييم · Rating" defaultValue={3}>
-        <RatingInput starLabel={(v) => `${String(v)} من 5 · ${String(v)} of 5`} disabled />
+        <RatingInput
+          starLabel={(v) => `${String(v)} من 5 · ${String(v)} of 5`}
+          disabled
+          disabledReason="أكمل الدورة للتقييم · Finish the course to rate it"
+        />
+      </Demo>
+      <Demo label="التقييم · Rating" defaultValue={5}>
+        <RatingInput starLabel={(v) => `${String(v)} من 5 · ${String(v)} of 5`} readOnly />
       </Demo>
     </Stack>
   ),

@@ -457,8 +457,38 @@ until then the version is fixed but not yet installed. Every entry is re-verifie
 | eslint-plugin-boundaries | — | **7.1.0** | `PH-0.16` |
 | size-limit | — | **13.0.1** | `PH-0.16` |
 | Vitest | — | **4.1.10** | `PH-0.2` |
+| jsdom | — | **30.0.0 — PATCHED**, see below | `PH-0.24` |
 | Playwright | — | **1.62.0** | `PH-0.15` |
 | testcontainers | — | **12.0.4** | `PH-0.6` |
+
+##### `jsdom` carries a local patch — `patches/jsdom@30.0.0.patch`
+
+`getComputedStyle` throws `TypeError: object null is not iterable` for **any** property whose value
+is a `calc()` mixing a percentage with a length. `lib/jsdom/living/css/helpers/font-sizes.js`
+destructures `FONT_SIZE_REGEXP.exec(...)` with no null check, and `resolveCalc()` cannot reduce a
+percentage — that needs a containing block, and jsdom has no layout engine.
+
+It throws from `getComputedStyle` itself, so it takes down the **whole element's** computed style
+rather than one property. `@testing-library`'s `isInaccessible` and `axe-core` both call it while
+walking the tree, so a single such value makes every role query and every axe run over that tree
+crash. Radix positions the `Slider` thumb with `left: calc(<percent>% + <offset>px)`, which is how
+`PH-0.24` met it. Not version-specific: 29.1.1, 30.0.0 and 30.0.1 all throw, and Vitest resolves its
+own copy of jsdom, so a version pin could not move it in any case.
+
+The patch is a four-line null guard that falls through to the function's own documented as-is
+fallback. Three things keep it from becoming invisible infrastructure:
+
+- **The patch file is committed** at `patches/jsdom@30.0.0.patch` and declared in
+  `pnpm-workspace.yaml` under `patchedDependencies`. A patch that lives only in a lockfile hash
+  disappears on the next clean install.
+- **The version is pinned exactly**, because a patch is checksummed against one version and a
+  range would break the install rather than the tests.
+- **`packages/ui/src/test-environment.spec.tsx` guards it.** Drop the patch and that spec fails on
+  the actual defect with the reason attached, rather than six unrelated specs failing with a stack
+  trace inside `node_modules`.
+
+Delete the patch, the pin note and the guarding spec together when jsdom ships the fix upstream
+(`SB-26`).
 
 #### API (`PH-0.3`, `PH-0.6`, `PH-0.19`)
 
@@ -481,7 +511,9 @@ until then the version is fixed but not yet installed. Every entry is re-verifie
 | Tailwind CSS | 4 *(bare major)* | **4.3.3** | `PH-0.14` | Within the stated major |
 | Storybook | 8+ | **10.5.5** | `PH-0.15` | Floor satisfied |
 | `@storybook/addon-a11y` | — | **10.5.5** | `PH-0.15` | Carries axe for `BR-1571` |
-| Radix Primitives | latest | per-package, **`react-dialog` 1.1.23** as reference | `PH-0.24`, `PH-0.27` | See `BR-1817` — Phase 0 **does** require Radix |
+| Radix Primitives | latest | **`react-select` 2.3.7** · **`react-radio-group` 1.4.7** · **`react-checkbox` 1.3.11** · **`react-switch` 1.3.7** · **`react-slider` 1.4.7** · **`react-popover` 1.1.23** · **`react-dialog` 1.1.23** · **`react-dropdown-menu` 2.1.24** · **`react-toast` 1.2.23** · **`react-tooltip` 1.2.16** · **`react-progress` 1.1.16** | `PH-0.24`, `PH-0.27` | See `BR-1817` — Phase 0 **does** require Radix. All exact (`BR-1591`) |
+| TanStack Query | 5+ | **5.101.4** | `PH-0.27` | `BR-1818` — used **directly**, no wrapper. `QueryBoundary` is the state matrix, not an abstraction over the library |
+| React Hook Form | — | **7.83.0** | `PH-0.21` | `BR-1818` — used directly |
 | Lucide React | latest | **1.27.0** | `PH-0.17` | `Icon` primitive, `BR-1487` |
 
 #### Containers (`PH-0.5`)

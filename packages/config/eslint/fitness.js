@@ -103,6 +103,35 @@ export const restrictedSyntax = {
         message:
           'BR-1429: an array index as a key breaks reconciliation on reorder. Use a stable id.',
       },
+      {
+        /**
+         * BR-1544 / BR-1347 — `disabled?: boolean` on its own.
+         *
+         * A bare optional boolean says a control can be disabled and says nothing about the user
+         * being told why. That is not a style preference: a disabled control is removed from the
+         * keyboard and from the accessibility tree, so a screen-reader user meets a value they
+         * cannot reach and no explanation of what would make it reachable.
+         *
+         * It was the shape of nineteen of twenty-four fields for twenty-two tasks, while
+         * `BR-1347` sat in the specification the whole time and `Button` had enforced it since
+         * `PH-0.20`. "Always pass a reason" is a rule people follow until the afternoon they are
+         * in a hurry; a type they cannot write incorrectly is not.
+         *
+         * The fix is `Availability` (a field) or `OptionAvailability` (one option) from
+         * `@josam/ui`'s `form/availability.ts`, or `DisabledState` for a control that is not a
+         * field. All three are discriminated unions, so `disabled: true` without its reason is
+         * TS2322 at the call site rather than a review comment nobody makes.
+         *
+         * The selector matches only the BARE optional boolean. The union arms declare `disabled`
+         * as the literal `true` or `false`, which are `TSLiteralType` nodes and do not match, so
+         * the unions themselves are unaffected.
+         */
+        selector:
+          "TSPropertySignature[key.name='disabled'][optional=true] > TSTypeAnnotation > TSBooleanKeyword",
+        message:
+          'BR-1544/BR-1347: `disabled?: boolean` alone cannot require a reason. Use Availability, ' +
+          'OptionAvailability or DisabledState so `disabled: true` without `disabledReason` is a type error.',
+      },
     ],
   },
 };

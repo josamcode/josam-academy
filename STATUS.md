@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |   Done | Status         |
 | ----------------------- | ------: | -----: | -------------- |
-| **0 — Foundation**      |      28 |     23 | 🟡 In progress |
+| **0 — Foundation**      |      29 |     24 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |      0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |      0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |      0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |      0 | ⬜ Not started |
 | 6 — Mobile              |      16 |      0 | ⬜ Not started |
 | 7 — Growth              |      14 |      0 | ⬜ Not started |
-| **Total**               | **191** | **23** | **12.0%**      |
+| **Total**               | **192** | **24** | **12.5%**      |
 
 **Milestones**
 
@@ -220,6 +220,64 @@ placeholders only (`<SERVER_IP>`, `<ADMIN_USER>`, `<SSH_PORT>`, `<OLD_PORT>`, `<
 
 **Diverged:** none. `§11` lists what this task deliberately does not do and the task that owns
 each, so no gap is mistaken for coverage.
+
+---
+
+### 2026-07-29 · PH-0.29 — `BR-1544` conformance across all 24 fields
+
+**By:** AI · **remedial, founder-instructed after `PH-0.27`**
+**Time:** estimated 0.5 d → actual 0.45 d
+**Output:** `packages/ui/src/form/availability.ts` — one `Availability` union for all 24 fields and
+one `OptionAvailability` for options, replacing two local copies and nineteen omissions. Nineteen
+field components converted. `ChoiceOption`, `MenuItem` and `TabItem` given the option contract.
+`availability.spec.tsx` (74 tests). Stories updated with a third state per control. Fitness cases
+**33**–**35** added, one of them a new lint selector.
+
+**Verified:** `pnpm lint` 9/9 · `pnpm typecheck` 8/8 · `pnpm test` 9/9 — **758 tests, 588 in
+`@josam/ui`** · `pnpm build` 5/5 · `pnpm verify:fitness` → **35 caught, 0 NOT caught**.
+
+**Correction to `SB-28`: it was nineteen fields, not sixteen.** I reported sixteen when raising it
+and did not count before writing the number down. The real figure is 6 (`PH-0.22`) + 3 (`PH-0.23`)
+
+- 10 (`PH-0.24`) = 19 of 24, and the other five — `PH-0.25`'s — were already conformant.
+
+**Why this was worth doing before Phase 1 rather than after.** `readOnly` and `disabled` are not
+synonyms. A disabled control is removed from the keyboard **and from the accessibility tree**, so a
+screen-reader user cannot reach it at all; a read-only one keeps its place in the tab order and its
+value stays readable and copyable. An order total, a locked email address or a captured timestamp
+rendered `disabled` is, to a screen-reader user, simply absent from the page. Nineteen fields could
+only express the state that hides things.
+
+**Three defects the new lint rule found the moment it was switched on**, all outside the scope I
+had been given — which is the argument for a rule over a sweep:
+
+1. `MenuItem.disabled` and `TabItem.disabled` were bare booleans. A greyed-out menu item and an
+   unopenable tab are the same dead end one level down, and the reason ("publish the course first")
+   is usually the only thing telling the user what to do next. Both now take `OptionAvailability`.
+2. `MultiSelect`'s `toggle` closed over `readOnly` without declaring it — a stale-closure bug that
+   `react-hooks/exhaustive-deps` caught because the new guard put a new value inside the callback.
+3. `aria-readonly` is **not valid on `role="group"`**, which is where I first put it on `OTPField`.
+   `jsx-a11y` rejected it. The segments are real `<input readOnly>` elements, which is what a
+   screen reader actually announces; the group keeps only the explanation.
+
+**The case that made the difference between a rule and a naming convention.** Case 33 proves a bare
+`disabled?: boolean` fails the build. On its own that enforces a _shape_ — it would pass a union
+that permitted `disabled: true` with no reason. Case 34 compiles that exact violation and requires
+`TS2322`, and case 35 requires the same for `readOnly` and `disabled` together. Without 34 and 35,
+case 33 would be checking that people use a type whose contents nobody had verified (`BR-1830`).
+
+**`BR-1835` — the specs were made to fail first.** Three guards were removed deliberately: the
+`Checkbox` change-decline, the `OTPField` paste guard, and `TextField`'s `readOnly` pass-through.
+Exactly three tests failed, each for the reason it names, and the other 71 stayed green. The
+`OTPField` case is the one a native attribute does not cover: `readOnly` on an `<input>` blocks
+typing, but `OTPField` writes to form state from its own paste and keydown handlers, which the
+browser never routes through the attribute — so a read-only code could be pasted over and cleared
+with `Backspace` while looking read-only.
+
+**Every assertion is on the effect, not the marker (`BR-1837`).** Whether `Tab` reaches the
+control, and whether the submitted value changed — not whether the prop was passed. A test that
+asserted `disabled={true}` was handed over would agree with a component that accepted the prop and
+ignored it, which is how nineteen fields went twenty-two tasks without anyone noticing.
 
 ---
 
@@ -1721,7 +1779,7 @@ functioning in TypeScript 7.0`, exit 2.
 
 | ID          | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Reason deferred                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Revisit at                                                                                                                   |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `SB-28`     | **`BR-1544` is honoured by `PH-0.25`'s five fields only.** Every field must support `readOnly` and `disabled` **distinctly**, and `disabled` must carry a reason (`BR-1347`). `PH-0.25` implements this as a discriminated `Availability` union, so omitting `disabledReason` is a type error. The sixteen fields from `PH-0.22`–`PH-0.24` take a plain `disabled?: boolean` and have no `readOnly` at all.                                                                                                                                                                                                                                                                                            | Not retrofitted here: the change is a one-line type swap per component but ripples through every story and spec of three completed tasks, and rewriting committed tasks inside an unrelated one is how a scope boundary stops meaning anything. Recorded rather than done, so it is the founder's call. The fix is mechanical — export the `Availability` union from a shared module and swap each field's `disabled?: boolean`; the type error then finds every call site. **Not** caught by any fitness function today, which is the reason it needs a date rather than a note.                       | **Phase 0 exit** — before the roster is declared complete                                                                    |
+| ~~`SB-28`~~ | ~~`BR-1544` is honoured by `PH-0.25`'s five fields only.~~ **Closed by `PH-0.29`, 2026-07-29.** The count was wrong when raised — nineteen of twenty-four fields, not sixteen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ✅ **Closed.** One `Availability` union for all 24 fields, `OptionAvailability` for options, and fitness cases **33**–**35** so it cannot recur: a bare `disabled?: boolean` fails lint, `disabled: true` without a reason fails typecheck, and `readOnly` with `disabled` fails typecheck.                                                                                                                                                                                                                                                                                                             | ✅ **Done**                                                                                                                  |
 | `SB-26`     | **A patched dependency (`patches/jsdom@30.0.0.patch`) and the geometry it does not restore.** jsdom's `getComputedStyle` throws on any `calc()` mixing a percentage with a length; the patch adds the missing null guard. Separately, `packages/ui/vitest.setup.ts` shims `ResizeObserver`, `scrollIntoView` and pointer capture, none of which jsdom can implement without a layout engine.                                                                                                                                                                                                                                                                                                           | The patch is upstream-correct and should be **dropped when jsdom ships the fix** — `src/test-environment.spec.tsx` exists so its absence fails loudly rather than as a stack trace inside `node_modules`. The shims are deliberately **inert**, so component specs prove semantics, keyboard operation, ARIA wiring and value flow, and prove **nothing** about popover placement, scroll-into-view or viewport collision. That surface is covered only by Storybook in a real browser, which is why a green `pnpm test` is not by itself evidence that a floating control is positioned correctly.     | **Phase 0 exit** — recheck jsdom upstream; **`PH-0.27`** depends on it most (`Popover`, `Tooltip`, `DropdownMenu`, `Drawer`) |
 | `SB-27`     | **`jsx-a11y/control-has-associated-label` is scoped off for `packages/ui/src/fields/**`.** `FormField` owns the `<label htmlFor>` and each field body owns the control carrying the matching id, so the association is real at runtime and structurally invisible to a rule that reads one JSX tree at a time.                                                                                                                                                                                                                                                                                                                                                                                         | Scoping a rule is indistinguishable from disabling it unless the remaining coverage is proven, so fitness case **28** asserts the rule still fails a build in `apps/web`. The compensating controls inside the scope are stronger than the rule: `useFormField()` throws outside a `FormField`, every field spec locates its control with `getByLabelText` (which resolves through the accessibility tree), and axe runs over all four theme/direction combinations. Revisit if a field body is ever written that does **not** go through `FormField` — at that point the scope is wrong, not the rule. | **Phase 0 exit**                                                                                                             |
 | `SB-23`     | **`08 §11.1`'s memory budget is invalid on a shared box.** It allocates 6.9 GB of 8 GB to Josam Academy with 1.1 GB headroom — the whole machine, leaving nothing for the client stack already running on it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | `PH-0.9` must recalculate against **actual free headroom** and record the split. It must **not** apply limits to the client containers; they are not this project's to constrain. Real risk to state plainly: the client containers are **unlimited**, so under pressure the OOM killer is likelier to select one of ours _because_ ours declares a limit. Declaring limits is still correct (`BR-878`); it just does not protect us from growth on the other side. Sizing conservatively is the only mitigation available.                                                                             | **`PH-0.9`**                                                                                                                 |

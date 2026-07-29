@@ -5,11 +5,16 @@ import { type ChangeEvent, type ReactNode, useCallback, useRef, useState } from 
 import { toMinorUnits } from '@josam/i18n';
 import { useWatch } from 'react-hook-form';
 
+import { type Availability, availability } from '../form/availability.js';
 import { useFieldControl, useFormField } from '../form/FormField.js';
 import { Inline } from '../primitives/layout.js';
 import { Text } from '../primitives/Text.js';
 
 /**
+ * `BR-1544` / `PH-0.29` — all six take `Availability`, so `readOnly` and `disabled` are
+ * distinct states and `disabled: true` cannot be written without its reason. See
+ * `form/availability.ts` for why they are not two words for the same thing.
+ *
  * The six text fields (`12 §20.7`). All six go through `useFieldControl`, so the label
  * association and the `aria-describedby` / `aria-invalid` wiring are `FormField`'s, written once
  * (`BR-1402`–`BR-1406`).
@@ -59,7 +64,6 @@ export interface TextFieldProps {
   autoComplete?: string;
   prefix?: ReactNode;
   suffix?: ReactNode;
-  disabled?: boolean;
 }
 
 export function TextField({
@@ -68,10 +72,11 @@ export function TextField({
   autoComplete,
   prefix,
   suffix,
-  disabled = false,
-}: TextFieldProps) {
+  ...rest
+}: TextFieldProps & Availability) {
   const { name } = useFormField();
   const control = useFieldControl(TRIM);
+  const { disabled, readOnly, title } = availability(rest);
 
   return (
     <>
@@ -82,6 +87,8 @@ export function TextField({
           className={CONTROL}
           autoComplete={autoComplete}
           disabled={disabled}
+          readOnly={readOnly}
+          title={title}
           {...control}
         />
         {suffix}
@@ -94,14 +101,18 @@ export function TextField({
 export interface TextAreaProps {
   maxLength?: number;
   rows?: number;
-  disabled?: boolean;
 }
 
-export function TextArea({ maxLength, rows = 4, disabled = false }: TextAreaProps) {
+export function TextArea({
+  maxLength,
+  rows = 4,
+  ...availabilityProps
+}: TextAreaProps & Availability) {
   const { name } = useFormField();
   const control = useFieldControl(TRIM);
   const ref = useRef<HTMLTextAreaElement | null>(null);
-  const { ref: registerRef, onChange, ...rest } = control;
+  const { ref: registerRef, onChange, ...registered } = control;
+  const { disabled, readOnly, title } = availability(availabilityProps);
 
   /** Auto-grow. Height is reset before measuring, or the box only ever gets taller. */
   const grow = useCallback((element: HTMLTextAreaElement | null) => {
@@ -116,7 +127,9 @@ export function TextArea({ maxLength, rows = 4, disabled = false }: TextAreaProp
         rows={rows}
         className={`${CONTROL} resize-none`}
         disabled={disabled}
-        {...rest}
+        readOnly={readOnly}
+        title={title}
+        {...registered}
         ref={(element) => {
           registerRef(element);
           ref.current = element;
@@ -142,16 +155,16 @@ export interface PasswordFieldProps {
   /** Pre-translated: this component sits below the catalog (`BR-523`). */
   showLabel: string;
   hideLabel: string;
-  disabled?: boolean;
 }
 
 export function PasswordField({
   autoComplete,
   showLabel,
   hideLabel,
-  disabled = false,
-}: PasswordFieldProps) {
+  ...rest
+}: PasswordFieldProps & Availability) {
   const control = useFieldControl();
+  const { disabled, readOnly, title } = availability(rest);
   const [visible, setVisible] = useState(false);
   const Glyph = visible ? EyeOff : Eye;
 
@@ -162,6 +175,8 @@ export function PasswordField({
         className={CONTROL}
         autoComplete={autoComplete}
         disabled={disabled}
+        readOnly={readOnly}
+        title={title}
         {...control}
       />
       {/*
@@ -176,7 +191,11 @@ export function PasswordField({
         }}
         aria-label={visible ? hideLabel : showLabel}
         aria-pressed={visible}
-        className="p-2 text-text-secondary"
+        // The reveal toggle follows the field: there is nothing to reveal in a disabled field,
+        // and a read-only one is still worth reading, so it stays available there.
+        disabled={disabled}
+        title={title}
+        className="p-2 text-text-secondary disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Glyph width={20} height={20} strokeWidth={2} aria-hidden="true" focusable="false" />
       </button>
@@ -188,7 +207,6 @@ export interface NumberFieldProps {
   min?: number;
   max?: number;
   step?: number;
-  disabled?: boolean;
 }
 
 /**
@@ -198,8 +216,9 @@ export interface NumberFieldProps {
  * and the value is registered with `valueAsNumber` so the form holds a number rather than a
  * numeric string that compares wrong the first time somebody sorts by it.
  */
-export function NumberField({ min, max, step = 1, disabled = false }: NumberFieldProps) {
+export function NumberField({ min, max, step = 1, ...rest }: NumberFieldProps & Availability) {
   const control = useFieldControl({ valueAsNumber: true });
+  const { disabled, readOnly, title } = availability(rest);
 
   return (
     <input
@@ -210,6 +229,8 @@ export function NumberField({ min, max, step = 1, disabled = false }: NumberFiel
       max={max}
       step={step}
       disabled={disabled}
+      readOnly={readOnly}
+      title={title}
       {...control}
     />
   );
@@ -218,7 +239,6 @@ export function NumberField({ min, max, step = 1, disabled = false }: NumberFiel
 export interface CurrencyFieldProps {
   /** ISO 4217, shown as a suffix. `BR-826` — the code always travels with the amount. */
   currency: string;
-  disabled?: boolean;
 }
 
 /**
@@ -230,7 +250,8 @@ export interface CurrencyFieldProps {
  * back by `formatMoney` as 1.235 — a tenfold error that both halves of the round trip agreed on,
  * so nothing looked inconsistent. Found by auditing every money path after PH-0.22.
  */
-export function CurrencyField({ currency, disabled = false }: CurrencyFieldProps) {
+export function CurrencyField({ currency, ...rest }: CurrencyFieldProps & Availability) {
+  const { disabled, readOnly, title } = availability(rest);
   const control = useFieldControl({
     setValueAs: (value: unknown) => {
       if (typeof value !== 'string' || value.trim() === '') return undefined;
@@ -241,7 +262,15 @@ export function CurrencyField({ currency, disabled = false }: CurrencyFieldProps
 
   return (
     <Inline gap="2">
-      <input type="text" inputMode="decimal" className={CONTROL} disabled={disabled} {...control} />
+      <input
+        type="text"
+        inputMode="decimal"
+        className={CONTROL}
+        disabled={disabled}
+        readOnly={readOnly}
+        title={title}
+        {...control}
+      />
       <Text size="sm" tone="muted">
         <span dir="ltr">{currency}</span>
       </Text>
@@ -252,7 +281,6 @@ export function CurrencyField({ currency, disabled = false }: CurrencyFieldProps
 export interface CodeFieldProps {
   /** Fixed length; the field stops accepting input beyond it. */
   length?: number;
-  disabled?: boolean;
 }
 
 /**
@@ -262,7 +290,8 @@ export interface CodeFieldProps {
  * isolated so their characters are not reordered inside Arabic prose. `autocomplete="off"` is
  * correct here and is not the `BR-1414` prohibition, which is about passwords.
  */
-export function CodeField({ length = 8, disabled = false }: CodeFieldProps) {
+export function CodeField({ length = 8, ...rest }: CodeFieldProps & Availability) {
+  const { disabled, readOnly, title } = availability(rest);
   const control = useFieldControl({
     setValueAs: (value: unknown) =>
       typeof value === 'string' ? value.trim().toUpperCase() : value,
@@ -279,6 +308,8 @@ export function CodeField({ length = 8, disabled = false }: CodeFieldProps) {
       maxLength={length}
       className={`${CONTROL} font-mono tracking-widest`}
       disabled={disabled}
+      readOnly={readOnly}
+      title={title}
       {...control}
     />
   );

@@ -17,7 +17,8 @@
 
 ## 1. Hard Scope Boundary
 
-- Execute **only** tasks with IDs `PH-0.1` – `PH-0.28` as defined in `docs/16-task-breakdown.md`.
+- Execute **only** tasks with IDs `PH-0.1` – `PH-0.29` as defined in `docs/16-task-breakdown.md`.
+  `PH-0.29` is remedial, added by founder decision after `PH-0.27` (`SB-28`).
 - **Never** start a `PH-1.x` or later task, even if it looks trivial, unblocking, or "while we're here".
 - **Never** create a database table, an auth flow, a payment concept, a course model, a domain
   entity, or any business logic. Phase 0 has no features. It has infrastructure, tokens, i18n,
@@ -71,7 +72,7 @@ For every task, in this exact order. **Do not batch tasks.** One task, one verif
 
 ## 3. Task Classification
 
-### Type A — executed fully in this repo (22 tasks)
+### Type A — executed fully in this repo (23 tasks)
 
 `PH-0.1` `0.2` `0.3` `0.4` `0.5` `0.6` `0.12` `0.13` `0.14` `0.15` `0.16` `0.17` `0.18` `0.19`
 `0.20` `0.21` `0.22` `0.23` `0.24` `0.25` `0.26` `0.27`
@@ -169,8 +170,9 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.26` | Layout & nav: `AppShell` `TopBar` `SideNav` `BottomNav` `PageHeader` `PageFooter` `Breadcrumb` `Tabs` `SkipLink`                                                                                                        |  A   | `0.17`         | 1.5 |   ✅   |   0.75 | 2 primary actions = TS2322 (case 29)                 |
 | `PH-0.27` | Feedback: `Toast` `InlineAlert` `Dialog` `ConfirmDialog` `Drawer` `Popover` `Tooltip` `DropdownMenu` `Skeleton` `ProgressBar` `ProgressRing` `EmptyState` `ErrorState` `OfflineBanner` `ReadOnlyBanner` `QueryBoundary` |  A   | `0.17`         |   2 |   ✅   |    1.1 | 3 states required = TS2741 (case 31)                 |
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified; scope = Josam DB only (SB-24)      |
+| `PH-0.29` | **`BR-1544` conformance** — `readOnly`/`disabled` distinct on all 24 fields, `disabled` carrying a reason, plus a fitness function                                                                                      |  A   | `0.27`         | 0.5 |   ✅   |   0.45 | Bare `disabled?: boolean` fails lint (case 33)       |
 
-**Progress: 23 / 28 · 82.1%** · Estimated total 19.0 d · Actual to date 12.15 d authored + founder execution
+**Progress: 24 / 29 · 82.8%** · Estimated total 19.5 d · Actual to date 12.6 d authored + founder execution
 
 > **The Redis health indicator is registered in the same task that installs `ioredis` — never
 > "later" (`SB-16`).** `11 §API-21` lists `redis` among the `GET /health` checks. `PH-0.6` built
@@ -194,7 +196,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 > 2 controls · 2 form · 24 fields · 9 layout/navigation · 16 feedback. All 22 Type-A tasks are
 > done. What remains in Phase 0 is the five founder-gated infrastructure tasks — `PH-0.8`, `0.9`,
 > `0.10`, `0.11`, `0.28` — plus the exit criteria in §7, which include **re-running**
-> `pnpm verify:fitness` (32 cases) rather than re-reading this line (`BR-1832`).
+> `pnpm verify:fitness` (35 cases) rather than re-reading this line (`BR-1832`).
 
 > **Estimate-ratio caution (`DEC-56`, `BR-1802`).** `PH-0.1` came in at half its estimate, but it
 > is a Type-A task executed by AI with every version already resolved by the pre-`PH-0.1` pass.
@@ -217,7 +219,8 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 >    Use the `pressArrow()` helper (press, tick, release). Raising userEvent's `delay` does not
 >    work — it sits between keystrokes, not within one. `PH-0.26`'s `Tabs` and `SideNav` need this.
 >
-> 3. **Assert the EFFECT, not the marker.** `PH-0.26` shipped three navs whose arrow keys moved
+> 3. **Assert the EFFECT, not the marker** — now `BR-1837` in `12 §19.1`, which is the record;
+>    this is the reminder. `PH-0.26` shipped three navs whose arrow keys moved
 >    the roving `tabIndex` and left focus behind — visibly doing nothing — and the specs passed,
 >    because they asserted which element carried `tabindex="0"`. `tabindex` is the marker;
 >    `document.activeElement` is the effect. Same shape as `PH-0.21`'s inert focus-first-error
@@ -258,7 +261,7 @@ Phase 0 is not done until **all** of these are true and evidenced.
 ☐ Every story passes axe in both themes and both directions
 ☐ Fitness functions active: boundaries · tokens · logical properties
     · hardcoded strings · prohibited copy terms
-☐ `pnpm verify:fitness` RE-RUN at exit — not re-read — and every case still caught
+☐ `pnpm verify:fitness` (35 cases) RE-RUN at exit — not re-read — and every case still caught
     (`BR-1832`). The recorded table in STATUS.md §4 is evidence of a past run, never
     a substitute for a present one (`BR-1768`).
 ☐ All 20 checks in `12 §19` reconciled: active, or recorded against the task that

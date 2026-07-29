@@ -286,7 +286,12 @@ export const Overlays: Story = {
         items={[
           { label: 'تعديل · Edit', onSelect: () => undefined },
           { label: 'نسخ · Duplicate', onSelect: () => undefined },
-          { label: 'أرشفة · Archive', onSelect: () => undefined, disabled: true },
+          {
+            label: 'أرشفة · Archive',
+            onSelect: () => undefined,
+            disabled: true,
+            disabledReason: 'انشر الدورة أولًا · Publish the course first',
+          },
           { label: 'حذف · Delete', onSelect: () => undefined, destructive: true },
         ]}
       />

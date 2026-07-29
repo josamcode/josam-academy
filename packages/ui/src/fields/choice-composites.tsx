@@ -5,6 +5,7 @@ import { Check, ChevronDown, Star, X } from 'lucide-react';
 import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
+import { type Availability, availability } from '../form/availability.js';
 import { useFormField } from '../form/FormField.js';
 import { Text } from '../primitives/Text.js';
 import type { ChoiceOption } from './choice-toggles.js';
@@ -18,6 +19,10 @@ import type { ChoiceOption } from './choice-toggles.js';
  * keyboard map documented per component (`BR-1531`).
  *
  * `BR-1528` holds throughout: no Radix type appears in any prop, and nothing Radix is re-exported.
+ *
+ * `BR-1544` / `PH-0.29` — all five take `Availability`. None has a native `readOnly`, so it is
+ * `aria-readonly` plus handlers that decline: a read-only field stays focusable and its value
+ * stays readable and copyable, which `disabled` would take away.
  *
  * **Each control body is a real component, never a closure inside `Controller`'s `render` prop.**
  * Hooks called in a render prop land in `Controller`'s own hook sequence — stable while the call
@@ -48,6 +53,13 @@ interface Wiring {
   id: string;
   describedBy: string | undefined;
   invalid: boolean;
+  /**
+   * Resolved by the public wrapper, so a control body reads three plain values. The discriminated
+   * union lives at the public boundary — the only place a caller can get it wrong (`BR-1544`).
+   */
+  disabled: boolean;
+  readOnly: boolean;
+  title: string | undefined;
 }
 
 // ── Select ───────────────────────────────────────────────────────────────────────────────
@@ -55,16 +67,17 @@ export interface SelectProps {
   options: ChoiceOption[];
   /** Shown when nothing is chosen. Pre-translated, and NOT a label (`BR-1402`). */
   placeholder: string;
-  disabled?: boolean;
 }
 
 /**
  * Keyboard (Radix, `BR-1531`): `Space`/`Enter`/`ArrowDown` opens · arrows move · typing jumps by
  * prefix · `Enter` selects · `Escape` closes and returns focus to the trigger.
  */
-export function Select({ options, placeholder, disabled = false }: SelectProps) {
+export function Select(props: SelectProps & Availability) {
+  const { options, placeholder } = props;
   const { id, name, describedBy, invalid } = useFormField();
   const { control } = useFormContext();
+  const { disabled, readOnly, title } = availability(props);
 
   return (
     <Controller
@@ -73,13 +86,18 @@ export function Select({ options, placeholder, disabled = false }: SelectProps) 
       render={({ field }) => (
         <RadixSelect.Root
           value={typeof field.value === 'string' ? field.value : undefined}
-          onValueChange={field.onChange}
+          onValueChange={(next) => {
+            if (readOnly) return;
+            field.onChange(next);
+          }}
           disabled={disabled}
         >
           <RadixSelect.Trigger
             id={id}
             aria-describedby={describedBy}
             aria-invalid={invalid}
+            aria-readonly={readOnly ? true : undefined}
+            title={title}
             onBlur={field.onBlur}
             className={`${CONTROL} flex items-center justify-between gap-2`}
           >
@@ -97,6 +115,7 @@ export function Select({ options, placeholder, disabled = false }: SelectProps) 
                     key={option.value}
                     value={option.value}
                     disabled={option.disabled ?? false}
+                    title={option.disabled === true ? option.disabledReason : undefined}
                     className={OPTION}
                   >
                     <RadixSelect.ItemIndicator>
@@ -168,7 +187,6 @@ export interface ComboboxProps {
   loading?: boolean;
   /** Pre-translated, announced while `loading`. */
   loadingLabel?: string;
-  disabled?: boolean;
 }
 
 function ComboboxControl({
@@ -182,7 +200,9 @@ function ComboboxControl({
   onSearch,
   loading = false,
   loadingLabel,
-  disabled = false,
+  disabled,
+  readOnly,
+  title,
 }: ComboboxProps & Wiring & { field: FieldBinding }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -198,13 +218,14 @@ function ComboboxControl({
 
   const choose = useCallback(
     (index: number) => {
+      if (readOnly) return;
       const option = filtered[index];
       if (option === undefined || option.disabled === true) return;
       field.onChange(option.value);
       setQuery(option.label);
       setOpen(false);
     },
-    [field, filtered],
+    [field, filtered, readOnly],
   );
 
   const close = useCallback(() => {
@@ -221,6 +242,8 @@ function ComboboxControl({
         type="text"
         role="combobox"
         aria-expanded={open}
+        aria-readonly={readOnly ? true : undefined}
+        title={title}
         aria-controls={listId}
         aria-autocomplete="list"
         aria-activedescendant={
@@ -297,9 +320,10 @@ function ComboboxControl({
  * The empty and loading states live inside the list, not beside it: a list that vanishes while a
  * request is in flight reads as breakage.
  */
-export function Combobox(props: ComboboxProps) {
+export function Combobox(props: ComboboxProps & Availability) {
   const { id, name, describedBy, invalid } = useFormField();
   const { control } = useFormContext();
+  const resolved = availability(props);
 
   return (
     <Controller
@@ -308,6 +332,7 @@ export function Combobox(props: ComboboxProps) {
       render={({ field }) => (
         <ComboboxControl
           {...props}
+          {...resolved}
           field={field}
           id={id}
           describedBy={describedBy}
@@ -328,7 +353,6 @@ export interface MultiSelectProps {
   overflowLabel: (count: number) => string;
   /** Pre-translated, receives the option label. */
   removeLabel: (label: string) => string;
-  disabled?: boolean;
 }
 
 function MultiSelectControl({
@@ -341,7 +365,9 @@ function MultiSelectControl({
   maxVisible = 3,
   overflowLabel,
   removeLabel,
-  disabled = false,
+  disabled,
+  readOnly,
+  title,
 }: MultiSelectProps & Wiring & { field: FieldBinding }) {
   const [open, setOpen] = useState(false);
   const listId = `${id}-listbox`;
@@ -356,6 +382,7 @@ function MultiSelectControl({
 
   const toggle = useCallback(
     (index: number) => {
+      if (readOnly) return;
       const option = options[index];
       if (option === undefined || option.disabled === true) return;
       field.onChange(
@@ -364,7 +391,7 @@ function MultiSelectControl({
           : [...values, option.value],
       );
     },
-    [field, options, values],
+    [field, options, readOnly, values],
   );
 
   const close = useCallback(() => {
@@ -389,6 +416,8 @@ function MultiSelectControl({
         id={id}
         role="combobox"
         aria-expanded={open}
+        aria-readonly={readOnly ? true : undefined}
+        title={title}
         aria-controls={listId}
         aria-describedby={describedBy}
         aria-invalid={invalid}
@@ -398,7 +427,7 @@ function MultiSelectControl({
           setOpen((o) => !o);
         }}
         onKeyDown={(event) => {
-          if (event.key === 'Backspace' && values.length > 0) {
+          if (event.key === 'Backspace' && values.length > 0 && !readOnly) {
             field.onChange(values.slice(0, -1));
             return;
           }
@@ -493,9 +522,10 @@ function MultiSelectControl({
  * Keyboard (`BR-1531`): `Enter`/`ArrowDown` opens · arrows move · `Enter` toggles the active
  * option · `Backspace` removes the last chip · `Escape` closes.
  */
-export function MultiSelect(props: MultiSelectProps) {
+export function MultiSelect(props: MultiSelectProps & Availability) {
   const { id, name, describedBy, invalid } = useFormField();
   const { control } = useFormContext();
+  const resolved = availability(props);
 
   return (
     <Controller
@@ -504,6 +534,7 @@ export function MultiSelect(props: MultiSelectProps) {
       render={({ field }) => (
         <MultiSelectControl
           {...props}
+          {...resolved}
           field={field}
           id={id}
           describedBy={describedBy}
@@ -520,7 +551,6 @@ export interface TagsInputProps {
   /** Pre-translated, receives the tag. */
   removeLabel: (tag: string) => string;
   maxTags?: number;
-  disabled?: boolean;
 }
 
 function TagsInputControl({
@@ -531,13 +561,16 @@ function TagsInputControl({
   placeholder,
   removeLabel,
   maxTags,
-  disabled = false,
+  disabled,
+  readOnly,
+  title,
 }: TagsInputProps & Wiring & { field: FieldBinding }) {
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const tags: string[] = Array.isArray(field.value) ? (field.value as string[]) : [];
 
   const commit = () => {
+    if (readOnly) return;
     const value = draft.trim();
     // Silently ignoring a duplicate is right: the user's intent is already satisfied, and an
     // error saying "this is already here" is noise.
@@ -575,6 +608,8 @@ function TagsInputControl({
       ))}
       <input
         ref={inputRef}
+        readOnly={readOnly}
+        title={title}
         id={id}
         type="text"
         className="min-w-24 flex-1 bg-transparent outline-none"
@@ -608,9 +643,10 @@ function TagsInputControl({
  * Keyboard (`BR-1531`): `Enter` or `,` commits the typed tag · `Backspace` on an empty field
  * removes the last · each tag's remove button is its own tab stop with a real name.
  */
-export function TagsInput(props: TagsInputProps) {
+export function TagsInput(props: TagsInputProps & Availability) {
   const { id, name, describedBy, invalid } = useFormField();
   const { control } = useFormContext();
+  const resolved = availability(props);
 
   return (
     <Controller
@@ -619,6 +655,7 @@ export function TagsInput(props: TagsInputProps) {
       render={({ field }) => (
         <TagsInputControl
           {...props}
+          {...resolved}
           field={field}
           id={id}
           describedBy={describedBy}
@@ -634,7 +671,6 @@ export interface RatingInputProps {
   max?: number;
   /** Pre-translated, receives the value. Becomes each star's accessible name. */
   starLabel: (value: number) => string;
-  disabled?: boolean;
 }
 
 /**
@@ -649,9 +685,10 @@ export interface RatingInputProps {
  * focusable, so a handler there never fires from the keyboard; `jsx-a11y`'s
  * `interactive-supports-focus` caught that at `PH-0.24`.
  */
-export function RatingInput({ max = 5, starLabel, disabled = false }: RatingInputProps) {
+export function RatingInput({ max = 5, starLabel, ...rest }: RatingInputProps & Availability) {
   const { id, name, describedBy, invalid } = useFormField();
   const { control } = useFormContext();
+  const { disabled, readOnly, title } = availability(rest);
 
   return (
     <Controller
@@ -666,6 +703,8 @@ export function RatingInput({ max = 5, starLabel, disabled = false }: RatingInpu
             role="radiogroup"
             aria-describedby={describedBy}
             aria-invalid={invalid}
+            aria-readonly={readOnly ? true : undefined}
+            title={title}
             // BR-1234's reasoning: a rating reads low-to-high left-to-right in both languages.
             dir="ltr"
             className="flex gap-1"
@@ -682,10 +721,12 @@ export function RatingInput({ max = 5, starLabel, disabled = false }: RatingInpu
                 className="text-text-muted data-checked:text-accent"
                 data-checked={value <= current ? '' : undefined}
                 onClick={() => {
+                  if (readOnly) return;
                   field.onChange(value);
                 }}
                 onBlur={field.onBlur}
                 onKeyDown={(event) => {
+                  if (readOnly) return;
                   if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
                     event.preventDefault();
                     field.onChange(Math.min(max, current + 1));
