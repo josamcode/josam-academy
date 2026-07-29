@@ -1237,9 +1237,16 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
 
   What follows:
 
-  - **A config file that has never been validated by the tool that consumes it is not a config
-    file that works.** If a tool ships a validator, it runs in CI. If it does not, the config is
-    exercised some other way before it is trusted.
+  - **If a tool ships a validator, it runs in CI, and it is proven to reject.** Both halves are
+    required. A validator nobody has watched fail is the same unexercised state one level further
+    out — `renovate-config-validator` was added and fitness case **37** puts the rejected key back,
+    because "we run the validator" and "the validator works" are different claims. If a tool ships
+    no validator, the config is exercised some other way before it is trusted.
+
+  **Four instances of one class**, which is why this is a rule and not an anecdote: three silently
+  dead fitness functions (`PH-0.16`), a stylelint autofix that disabled Tailwind (`PH-0.17`), the
+  Prisma client supplied by local history (`PH-0.10`), and a Renovate config nothing had ever
+  parsed (`PH-0.10`). In every one the gates were green and the mechanism was doing nothing.
   - Generated artifacts are produced by **installing**, not by remembering to run a command.
     `prisma generate` belongs in `postinstall`, so "installed" implies "generated" in CI, in a
     clean clone, in the Docker image and in an editor. A CI-only step fixes CI and leaves the
