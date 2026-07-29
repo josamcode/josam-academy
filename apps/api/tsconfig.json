@@ -1,5 +1,14 @@
 {
   "extends": "@josam/config/tsconfig/node.json",
-  "include": ["src/**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["src/**/*.ts", "prisma.config.ts"],
+  "exclude": ["dist", "node_modules"],
+  "//": [
+    "The TOOLING config: includes prisma.config.ts so ESLint's project service can type-aware",
+    "lint it on both invocation paths (SB-15). rootDir widens to the package root to match;",
+    "this config only ever runs with --noEmit, so rootDir affects nothing but file admission.",
+    "tsconfig.build.json re-narrows both for the emit."
+  ],
+  "compilerOptions": {
+    "rootDir": "${configDir}"
+  }
 }

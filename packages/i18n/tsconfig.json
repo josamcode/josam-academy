@@ -4,6 +4,9 @@
     "from tsconfig.build.json so they never reach dist/. Same split as apps/api and tokens."
   ],
   "extends": "@josam/config/tsconfig/library.json",
-  "include": ["src/**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["src/**/*.ts", "*.config.ts"],
+  "exclude": ["dist", "node_modules"],
+  "compilerOptions": {
+    "rootDir": "${configDir}"
+  }
 }

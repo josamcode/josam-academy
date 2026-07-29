@@ -206,6 +206,55 @@ check "arabic source" "pnpm check:catalogs" "BR-524"
 pnpm --filter @josam/i18n run build >/dev/null 2>&1
 rm -f packages/i18n/dist/index.js.bak
 
+# ── 18. BR-1469 — clickable non-semantic element (jsx-a11y, activated at PH-0.17) ─────────
+hr; echo "18. BR-1469 — a clickable non-semantic element fails the build"
+cat > packages/ui/src/__Violation.tsx <<'TSX'
+export function Violation({ onSelect }: { onSelect: () => void }) {
+  return <div onClick={onSelect} />;
+}
+TSX
+check "clickable div" "pnpm --filter @josam/ui exec eslint src/__Violation.tsx" "jsx-a11y"
+rm -f packages/ui/src/__Violation.tsx
+
+# ── 19. BR-1471 — icon button with no accessible name ─────────────────────────────────────
+hr; echo "19. BR-1471 — a button with no accessible name fails the build"
+cat > packages/ui/src/__Violation.tsx <<'TSX'
+export function Violation() {
+  return <button type="button" />;
+}
+TSX
+check "unnamed button" "pnpm --filter @josam/ui exec eslint src/__Violation.tsx" "jsx-a11y"
+rm -f packages/ui/src/__Violation.tsx
+
+# ── 20. BR-1429 — array index as a React key ──────────────────────────────────────────────
+hr; echo "20. BR-1429 — an array index used as a React key fails the build"
+cat > packages/ui/src/__Violation.tsx <<'TSX'
+export function Violation({ items }: { items: string[] }) {
+  return (
+    <ul>
+      {items.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+TSX
+check "array index key" "pnpm --filter @josam/ui exec eslint src/__Violation.tsx" "BR-1429|no-restricted-syntax"
+rm -f packages/ui/src/__Violation.tsx
+
+# ── 21. DEC-40 — an off-scale value is a TYPE error, not a lint error ─────────────────────
+hr; echo "21. DEC-40 — an off-scale primitive value fails to COMPILE (not merely to lint)"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { Stack, Text } from './index.js';
+
+export const a = <Text size="19px">x</Text>;
+export const b = <Stack gap={13} />;
+export const c = <Text tone="#E8B04B">x</Text>;
+export const d = <Stack gap="5" />;
+TSX
+check "off-scale is a type error" "pnpm --filter @josam/ui exec tsc -p tsconfig.json --noEmit" "TS2322"
+rm -f packages/ui/src/__violation.tsx
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.16` execution)                                                                                                                                                                      |
+| **Updated by**     | AI (`PH-0.17` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.16` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.17` — Primitives: `Text` `Heading` `Stack` `Inline` `Grid` `Box` `Icon` `Surface`                                                                                                       |
+| **Current task**   | _None in progress_ — `PH-0.17` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.18` — Architectural: `T` `Bidi` `Money` `Num` `Percent` `Duration` `When` `CopyableId`                                                                                                  |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -91,6 +91,87 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.17 — Primitives: Text, Heading, Stack, Inline, Grid, Box, Icon, Surface
+
+**By:** AI
+**Time:** estimated 1.5 d -> actual 0.7 d
+**Output:**
+
+- Eight primitives in `packages/ui/src/primitives/`, each accepting **token keys only**. No
+  `className` prop on any of them: it would be an escape hatch straight past `BR-1342` and
+  `BR-1533`, and an escape hatch that exists gets used.
+- `primitives.stories.tsx` — 8 stories covering the type scale, tones, heading levels, the
+  spacing scale, surfaces, grids, icon mirroring and full composition.
+- `primitives.spec.tsx` — 83 specs. `apps/web/app/globals.spec.ts` — the Tailwind canary.
+- `apps/web/app/(public)/page.tsx` rebuilt on primitives: no `className`, no raw CSS (`BR-1534`).
+- Pinned: lucide-react **1.27.0** (matches `13 §18.1`), eslint-plugin-jsx-a11y **6.10.2**.
+
+**Verified:** (real executed output, `BR-1518`, `BR-1768`)
+
+- **Off-scale values are TYPE errors, not lint errors — the task Output (`DEC-40`).** Compiled,
+  with the error codes:
+
+  ```
+  __violation.tsx(4,24): error TS2322: Type '"19px"' is not assignable to type
+      '"2xs" | "xs" | "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | undefined'.
+  __violation.tsx(5,25): error TS2322: Type 'number' is not assignable to type 'SpaceToken | undefined'.
+  __violation.tsx(6,24): error TS2322: Type '"#E8B04B"' is not assignable to type 'TextTone | undefined'.
+  __violation.tsx(7,25): error TS2322: Type '"5"' is not assignable to type 'SpaceToken | undefined'.
+  ```
+
+  `DEC-40`'s stated valid form — `<Stack gap="4"><Text size="sm" tone="secondary" /></Stack>` —
+  compiles clean.
+
+- **jsx-a11y activated and proven**, added permanently to `verify:fitness` as cases 18 and 19:
+  a clickable `<div>` and an unnamed `<button>` both fail.
+- **`BR-1429` proven** (case 20) — it was configured at `PH-0.16` but never demonstrated, and the
+  coverage ledger recorded it as unproven rather than counting it.
+- **`pnpm verify:fitness` → 21 caught, 0 missed.**
+- 83 primitive specs: every primitive rendered in all four theme/direction combinations, axe run
+  against each of the 32 combinations, plus assertions that no primitive emits a raw hex, a
+  Tailwind palette utility, or a physical direction utility.
+- `pnpm build` 5/5 · `lint` 9/9 · `typecheck` 8/8 · `test` 9/9 · `lint:css` clean ·
+  `check:deps` no violations · `format:check` clean · `storybook build` succeeds.
+
+**Diverged:**
+
+1. **`SpaceToken` changed from numeric to string keys.** `DEC-40` writes the valid form as
+   `<Stack gap="4" />` — a token _name_. Mine were numeric, so `gap="4"` failed to compile while
+   `gap={4}` passed: the exact inverse of the specification. Beyond conformance the string is the
+   better type: `gap={4}` invites `gap={4 * 2}` and `gap={someCount}`, arithmetic on a scale
+   position that yields 32px by accident and reads fine in review. A string cannot be multiplied.
+   `packages/tokens` changed accordingly; `GridColumns` stays numeric because a column count is a
+   number, not a token name.
+
+**Notes:**
+
+- **A silent, total styling failure was found and fixed — worth reading in full.**
+  `stylelint --fix`, run by our own pre-commit hook, rewrote `@import 'tailwindcss'` into
+  `@import url('tailwindcss')` — `stylelint-config-standard` defaults `import-notation` to `url`.
+  Tailwind's PostCSS plugin only processes the bare form; wrapped in `url()` it is an ordinary
+  CSS import that Tailwind ignores. The build succeeded, the page rendered, `lint`, `typecheck`
+  and `test` were all green, and the emitted stylesheet contained every token custom property and
+  **not one utility class**. 3,083 bytes where there should have been 14,399. Nothing failed —
+  the site was simply unstyled.
+  - Fixed by pinning `import-notation: 'string'`, with the reason written at the rule.
+  - `at-rule-no-unknown` now allows Tailwind's CSS-first at-rules, so `@theme` and `@source` do
+    not push someone toward deleting the line instead of the rule.
+  - `apps/web/app/globals.spec.ts` asserts the **outcome**, not the setting, because the next way
+    this breaks will not be that setting.
+  - This is the same shape as the three dead fitness functions at `PH-0.16`: a tool doing exactly
+    what it was configured to do, producing something that looks right and does nothing.
+- `@source '../../../packages/ui/src'` is required in `globals.css`: Tailwind's automatic source
+  detection does not follow pnpm's node_modules symlink into `packages/ui`, so every primitive
+  would render with classes present in the DOM and absent from the stylesheet.
+- **No primitive API felt wrong enough to stop on.** The one decision worth flagging is
+  `Heading`: `level` and `size` are separate props, so a small `h2` does not have to become an
+  `h3`. Coupling them makes either the visual hierarchy or the screen-reader outline wrong, and it
+  is always the outline that loses.
+- Keyboard maps (`BR-1531`): none of the eight is interactive — they are containers and text. The
+  keyboard contracts start at `PH-0.20` with `Button` and `IconButton`.
 
 ---
 
@@ -1014,7 +1095,7 @@ functioning in TypeScript 7.0`, exit 2.
 |  19 | Endpoint not present in the contract          | `BR-1447`            | ⬜ **`PH-1.8`**             | requires `packages/contracts`, which is Phase 1                                                                                                                            |
 |  20 | Scope decorator present                       | `BR-918`             | ⬜ **Phase 1**              | there is no scoped query, and no `_can`, until the domain exists                                                                                                           |
 
-**`12 §19` score: 12 active · 1 configured-but-unproven · 7 deferred to a named task.**
+**`12 §19` score: 15 active · 5 deferred to a named task** (rows 14, 15, 17, 18, 19 — `PH-0.10`, `PH-0.17`→see below, `PH-1.8`, Phase 1).
 
 ### `09 §enforcement` — the architectural rows
 

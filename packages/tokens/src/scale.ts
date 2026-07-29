@@ -7,18 +7,27 @@
  * out, and a parser is a place for the two platforms to disagree.
  */
 
-/** `12 §5`. The scale is deliberately gappy — 5 is not a step, so 20px cannot be reached. */
-export const space = {
-  1: 4,
-  2: 8,
-  3: 12,
-  4: 16,
-  6: 24,
-  8: 32,
-  12: 48,
-  16: 64,
-  24: 96,
-} as const;
+/**
+ * `12 §5`. The scale is deliberately gappy — 5 is not a step, so 20px cannot be reached.
+ *
+ * The keys are **strings**, and that is deliberate rather than incidental. `DEC-40` writes the
+ * valid form as `<Stack gap="4" />`: a token *name*, not a number. Typed numerically, `gap={4}`
+ * invites `gap={4 * 2}` and `gap={someCount}` — arithmetic on a scale position, which produces
+ * 32px by accident and looks reasonable in review. A string cannot be multiplied.
+ */
+export type SpaceToken = '1' | '2' | '3' | '4' | '6' | '8' | '12' | '16' | '24';
+
+export const space: Record<SpaceToken, number> = {
+  '1': 4,
+  '2': 8,
+  '3': 12,
+  '4': 16,
+  '6': 24,
+  '8': 32,
+  '12': 48,
+  '16': 64,
+  '24': 96,
+};
 
 /** `12 §5`. `BR-1228` — 8px is the default: not fully rounded, not square. */
 export const radius = {
@@ -70,7 +79,6 @@ export const fontFamily = {
   mono: "'JetBrains Mono', ui-monospace, monospace",
 } as const;
 
-export type SpaceToken = keyof typeof space;
 export type RadiusToken = keyof typeof radius;
 export type DurationToken = keyof typeof duration;
 export type FontSizeToken = keyof typeof fontSize;

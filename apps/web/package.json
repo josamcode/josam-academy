@@ -31,6 +31,7 @@
   "dependencies": {
     "@josam/i18n": "workspace:*",
     "@josam/tokens": "workspace:*",
+    "@josam/ui": "workspace:*",
     "next": "16.2.12",
     "react": "19.2.8",
     "react-dom": "19.2.8"

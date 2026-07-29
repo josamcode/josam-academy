@@ -9,8 +9,9 @@
   ],
   "extends": "@josam/config/tsconfig/library.json",
   "compilerOptions": {
-    "types": ["node"]
+    "types": ["node"],
+    "rootDir": "${configDir}"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "*.config.ts"],
   "exclude": ["dist", "node_modules"]
 }

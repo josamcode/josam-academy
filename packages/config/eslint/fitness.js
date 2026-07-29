@@ -1,4 +1,5 @@
 import boundaries from 'eslint-plugin-boundaries';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 import { noHardcodedStrings } from './rules/no-hardcoded-strings.js';
 import { noPrismaOutsideRepository } from './rules/no-prisma-outside-repository.js';
@@ -120,6 +121,27 @@ export const noConsole = {
   },
 };
 
+/**
+ * `BR-1469` / `BR-1471` — accessibility rules that only mean something once JSX exists, which is
+ * why they activate at `PH-0.17` with the primitives rather than at `PH-0.16` (`BR-1833`).
+ *
+ * `BR-1469` — a clickable non-semantic element is a button that cannot be reached by keyboard and
+ * is invisible to assistive technology.
+ * `BR-1471` — an icon button with no accessible name is announced as "button", which tells a
+ * screen-reader user nothing at all.
+ */
+export const accessibility = {
+  files: ['**/*.tsx'],
+  ...jsxA11y.flatConfigs.recommended,
+  rules: {
+    ...jsxA11y.flatConfigs.recommended.rules,
+    // Raised from the recommended defaults: both are the ones 12 §19 names explicitly.
+    'jsx-a11y/no-static-element-interactions': 'error',
+    'jsx-a11y/click-events-have-key-events': 'error',
+    'jsx-a11y/control-has-associated-label': 'error',
+  },
+};
+
 /** `BR-523` / `BR-1357` — no hardcoded user-facing strings. */
 export const noHardcodedStringsConfig = {
   files: ['**/*.tsx'],
@@ -221,5 +243,6 @@ export const fitness = [
   vendorSdkContainment,
   restrictedSyntax,
   noConsole,
+  accessibility,
   noHardcodedStringsConfig,
 ];

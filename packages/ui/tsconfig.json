@@ -1,8 +1,20 @@
 {
+  "//": [
+    "The TOOLING config. It includes specs and the package's own root config files so ESLint's",
+    "project service can type-aware lint them \u2014 on BOTH invocation paths (SB-15): turbo runs",
+    "`eslint .` inside the package, lint-staged runs it once from the repository root.",
+    "",
+    "tsconfig.build.json narrows this to what actually ships. Solving it there rather than with",
+    "`allowDefaultProject` avoids the opposite failure: a file listed in allowDefaultProject that",
+    "IS in the project is itself a parsing error."
+  ],
   "extends": "@josam/config/tsconfig/library.json",
   "compilerOptions": {
-    "lib": ["ES2024", "DOM", "DOM.Iterable"]
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node"],
+    "rootDir": "${configDir}"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "*.config.ts"],
   "exclude": ["dist", "node_modules"]
 }

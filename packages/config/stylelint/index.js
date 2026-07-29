@@ -62,6 +62,42 @@ export default {
       '/^(margin|padding|gap|inset|font-size)/': ['px', 'pt', 'cm', 'in'],
     },
 
+    /**
+     * MUST stay 'string'. stylelint-config-standard defaults this to 'url', and `stylelint --fix`
+     * then rewrites `@import 'tailwindcss'` into `@import url('tailwindcss')`.
+     *
+     * Tailwind's PostCSS plugin only processes the bare form. Wrapped in `url()` it becomes an
+     * ordinary CSS import that Tailwind ignores, so the build emits the token custom properties
+     * and **not one utility class** — a stylesheet that looks populated and styles nothing.
+     *
+     * Found at PH-0.17: the pre-commit hook's own autofix had silently disabled Tailwind, and the
+     * page still compiled. `apps/web/app/globals.spec.ts` now asserts the emitted stylesheet
+     * actually contains utilities, so this cannot recur quietly.
+     */
+    'import-notation': 'string',
+
+    /**
+     * Tailwind 4 is CSS-first: its configuration lives in at-rules, not in a JS config file.
+     * Stylelint does not know them, and an unknown-at-rule error on `@theme` would push someone
+     * toward deleting the line rather than the rule.
+     */
+    'at-rule-no-unknown': [
+      true,
+      {
+        ignoreAtRules: [
+          'theme',
+          'source',
+          'utility',
+          'variant',
+          'custom-variant',
+          'apply',
+          'plugin',
+          'config',
+          'reference',
+        ],
+      },
+    ],
+
     // stylelint-config-standard defaults that fight generated files or our naming.
     'custom-property-pattern': null,
     'selector-class-pattern': null,

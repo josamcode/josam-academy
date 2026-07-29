@@ -1,11 +1,21 @@
 /*
  * BR-1583 — packages/tokens is the single source for colour, spacing, type, radius and motion.
- * Both files below are generated; see packages/tokens/src/css.ts.
+ * Both imported files are generated; see packages/tokens/src/css.ts.
  *
  * Order matters. tokens.css declares the custom properties, 'tailwindcss' brings the engine and
  * its defaults, and tailwind.css deletes those defaults and binds the utility surface to our
  * tokens. Import the theme layer before Tailwind and the defaults win (BR-1342).
+ *
+ * The bare `@import 'tailwindcss'` form is required — see the import-notation note in
+ * packages/config/stylelint/index.js. `@import url(...)` silently disables Tailwind.
  */
-@import url('@josam/tokens/tokens.css');
-@import url('tailwindcss');
-@import url('@josam/tokens/tailwind.css');
+@import '@josam/tokens/tokens.css';
+@import 'tailwindcss';
+@import '@josam/tokens/tailwind.css';
+
+/*
+ * Tailwind discovers utilities by scanning source text, and its automatic detection does not
+ * follow pnpm's node_modules symlink into packages/ui. Without this every primitive renders with
+ * classes that exist in the DOM and in no stylesheet.
+ */
+@source '../../../packages/ui/src';
