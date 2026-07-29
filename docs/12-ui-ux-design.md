@@ -1112,6 +1112,38 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   | **Config merge replacing, not merging** | ESLint merges flat configs by **replacing** a rule's options. Two `no-restricted-syntax` blocks meant the later one silently deleted the earlier one's selectors. |
   | **Glob patterns that cannot match the input** | `no-restricted-imports` matches `group` patterns with minimatch, and `**` never crosses a leading `..`, so no glob catches `../../generated/prisma/client.js`. |
 
+- `BR-1834` — **A tool with `--fix` authority is itself a source of defects.** Any autofixer in
+  the pre-commit chain must have its **output asserted**, never its configuration. Configuration
+  says what the tool was told to do; only the artifact says what it did.
+
+  The case that produced this rule: `stylelint --fix` rewrote `@import 'tailwindcss'` into
+  `@import url('tailwindcss')`. Tailwind's PostCSS plugin only processes the bare form, so the
+  build succeeded, the pages rendered, and `lint`, `typecheck`, `test` and `build` were **all
+  green** while the emitted stylesheet contained every design token and not one utility class —
+  3,083 bytes where there should have been 14,399. Nothing failed. The site was simply unstyled.
+
+  The shape to look for is a rewrite that stays **syntactically valid and semantically dead**.
+  Auditing the rest of the chain against that description found a second instance immediately:
+  `stylelint --fix` also rewrites `@media (min-width: 640px)` into `@media (width >= 640px)`,
+  which is valid modern CSS unsupported on Safari < 16.4 and Chrome < 104 — where the query never
+  matches and the responsive layout silently collapses to its base case.
+
+  Two more were already disarmed and were re-verified rather than assumed:
+  `@typescript-eslint/consistent-type-imports` (would erase a NestJS DI token — guarded since
+  `PH-0.1`) and `no-unused-vars` (leaves side-effect imports alone). Prettier is
+  semantics-preserving by design; its only real authority here is over `.md`, which is why the
+  frozen specification documents are in `.prettierignore`.
+
+- `BR-1835` — **A test that passes on its first run is not yet evidence.** Make it fail
+  deliberately — break the input, or break the code — and confirm it fails for the reason it
+  claims to check, before trusting it.
+
+  `BR-1830` already requires this of enforcement mechanisms. It applies to assertions generally,
+  for the same reason and with the same failure mode: an assertion that cannot distinguish the
+  thing it names is decoration. Observed at `PH-0.18`, where a timezone test compared Cairo
+  against Tokyo — 21:30 UTC is the 30th in **both**, so the assertion was only ever true because
+  of the clock and never the date it claimed to be testing.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

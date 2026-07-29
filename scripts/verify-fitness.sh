@@ -282,5 +282,59 @@ check "icon button unnamed" "pnpm --filter @josam/ui exec tsc -p tsconfig.json -
 rm -f packages/ui/src/__violation.tsx
 
 hr
+# ── 24. BR-1834 — the emitted stylesheet must actually contain utilities ──────────────────
+# Not a deliberate violation: an OUTPUT assertion. A tool with --fix authority is itself a source
+# of defects, and the only trustworthy check on one is the artifact it produced. At PH-0.17 every
+# gate was green while this stylesheet held 3,083 bytes of tokens and zero utility classes.
+hr; echo "24. BR-1834 — built stylesheet carries real utilities, not just tokens"
+pnpm --filter @josam/web run build >/dev/null 2>&1
+CSS_FILE="$(find apps/web/.next -name '*.css' -not -path '*/cache/*' 2>/dev/null | head -1)"
+if [ -z "$CSS_FILE" ]; then
+  echo "  RESULT: ✗ no stylesheet was emitted at all"
+  fail=$((fail+1))
+else
+  CSS_BYTES="$(wc -c <"$CSS_FILE" | tr -d ' ')"
+  MISSING=""
+  for cls in bg-bg-base text-text-primary gap-4 p-8 rounded-md flex-col; do
+    grep -qiF -e ".$cls" "$CSS_FILE" || MISSING="$MISSING $cls"
+  done
+  # 8000 is well above the ~3,083 bytes the tokens alone produce and well below the ~14,399 a
+  # working build emits, so it separates the two states without tracking every future addition.
+  if [ "$CSS_BYTES" -lt 8000 ]; then
+    echo "  RESULT: ✗ stylesheet is ${CSS_BYTES} bytes — tokens without utilities"
+    fail=$((fail+1))
+  elif [ -n "$MISSING" ]; then
+    echo "  RESULT: ✗ missing utilities:$MISSING"
+    fail=$((fail+1))
+  else
+    echo "  RESULT: ✓ ${CSS_BYTES} bytes, every probed utility present"
+    pass=$((pass+1))
+  fi
+fi
+
+# ── 25. BR-1834 — stylelint --fix must not rewrite Tailwind's import out of existence ─────
+hr; echo "25. BR-1834 — stylelint --fix leaves the bare @import and prefix media queries alone"
+cat > apps/web/app/__probe.css <<'CSS'
+@import 'tailwindcss';
+@media (min-width: 640px) {
+  .thing {
+    display: grid;
+  }
+}
+CSS
+pnpm exec stylelint --fix apps/web/app/__probe.css >/dev/null 2>&1
+if grep -qF "@import url(" apps/web/app/__probe.css; then
+  echo "  RESULT: ✗ the bare @import was rewritten to url() — Tailwind would be silently disabled"
+  fail=$((fail+1))
+elif grep -qF "width >=" apps/web/app/__probe.css; then
+  echo "  RESULT: ✗ the media query was rewritten to range notation — silently unsupported on older browsers"
+  fail=$((fail+1))
+else
+  echo "  RESULT: ✓ autofix left both intact"
+  pass=$((pass+1))
+fi
+rm -f apps/web/app/__probe.css
+
+hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

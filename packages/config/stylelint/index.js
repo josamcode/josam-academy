@@ -77,6 +77,20 @@ export default {
     'import-notation': 'string',
 
     /**
+     * MUST stay 'prefix'. The default rewrites `@media (min-width: 640px)` into
+     * `@media (width >= 640px)`.
+     *
+     * That is valid modern CSS and unsupported on Safari below 16.4 and Chrome below 104, where
+     * the query simply never matches — so the responsive layout silently collapses to its base
+     * case on exactly the older devices this audience is most likely to be using. No error, no
+     * warning, nothing in the build.
+     *
+     * Same shape as `import-notation` above, found by auditing the rest of the --fix chain after
+     * that one (`BR-1834`).
+     */
+    'media-feature-range-notation': 'prefix',
+
+    /**
      * Tailwind 4 is CSS-first: its configuration lives in at-rules, not in a JS config file.
      * Stylelint does not know them, and an unknown-at-rule error on `@theme` would push someone
      * toward deleting the line rather than the rule.

@@ -44,6 +44,8 @@ For every task, in this exact order. **Do not batch tasks.** One task, one verif
 4  VERIFY    run: pnpm lint && pnpm typecheck && pnpm test && pnpm build
              plus the task-specific proof listed in the Output column.
              Paste the real terminal output. Never claim success not observed.
+             Every new assertion is made to FAIL once before it is trusted
+             (BR-1835) — a green test you have never seen red proves nothing.
 5  RECORD    update STATUS.md — Work Log entry, progress table, current/next
              task, actual vs estimated time. Update the task queue in §5 here.
 6  COMMIT    one commit containing code + STATUS.md + CLAUDE.md together (BR-1799).
@@ -103,22 +105,24 @@ For these, produce in the repo:
 
 ## 4. Non-Negotiable Rules
 
-| Rule                | Meaning                                                                                                                                                                                                                        |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `BR-1579`           | `strict: true` everywhere. `any` and `@ts-ignore` fail the build. No exceptions, no `eslint-disable` to get green.                                                                                                             |
-| `BR-1220`           | A raw hex value in a component fails the build. Semantic tokens only (`--accent`, never `--gold`).                                                                                                                             |
-| `BR-1219`           | Component styles reference **purpose**, not appearance.                                                                                                                                                                        |
-| `BR-1342`           | Tailwind palette utilities (`text-gray-500`, `bg-blue-600`) must not exist. Tokens only.                                                                                                                                       |
-| `BR-1528`           | Radix is never exposed to feature code. It sits behind our components.                                                                                                                                                         |
-| `BR-1580`           | Prisma appears only in repositories. Never in a service or controller.                                                                                                                                                         |
-| `BR-1533`           | `packages/tokens` is the single source for color, spacing, type, radius, motion.                                                                                                                                               |
-| `BR-525`            | No hardcoded user-facing strings. Everything through `packages/i18n`. Arabic 6-form plurals.                                                                                                                                   |
-| `BR-1232`           | RTL: logical properties only (`margin-inline-start`, never `margin-left`). Both directions must work.                                                                                                                          |
-| `BR-1569`–`BR-1571` | Every component: a story per variant, per size, per state; renders in 2 themes × 2 directions; passes axe in CI.                                                                                                               |
-| `BR-1725`           | Phase 0 does not end until a deliberate rule violation is confirmed to fail the build. For each fitness function in `PH-0.16`: write the violation, show the failure, then remove it. Untested enforcement is not enforcement. |
-| `BR-1524`           | Feature code imports from `@josam/ui` only. A native form control in a feature file fails the build.                                                                                                                           |
-| `BR-1591`           | Dependencies pinned to exact versions. No ranges (`DEC-46`).                                                                                                                                                                   |
-| `BR-1599`           | No vendor SDK imported outside `shared/providers`.                                                                                                                                                                             |
+| Rule                | Meaning                                                                                                                                                                                                                                      |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BR-1579`           | `strict: true` everywhere. `any` and `@ts-ignore` fail the build. No exceptions, no `eslint-disable` to get green.                                                                                                                           |
+| `BR-1220`           | A raw hex value in a component fails the build. Semantic tokens only (`--accent`, never `--gold`).                                                                                                                                           |
+| `BR-1219`           | Component styles reference **purpose**, not appearance.                                                                                                                                                                                      |
+| `BR-1342`           | Tailwind palette utilities (`text-gray-500`, `bg-blue-600`) must not exist. Tokens only.                                                                                                                                                     |
+| `BR-1528`           | Radix is never exposed to feature code. It sits behind our components.                                                                                                                                                                       |
+| `BR-1580`           | Prisma appears only in repositories. Never in a service or controller.                                                                                                                                                                       |
+| `BR-1533`           | `packages/tokens` is the single source for color, spacing, type, radius, motion.                                                                                                                                                             |
+| `BR-525`            | No hardcoded user-facing strings. Everything through `packages/i18n`. Arabic 6-form plurals.                                                                                                                                                 |
+| `BR-1232`           | RTL: logical properties only (`margin-inline-start`, never `margin-left`). Both directions must work.                                                                                                                                        |
+| `BR-1569`–`BR-1571` | Every component: a story per variant, per size, per state; renders in 2 themes × 2 directions; passes axe in CI.                                                                                                                             |
+| `BR-1725`           | Phase 0 does not end until a deliberate rule violation is confirmed to fail the build. For each fitness function in `PH-0.16`: write the violation, show the failure, then remove it. Untested enforcement is not enforcement.               |
+| `BR-1835`           | A test that passes on its **first** run is not yet evidence. Break the input or break the code, confirm it fails for the reason it claims, then trust it. `BR-1725` says this of enforcement mechanisms; it applies to assertions generally. |
+| `BR-1834`           | A tool with `--fix` authority is itself a source of defects. Assert an autofixer's **output**, never its configuration. Look for rewrites that stay syntactically valid and semantically dead.                                               |
+| `BR-1524`           | Feature code imports from `@josam/ui` only. A native form control in a feature file fails the build.                                                                                                                                         |
+| `BR-1591`           | Dependencies pinned to exact versions. No ranges (`DEC-46`).                                                                                                                                                                                 |
+| `BR-1599`           | No vendor SDK imported outside `shared/providers`.                                                                                                                                                                                           |
 
 ### Prohibited fixes (`BR-1512`)
 
