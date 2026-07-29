@@ -59,3 +59,16 @@ export {
   IconButton,
   type IconButtonProps,
 } from './controls/Button.js';
+
+/**
+ * Form infrastructure (PH-0.21). `FormField` owns label, hint, required marker, error and the
+ * ARIA wiring; every field from PH-0.22 onward consumes `useFieldControl`.
+ */
+export { Form, type FormProps, JOSAM_FORM_OPTIONS, useSubmitLock } from './form/Form.js';
+export {
+  FormField,
+  type FormFieldContextValue,
+  type FormFieldProps,
+  useFieldControl,
+  useFormField,
+} from './form/FormField.js';

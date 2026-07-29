@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.20` execution)                                                                                                                                                                      |
+| **Updated by**     | AI (`PH-0.21` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.20` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.21` — `Form` + `FormField` (label, hint, required, error, ARIA)                                                                                                                         |
+| **Current task**   | _None in progress_ — `PH-0.21` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.22` — Text fields: `TextField` `TextArea` `PasswordField` `NumberField` `CurrencyField` `CodeField`                                                                                     |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -91,6 +91,70 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.21 — Form + FormField (label, hint, required, error, ARIA)
+
+**By:** AI
+**Time:** estimated 1.0 d -> actual 0.7 d
+**Output:**
+
+- `Form` — dirty tracking, submit lock, focus-first-error, leave warning (`12 §20.7`).
+- `FormField` — label, hint, required marker, error, and the `aria-describedby` / `aria-invalid`
+  wiring, provided through context.
+- `useFieldControl()` — **the inheritance point for `PH-0.22` through `PH-0.25`.** Every field
+  spreads it onto its input, so the `BR-1402`–`BR-1406` wiring is written once rather than
+  re-derived ~20 times.
+- `JOSAM_FORM_OPTIONS` — `mode: 'onTouched'` (`BR-1404`) and `shouldFocusError: false`.
+- React Hook Form **7.83.0**, used directly, no wrapper (`BR-1818`).
+
+**Verified:** 18 specs, every one against **real DOM behaviour** — typing, blurring, submitting,
+reading `document.activeElement` — never against props.
+
+- **`BR-1402`** — each control is located by `getByLabelText`, which resolves through the
+  accessibility tree and fails outright if `htmlFor`/`id` do not actually match.
+- **`BR-1406`** — focus lands on the first invalid field in **document** order; on the second
+  field when only that one is invalid; nowhere when the form is valid; and the field is scrolled
+  into view.
+- **`BR-1405`** — the error announces via `role="alert"`, `aria-invalid` flips to `true`,
+  `aria-describedby` grows to include the error id, and it clears only once corrected.
+- **`BR-1404`** — silent while typing in an untouched field; reports on blur.
+- **`BR-1412`** — a real `beforeunload` event is dispatched and `defaultPrevented` inspected:
+  pristine does not block, dirty blocks, a successful submit stops blocking, `warnOnLeave={false}`
+  never blocks, and unmount removes the listener.
+- `pnpm build` 5/5 . `lint` 9/9 . `typecheck` 8/8 . `test` 9/9 . 168 specs in `packages/ui` .
+  `storybook build` succeeds.
+
+**Diverged:** none.
+
+**Notes:**
+
+- **Two real defects, both found only because the assertions were against the DOM.**
+
+  1. **Focus-first-error was completely inert.** The first implementation queried
+     `[aria-invalid="true"]` inside the `onInvalid` callback — which runs _before_ React re-renders
+     with that attribute, so the query always matched nothing and returned early. **All four focus
+     tests passed anyway**, on React Hook Form's built-in `shouldFocusError` — the very behaviour
+     the code comment said was wrong, because it focuses in _registration_ order rather than
+     document order. Found by setting `shouldFocusError: false` and watching focus stop moving.
+     Now the field names come from the `errors` object (known synchronously) and the DOM is
+     consulted only for order, which validation does not change. `JOSAM_FORM_OPTIONS` disables
+     RHF's version so exactly one mechanism is live and it is the tested one.
+  2. **The submit lock did not exist.** Clicking submit twice ran the handler twice. `isSubmitting`
+     is React state and updates on the next render, so both clicks in one tick read `false`. Now a
+     `useRef`, which flips synchronously. `isSubmitting` remains the right thing to render a
+     spinner from and the wrong thing to gate on.
+
+- **`BR-1835` applied to this task's own tests**: `focus()` was deliberately removed and the suite
+  went from 18 passing to 2 failing, naming the two focus assertions. Restored, 18 passing. Before
+  that check these tests were green and worthless.
+- **The API held up and nothing needed escalating.** The one decision worth recording is that
+  `useFormField` **throws** outside a `FormField` rather than degrading: a control with no label
+  association is the exact defect `BR-1402` exists to prevent, and silently rendering it would
+  ship it. Asserted.
+- `role="alert"` on the error rather than moving focus to it — moving focus there would fight
+  `BR-1406`, which puts focus on the field itself.
 
 ---
 

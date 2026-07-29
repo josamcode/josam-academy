@@ -21,6 +21,9 @@
   "devDependencies": {
     "@josam/config": "workspace:*",
     "@storybook/nextjs-vite": "10.5.5",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.1",
     "@types/jsdom": "28.0.3",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
@@ -34,6 +37,7 @@
     "@josam/i18n": "workspace:*",
     "@josam/tokens": "workspace:*",
     "lucide-react": "1.27.0",
-    "react": "19.2.8"
+    "react": "19.2.8",
+    "react-hook-form": "7.83.0"
   }
 }
