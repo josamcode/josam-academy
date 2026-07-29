@@ -145,13 +145,28 @@ sudo usermod -aG sudo <ADMIN_USER>
 # NOTE: membership of `docker` is equivalent to root on this host — the socket can start a
 # privileged container. It is granted deliberately, not casually, and is the reason `BR-1703`
 # insists containers themselves run as non-root.
-sudo usermod -aG docker <ADMIN_USER>
+# ⚠️ CORRECTED at PH-0.11 execution — DO NOT RUN THIS.
+#
+#   sudo usermod -aG docker <ADMIN_USER>
+#
+# The server ended up with <ADMIN_USER> in `sudo` and NOT in `docker`, and that is the better
+# state. Two reasons, and the second is the one that settles it:
+#
+#   1. The note directly above already says membership of `docker` is equivalent to root on this
+#      host. Granting it to avoid typing `sudo` trades an audited path to root for an unaudited
+#      one, on a box carrying five clients' production projects. `sudo` is logged and attributable;
+#      socket access through group membership is neither.
+#   2. **Every docker command in this runbook already uses `sudo docker`** — Steps 1.3, 5.1, 8.1
+#      and 8.2. The membership was never needed by anything here. It was a root-equivalent grant
+#      that nothing depended on.
+#
+# So the runbook is corrected and the server is left as it is. Use `sudo docker` throughout.
 ```
 
 **↳ If EXISTS — verify rather than recreate:**
 
 ```bash
-groups <ADMIN_USER>            # expect: sudo, docker
+groups <ADMIN_USER>            # expect: sudo   (NOT docker — see the correction above)
 sudo passwd -S <ADMIN_USER>    # expect the second field to be L (locked) or NP
 ```
 
@@ -159,7 +174,7 @@ sudo passwd -S <ADMIN_USER>    # expect the second field to be L (locked) or NP
 > lock it at Step 4.3, **after** key access is proven. Locking it first removes your fallback
 > before the replacement exists.
 
-- [ ] `<ADMIN_USER>` exists, is in `sudo` and `docker`.
+- [ ] `<ADMIN_USER>` exists and is in `sudo`. **Not** in `docker` — corrected at `PH-0.11`.
 
 ### Step 2.2 — Install the public key
 
@@ -255,6 +270,40 @@ proven you can reach.
 ---
 
 ## 4. Close root and password login
+
+> ### ⚠️ CORRECTED at `PH-0.11` execution — `PermitRootLogin no` breaks every deploy on this box
+>
+> **This box runs Coolify, and Coolify deploys over SSH as `root@host.docker.internal`.**
+> `PermitRootLogin no` therefore broke deployment for **every project on the machine, including the
+> five client projects**, and nobody noticed for a day — because nothing deploys until somebody
+> tries to deploy.
+>
+> **The correct value on this host is `PermitRootLogin prohibit-password`:** key-only root login,
+> password authentication still off. That is not a weakened version of the hardening — it is the
+> hardening this host can actually carry. `14 §12`'s intent is that no password reaches `sshd`, and
+> `prohibit-password` plus `PasswordAuthentication no` delivers exactly that.
+>
+> This is `BR-1836`'s shape again: a control that is correct in isolation and breaks a mechanism
+> that depends on it, with the breakage invisible until the mechanism is next used. The lesson is
+> the same — verify the thing the control sits in front of, **after** applying the control. Here
+> that means: harden, then **trigger a deployment** and watch it succeed.
+>
+> ### And a configuration trap that cost real time
+>
+> **`sshd` takes the FIRST value it sees for a directive, not the last.** A later drop-in does not
+> override an earlier one. A `25-*.conf` file was written to correct the setting and did nothing,
+> because `20-*.conf` had already set it; the `20-` file had to be edited directly.
+>
+> This is the opposite of how nearly every other layered configuration in this repository behaves —
+> ESLint, Tailwind and Docker all let the later value win. Do not reason by analogy here. After any
+> change, the authority is:
+>
+> ```bash
+> sudo sshd -T | grep -iE 'permitrootlogin|passwordauthentication|kbdinteractive'
+> ```
+>
+> `sshd -T` prints the **effective** configuration after all includes are resolved. It is the only
+> thing that answers "what is actually set".
 
 `BR-1700`. **Only after §2's gate and §3's gate have both passed.**
 
@@ -389,6 +438,39 @@ sudo ufw show added
 > **↳ `<OLD_PORT>` is deliberately not allowed.** Terminals A and B are still connected on it, and
 > `ufw` does not drop established connections. They survive; new connections on the old port do
 > not. That is the intent.
+
+### Step 5.2b — ⚠️ ADDED at `PH-0.11` execution: Docker networks need to reach port 22
+
+Coolify connects to the host over SSH **from inside a container**, so the traffic arrives from a
+Docker bridge network and `ufw` blocks it once enabled. Without these rules deployment fails for
+every project on the box.
+
+```bash
+# Substitute the actual bridge subnets from `ip -4 addr show | grep -E 'docker|br-'`.
+sudo ufw allow from 10.0.0.0/24 to any port 22 proto tcp
+sudo ufw allow from 10.0.1.0/24 to any port 22 proto tcp
+sudo ufw allow in on docker0 to any port 22 proto tcp
+```
+
+> These are **narrow**: a specific source range to a single port. They do not open 22 to the
+> internet — `PH-0.7`'s existing `22/tcp` rule already does that for the founder's own access — and
+> they do not weaken anything, because container traffic to other host ports remains blocked.
+
+### Step 5.2c — When SSH says "Connection refused", check what it actually tried
+
+`BR-1839`. While diagnosing the above, `ssh` resolved `host.docker.internal` to **IPv6 first** and
+reported `Connection refused` **instantly**, without ever attempting IPv4 — while `nc` against the
+same name reported the port **open**. The error named a definite cause that was not the cause, and
+it cost most of an hour.
+
+When two tools disagree about the same address, believe the one that completed a connection:
+
+```bash
+# Force each family and compare. The difference is the diagnosis.
+ssh -4 -o ConnectTimeout=5 root@host.docker.internal true ; echo "IPv4 exit=$?"
+ssh -6 -o ConnectTimeout=5 root@host.docker.internal true ; echo "IPv6 exit=$?"
+getent ahosts host.docker.internal
+```
 
 ### Step 5.3 — Enable
 

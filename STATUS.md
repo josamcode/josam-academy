@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |   Done | Status         |
 | ----------------------- | ------: | -----: | -------------- |
-| **0 — Foundation**      |      30 |     26 | 🟡 In progress |
+| **0 — Foundation**      |      30 |     27 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |      0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |      0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |      0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |      0 | ⬜ Not started |
 | 6 — Mobile              |      16 |      0 | ⬜ Not started |
 | 7 — Growth              |      14 |      0 | ⬜ Not started |
-| **Total**               | **193** | **26** | **13.5%**      |
+| **Total**               | **193** | **27** | **14.0%**      |
 
 **Milestones**
 
@@ -265,6 +265,134 @@ after denying them. Cost measured rather than assumed: 19 MB in the store, and t
 **Recorded under `BR-1838`** in `12 §19.1` as its third instance, generalising the rule from
 _generated_ state to _unexercised_ state: a config file that has never been validated by the tool
 that consumes it is not a config file that works. If a tool ships a validator, it runs in CI.
+
+---
+
+### 2026-07-30 · PH-0.11 — ✅ EXECUTED. Deploy and rollback proven.
+
+**By:** Founder executed; AI authored and fixed the divergences
+**Time:** 0.35 d authoring + 0.2 d execution = **0.55 d** against 0.5 d estimated
+**Criteria met:** exit criteria **1 and 2** of `15 §Phase 0`
+
+### What was proven
+
+Deploy **5 s**; rollback **27 s**; roll-forward **5 s** — all far inside the two-minute budget, with
+no build on the server (`BR-885`). `/health` reported `ok` with `database` and `redis` both `ok`.
+All five route groups returned `200`. The stylesheet served **27,205 bytes** from the container,
+which is `PH-0.30`'s base-surface fix holding in production. Postgres was the pinned
+`pgvector/pgvector:0.8.5-pg16` and Redis `redis:7.4.10-alpine`, neither published.
+
+**Rollback proven in both directions by image tag** — `a4c3d43 → 9ae3d28 → a4c3d43` — confirmed by
+`docker ps` showing a genuinely different, older image serving.
+
+**The binding constraint held.** Client containers showed `Up 19 hours` throughout, `coolify-proxy`
+never restarted, and the client sites returned identical results before and after
+(`404 / 404 / 200 / 404`). The uptime comparison is what proves it rather than asserts it, which is
+why §4.4 exists.
+
+### Divergence 1 — `version` reported a constant. **Blocking for the criterion's proof.**
+
+`/health` returned `"version":"0.0.0"` while `APP_VERSION` reached the container correctly —
+confirmed by `docker exec env`. The health service read **`npm_package_version`**, which is set only
+when a process is launched **by** npm or pnpm as a script. The container runs `node dist/main.js`
+directly, so it was undefined in production and always fell through to the default. Two mechanisms
+existed; one was wired to the response and one was not.
+
+This is not cosmetic. `version` is how a deploy is proven to have **replaced** the container that
+was serving, so a constant means a failed deploy that silently left the old container running reads
+as a success. Both §7's third assertion and §8.2's rollback proof had to fall back to inspecting
+image tags — which is exactly the weaker check on the one thing `BR-886` exists to make verifiable.
+
+**Fixed** to read `APP_VERSION` from the validated env. Four specs added and **proven to fail on the
+old code** — 3 of 17 failed when the fix was reverted. Verified in a running container:
+`{"status":"ok",...,"version":"sha-deadbeefcafe"}`.
+
+**Still outstanding: confirmation by deploying two different SHAs and reading the field.** Until
+then, criterion 2's proof rests on image-tag inspection.
+
+### Divergences 2 and 3 — migrations ran in the wrong container
+
+`BR-887` did not hold on the first deploy: Coolify logged `No running containers found. Skipping.`,
+so **no migration ran at exactly the moment a schema first needs creating.**
+
+The architectural cause is worse. **Coolify's pre-deployment command runs via `docker exec` inside
+the old, currently-running container** — not the new image:
+
+```
+docker exec <old-container> sh -c 'node_modules/.bin/prisma migrate deploy'
+Error: node_modules/.bin/prisma: not found
+```
+
+So **migration capability depended on the version being replaced, not the one arriving.** Rolling
+forward from a SHA that predated the `prisma` CLI move failed, because that older container had no
+CLI. Any rollback to a release older than a migration-tooling change could not roll forward again
+through the hook — which breaks `DEC-20`'s expand-contract model in a way the runbook did not
+anticipate. The deploy failed **safely**, with the old container still serving, so the mechanism was
+wrong without being dangerous. That is the good case and not one to rely on.
+
+**Fixed** by moving migrations into the API image's own start command:
+
+```
+node_modules/.bin/prisma migrate deploy && exec node dist/main.js
+```
+
+It runs in the **new** image, with the new image's tooling, on **every** deploy including the first,
+always before `listen()`. Coolify's pre-deployment field is now **empty and must stay empty**.
+
+Both paths verified by running the built image: on success, migrations apply and the app serves; on
+an unreachable database it exits **1**, nothing listens (`HTTP 000`), and Coolify keeps the old
+container. `exec` on the final command so PID 1 is `node` and SIGTERM is forwarded — otherwise every
+deploy waits out the full grace period.
+
+`DEC-20` still binds and is not weakened: between the migration completing and traffic switching,
+the old code runs against the new schema, which is what expand-then-contract exists for.
+
+### Divergence 4 — `PermitRootLogin no` broke every deploy on the box for a day
+
+Coolify deploys over SSH as `root@host.docker.internal`, so `PH-0.7`'s hardening broke deployment
+for **every project on the machine, including the five client projects** — and nobody noticed for a
+day, because nothing deploys until somebody tries to deploy.
+
+`BR-1836`'s shape again: a control correct in isolation that breaks a mechanism depending on it,
+invisibly until that mechanism is next used. The correct value here is `prohibit-password` — key-only
+root, password auth still off — which delivers `14 §12`'s intent that no password reaches `sshd`.
+
+**And a configuration trap worth its own line: `sshd` takes the FIRST value for a directive, not the
+last.** A `25-*.conf` written to correct it did nothing because `20-*.conf` had already set it. That
+is the opposite of ESLint, Tailwind and Docker, where the later value wins — so reasoning by analogy
+is wrong here. `sshd -T` is now named in the runbook as the only authority on effective config.
+
+### Divergence 5 — Docker networks needed `ufw` rules, and `ssh` lied about why
+
+Coolify connects from inside a container, so SSH traffic arrives from a Docker bridge network and
+`ufw` blocked it. Three narrow rules added to `PH-0.7 §5.2b`.
+
+While diagnosing it, **`ssh` resolved `host.docker.internal` to IPv6 first and reported
+`Connection refused` instantly, without ever attempting IPv4**, while `nc` against the same name
+reported the port open. A confident, specific, actionable error naming a cause that was not the
+cause. It cost most of an hour. Recorded as **`BR-1839`** — a tool's error message names its own
+failure, not the system's; when two tools disagree about one address, believe the one that completed
+a connection.
+
+### Divergence 6 — the `docker` group
+
+`<ADMIN_USER>` is in `sudo` but not `docker`. **The runbook is corrected and the server is left as
+it is**, because the current state is better: `PH-0.7 §2.1`'s own note already says `docker`
+membership is root-equivalent on this host, and **every docker command in that runbook already used
+`sudo docker`** — so it granted a root-equivalent group that nothing depended on. `sudo` is logged
+and attributable; socket access through group membership is neither, which matters more on a box
+carrying five clients' production projects.
+
+### Also found
+
+**Coolify's PostgreSQL picker offers pgvector on 17 and 18 but not 16.** The image had to be typed
+in by hand before first start; the default would have silently created PG17 — a major version ahead
+of the pin and of local development, which is the mismatch `BR-1810` exists to prevent.
+
+### Not done — deliberately
+
+**§10, attaching the domain.** `josamacademy.com` is not yet serving, recorded as `SB-32`. It is the
+only step that reloads `coolify-proxy`, and the deploy is fully proven without it.
 
 ---
 
@@ -2250,6 +2378,7 @@ functioning in TypeScript 7.0`, exit 2.
 
 | ID          | Blocker                                                                                                                                                                                                                                                                                                  | Blocks                                   | Since      | Owner                             | Action needed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SB-32`     | **`josamacademy.com` is not serving.** `PH-0.11 §10` — attaching the domain — was deliberately skipped: it is the only step that reloads `coolify-proxy`, which also serves five client applications, and it was not worth doing at the end of a long session.                                           | `PH-0.11 §10`                            | 2026-07-30 | Founder                           | The deploy is **proven** without it: both images serve, all five route groups return 200 and rollback works, all verified through a temporary host port with the proxy untouched. This is the last step to a publicly reachable site, and it wants a session with time to check the client sites immediately afterwards.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `SB-22`     | **Port 8000 — the Coolify dashboard is reachable from the internet.** Password-protected, not open, but a public admin panel on a box holding live client projects is not acceptable long term. `ufw` never filtered it: Docker publishes it, and Docker's rules bypass the `INPUT` chain (`PH-0.7 §5`). | `PH-0.8`                                 | 2026-07-29 | AI to propose, founder to approve | **Approach decided 2026-07-29: Cloudflare Tunnel, not an allow-list.** `cloudflared` on the host dials **out**, so nothing inbound is needed and port 8000 closes at the provider firewall entirely. The dashboard is reached through a Cloudflare hostname behind Cloudflare Access, founder email as the only identity — two gates before the Coolify login is visible. **Binding constraint:** this tunnel becomes the access path to the founder's CLIENTS' control panel, so it is added alongside existing access and proven working **before** port 8000 closes, never the reverse. The provider web console stays the documented fallback and `PH-0.8` must state how to restore direct port 8000 access from it. Cloudflare account and R2 to be set up before `PH-0.8` starts. |
 | `SB-05`     | ~~`docs/runbooks/vps-hardening.md` missing.~~ **Closed by founder decision 2026-07-29: stop waiting for it — `PH-0.7` is authored from `14 §12` directly.**                                                                                                                                              | Nothing                                  | 2026-07-28 | —                                 | None.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `SB-07`     | ~~**Next.js major.**~~ **Resolved by founder pre-authorisation 2026-07-29: adopt Next 16, correct `13 §4` and the `PH-0.4` row, gated on the four-part probe (route groups · ISR · Tailwind 4 · Storybook 10 + a11y). Hold at 15.x and log if any part fails.**                                          | Nothing                                  | 2026-07-28 | —                                 | None — executed at `PH-0.4`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |

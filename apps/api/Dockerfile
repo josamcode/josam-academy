@@ -98,4 +98,38 @@ ENV NODE_OPTIONS=--max-old-space-size=640
 # different timeouts produce restarts nobody can attribute. `GET /health` is the endpoint
 # (`11 §API-21`).
 
-CMD ["node", "dist/main.js"]
+# ── Migrations run HERE, in this image, before the server listens ───────────────────────────
+#
+# `BR-887` — migrations run before the new image goes live. `PH-0.11` execution proved the obvious
+# mechanism does not do that. Coolify's **pre-deployment command** runs via `docker exec` inside
+# the **old, currently-running container**, not the new image:
+#
+#     docker exec <old-container> sh -c 'node_modules/.bin/prisma migrate deploy'
+#     Error: node_modules/.bin/prisma: not found
+#
+# Two failures follow from that, and the second is worse:
+#
+#   1. On the FIRST deploy of an application there is no old container, so Coolify logs
+#      "No running containers found. Skipping." and no migration runs — at exactly the moment a
+#      schema first needs creating.
+#   2. Migration capability depends on the version being REPLACED rather than the one arriving. A
+#      rollback to a release older than a migration-tooling change cannot roll forward again. That
+#      happened: rolling forward from a SHA predating the `prisma` CLI move failed, because the old
+#      container had no CLI to run.
+#
+# Putting it in the start command fixes both by construction. It runs in the new image, with the
+# new image's tooling, on every deploy including the first, and always before `listen()`.
+#
+# The safety property is unchanged and better: if the migration fails, this process exits non-zero,
+# the container never becomes healthy, and Coolify keeps the old container serving. Verified by
+# pointing it at an unreachable database — see the runbook.
+#
+# `DEC-20` still binds. Between the migration completing and traffic switching, the OLD code runs
+# against the NEW schema, so every migration must remain backward compatible with the previous
+# release. That is expand-then-contract's whole purpose and is not weakened by this placement — it
+# is the same requirement any zero-downtime deploy carries.
+#
+# `exec` on the last command, deliberately: without it PID 1 stays `sh`, which does not forward
+# SIGTERM, and the container takes the full grace period to stop on every deploy. `prisma migrate
+# deploy` takes a Postgres advisory lock, so concurrent deploys serialise rather than race.
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && exec node dist/main.js"]

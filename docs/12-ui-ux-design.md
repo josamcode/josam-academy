@@ -1153,6 +1153,25 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   The corollary is that **the order is a trap**: install the detector, verify it, harden, and the
   verification is now stale. Verify the detector **after** the hardening it is meant to survive.
 
+- `BR-1839` — **A tool's error message names its own failure, not the system's.** When a diagnostic
+  reports a definite cause, establish **what it actually attempted** before accepting the diagnosis.
+  A confident wrong answer costs more than no answer, because it stops the search.
+
+  Observed at `PH-0.11` execution. `ssh` resolved `host.docker.internal` to **IPv6 first** and
+  reported `Connection refused` **instantly** — a definite, specific, actionable error — without
+  ever attempting IPv4. `nc` against the same name reported the port **open**. Both were telling the
+  truth about different things, and the authoritative-sounding one was answering a question nobody
+  had asked. It cost most of an hour.
+
+  The tell is two tools disagreeing about one address. The rule that follows: **believe the tool
+  that completed a connection**, and force the variable the failing tool chose silently —
+  `ssh -4` against `ssh -6`, `getent ahosts` to see the resolution order the library will use.
+
+  Same family as `BR-1836`, one layer out. `BR-1836` is about a detector that reports health while
+  detecting nothing; this is about a detector that reports a **specific failure** that is not the
+  failure present. Both are trusted output that is not evidence, and both were found by testing the
+  thing the output described rather than reading the output.
+
 - `BR-1835` — **A test that passes on its first run is not yet evidence.** Make it fail
   deliberately — break the input, or break the code — and confirm it fails for the reason it
   claims to check, before trusting it.

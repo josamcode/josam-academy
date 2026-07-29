@@ -1,12 +1,12 @@
 # Runbook — `PH-0.11` Deploy & Rollback
 
-| Field         | Value                                                                                     |
-| ------------- | ----------------------------------------------------------------------------------------- |
-| **Task**      | `PH-0.11` — deploy the two `ghcr.io` images to Coolify, verify, and prove rollback by tag |
-| **Type**      | **B** — authored here, executed by the founder                                            |
-| **Authority** | `08 §12.1`, `BR-885`, `BR-886`, `BR-887`, `DEC-20`, `SB-23`, `SB-24`                      |
-| **Proves**    | Exit criteria 1 and 2 of `15 §Phase 0`                                                    |
-| **Status**    | ⬜ Not executed. Not done until the founder pastes back verification output (`BR-1768`).  |
+| Field         | Value                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| **Task**      | `PH-0.11` — deploy the two `ghcr.io` images to Coolify, verify, and prove rollback by tag        |
+| **Type**      | **B** — authored here, executed by the founder                                                   |
+| **Authority** | `08 §12.1`, `BR-885`, `BR-886`, `BR-887`, `DEC-20`, `SB-23`, `SB-24`                             |
+| **Proves**    | Exit criteria 1 and 2 of `15 §Phase 0`                                                           |
+| **Status**    | ✅ **Executed 2026-07-30.** Deploy and rollback both proven. Six divergences recorded — see §14. |
 
 ---
 
@@ -185,8 +185,11 @@ anything — an earlier partial attempt may have left resources behind.
 
 Inside the project → **+ New Resource → Database → PostgreSQL**.
 
-- Image: **`pgvector/pgvector:0.8.5-pg16`** — override the default. Coolify will offer a plain
-  Postgres; the pinned image is the one that carries `pgvector`.
+- Image: **`pgvector/pgvector:0.8.5-pg16`** — **override the default by hand, before first
+  start.** Execution found that Coolify's PostgreSQL picker offers pgvector on **17 and 18 but
+  not 16**, so accepting the default would have silently created a PG17 database — a major
+  version ahead of the pin at `13 §18.1` and of local development, which is precisely the
+  mismatch `BR-1810` exists to prevent. Type the image reference in rather than choosing it.
 - Database name, user: your choice, recorded in your password manager.
 - Password: generated, `<DB_PASSWORD>`, never reused.
 - **Do not publish a port.** It must be reachable only on the project's internal network
@@ -255,32 +258,63 @@ Set the port mapping to `<API_PORT>:4000`.
 > This is how §7 verifies without a domain, and therefore **without `coolify-proxy` being involved
 > at all**. §10 removes it if a domain is attached.
 
-### Step 5.4 — ✅ `BR-887` — migrations run **before** the new image goes live
+### Step 5.4 — ✅ `BR-887` — migrations run in the image's **start command**, not a pre-deployment hook
 
-The image can apply its own migrations. This was verified by running it inside the built image:
+> **Corrected after execution. Leave Coolify's pre-deployment command EMPTY.**
 
-```
-Prisma schema loaded from prisma/schema.prisma.
-1 migration found in prisma/migrations
-No pending migrations to apply.
-```
-
-Set it as the application's **pre-deployment command** in Coolify:
+Migrations now run in the API image's own start command:
 
 ```
-node_modules/.bin/prisma migrate deploy
+node_modules/.bin/prisma migrate deploy && exec node dist/main.js
 ```
 
-- `node_modules/.bin/prisma`, not bare `prisma` — the runtime image has no global install.
-- `migrate deploy`, never `migrate dev` — `deploy` applies committed migrations and never
-  generates, prompts, or resets.
-- `DEC-20` — migrations are expand-then-contract and backward compatible with the previous
-  release, which is what makes rollback in §8 safe. Phase 0's only migration is empty, so §8 tests
-  the mechanism rather than the compatibility. **The first release with a real schema change is
-  where `DEC-20` earns its place**, and this ordering is what allows it.
+Nothing to configure in Coolify. The founder emptied the pre-deployment field during execution, and
+**that is the correct final state** — it must stay empty.
 
-**If the pre-deployment command fails, the deploy must not proceed.** Confirm Coolify is configured
-to treat it as fatal rather than advisory.
+#### Why the pre-deployment hook was wrong
+
+Coolify's pre-deployment command runs via `docker exec` **inside the old, currently-running
+container**, not the new image. Proven by a failed deploy during execution:
+
+```
+docker exec <old-container> sh -c 'node_modules/.bin/prisma migrate deploy'
+Error: node_modules/.bin/prisma: not found
+```
+
+Two failures follow, and the second is the serious one:
+
+1. **On the first deploy there is no old container**, so Coolify logged
+   `No running containers found. Skipping.` and **no migration ran** — at exactly the moment a
+   schema first needs creating.
+2. **Migration capability depended on the version being replaced, not the one arriving.** Rolling
+   forward from a SHA that predated the `prisma` CLI move failed, because the old container had no
+   CLI. Any rollback to a release older than a migration-tooling change could not roll forward
+   again through the hook — which breaks `DEC-20`'s model in a way the first version of this
+   runbook did not anticipate.
+
+The deploy failed **safely** — the old container kept serving and Coolify removed the new version —
+so the mechanism was wrong without being dangerous. That is the good case, and it is not one to
+rely on.
+
+#### Why the start command is right
+
+It runs in the **new** image, with the new image's tooling, on **every** deploy including the first,
+and always before `listen()`. Both paths were verified by running the built image:
+
+```
+success:  1 migration found in prisma/migrations
+          No pending migrations to apply.
+          {"status":"ok","checks":{"database":"ok","redis":"ok"},"version":"sha-…"}
+
+failure:  Error: P1001: Can't reach database server
+          container state: exited exit=1
+          curl → HTTP 000   (nothing listening — correct)
+```
+
+A failed migration exits non-zero, the container never becomes healthy, and Coolify keeps the old
+container serving. `DEC-20` still binds: between the migration completing and traffic switching the
+**old** code runs against the **new** schema, so every migration must stay backward compatible with
+the previous release. That is expand-then-contract's purpose and this placement does not weaken it.
 
 ### Step 5.5 — Deploy, and time it
 
@@ -318,6 +352,13 @@ Three things are being checked, not one:
    `ok` here is meaningful rather than a default.
 3. `version` matches `<SHA_NEW>` — **you are looking at the image you think you are.** Without
    this, a failed deploy that silently left the old container running looks like a success.
+
+> **This assertion did not work on first execution.** The field reported the constant `0.0.0`,
+> because the health service read `npm_package_version` — set only when a process is launched
+> by pnpm, and therefore never in a container. `APP_VERSION` reached the container correctly
+> the whole time and nothing read it. Fixed in `apps/api`, with specs that fail on the old
+> code. Until a deploy confirms it, §8's rollback proof rests on image-tag inspection, which is
+> weaker for exactly the reason stated above.
 
 ```bash
 # The web app renders every route group
@@ -480,3 +521,49 @@ criterion 2, and row 10 is exit criterion 1.
 
 If any step diverges, say which and why. `PH-0.7` produced three deliberate deviations and
 recording them was more useful than the steps that went to plan.
+
+---
+
+## 14. Execution record — 2026-07-30
+
+Executed by the founder. **Deploy and rollback both proven.** Criteria 1 and 2 of `15 §Phase 0` are
+met.
+
+### What worked
+
+| Check                     | Result                                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------- |
+| `/health`                 | `{"status":"ok","checks":{"database":"ok","redis":"ok"}}`                              |
+| Web routes                | `/` `/catalog` `/login` `/dashboard` `/admin` — all `200`                              |
+| Stylesheet                | **27,205 bytes** from the container — `PH-0.30`'s base-surface fix holds in production |
+| Postgres                  | `pgvector/pgvector:0.8.5-pg16`, `5432/tcp` only, **not published**                     |
+| Redis                     | `redis:7.4.10-alpine`, **not published**                                               |
+| Client containers         | **Up 19 hours throughout.** `coolify-proxy` never restarted                            |
+| Client sites before/after | Identical: `404 / 404 / 200 / 404`                                                     |
+| Deploy times              | **5 s, 4 s, 27 s (rollback), 5 s** — all far inside two minutes                        |
+| Rollback                  | Proven **both directions** by image tag: `a4c3d43 → 9ae3d28 → a4c3d43`                 |
+
+The binding constraint held: nothing the client projects depend on was touched, and §4.4's uptime
+comparison is what proves it rather than asserts it.
+
+### Six divergences
+
+| #   | Divergence                                                                                                                                                                                                                                                                                                                | Status                                                                                                                                            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **`version` reported `0.0.0`, not `APP_VERSION`.** The env var reached the container correctly; the health service read `npm_package_version`, which is undefined outside a pnpm-launched process. §7's third assertion and §8.2's rollback proof both fell back to image-tag inspection.                                 | ✅ **Fixed** in `apps/api`, with four specs proven to fail on the old code. **Awaiting a deploy of two different SHAs to confirm in production.** |
+| 2   | **`BR-887` did not hold on the first deploy.** `No running containers found. Skipping.` — no migration ran when the schema first needed creating.                                                                                                                                                                         | ✅ **Fixed** by §5.4's start command, which has no dependency on an existing container.                                                           |
+| 3   | **The pre-deployment command runs in the OLD container, not the new image.** Migration capability depended on the version being replaced. Rolling forward from a SHA predating the CLI move failed.                                                                                                                       | ✅ **Fixed** — see §5.4. Failed safely; the mechanism was still wrong.                                                                            |
+| 4   | **`PermitRootLogin no` broke every deploy on the box, including the client projects, unnoticed for a day.** Coolify deploys over SSH as `root@host.docker.internal`. Now `prohibit-password`. Also: **`sshd` takes the FIRST value for a directive**, so a `25-` drop-in did nothing and the `20-` file had to be edited. | ✅ `vps-hardening.md §4` corrected, with `sshd -T` named as the only authority on effective config.                                               |
+| 5   | **`ufw` needed explicit rules for Docker networks to reach port 22.** Plus `ssh` reporting `Connection refused` instantly on IPv6 without trying IPv4, while `nc` said open.                                                                                                                                              | ✅ `vps-hardening.md §5.2b` and `§5.2c` added. The second became **`BR-1839`**.                                                                   |
+| 6   | **`<ADMIN_USER>` is in `sudo` but not `docker`**, contrary to `§2.1`.                                                                                                                                                                                                                                                     | ✅ **Runbook corrected, server left as is.** The better state — see the correction in `§2.1` for why.                                             |
+
+### Also found
+
+- **Coolify's PostgreSQL picker offers pgvector on 17 and 18, not 16.** The default would have
+  silently produced PG17. Recorded in §4.2.
+
+### Not done — deliberately
+
+**§10, attaching the domain.** Skipped by founder decision: it is the only section that reloads
+`coolify-proxy`, and not at the end of a long session. **`josamacademy.com` is not yet serving.**
+Open item, carried in `STATUS.md §5`.
