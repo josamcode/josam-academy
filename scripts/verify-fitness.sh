@@ -438,6 +438,46 @@ TSX
 check "disabled with no reason" "pnpm --filter @josam/ui run typecheck" "TS2322|disabledReason|not assignable"
 rm -f packages/ui/src/__violation.tsx
 
+# ── 31. BR-1536 / DEC-41 — QueryBoundary's three states are required ─────────────────────
+# The PH-0.27 Output. BR-1416, the state matrix, is the rule most likely to be forgotten under
+# deadline, so it is made structurally impossible to skip rather than documented and hoped for.
+hr; echo "31. BR-1536 — a QueryBoundary missing its empty state fails the build"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { QueryBoundary } from './architectural/QueryBoundary.js';
+
+const query = {
+  data: [] as string[],
+  isPending: false,
+  isError: false,
+  error: null,
+  refetch: () => undefined,
+};
+
+export function Violation() {
+  return (
+    <QueryBoundary query={query} loading={<p>loading</p>} error={() => <p>error</p>}>
+      {(rows) => <p>{rows.length}</p>}
+    </QueryBoundary>
+  );
+}
+TSX
+check "QueryBoundary without empty" "pnpm --filter @josam/ui run typecheck" "TS2739|TS2741|empty"
+rm -f packages/ui/src/__violation.tsx
+
+# ── 32. BR-1551 — an EmptyState with no way out ──────────────────────────────────────────
+# An empty screen with no action is a dead end the user has to navigate away from to escape, and
+# it is exactly what ships when the prop is optional and the deadline is close.
+hr; echo "32. BR-1551 — an EmptyState with no action fails the build"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { EmptyState } from './feedback/states.js';
+
+export function Violation() {
+  return <EmptyState title="Nothing yet" body="Add one to begin" />;
+}
+TSX
+check "EmptyState without action" "pnpm --filter @josam/ui run typecheck" "TS2739|TS2741|action"
+rm -f packages/ui/src/__violation.tsx
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

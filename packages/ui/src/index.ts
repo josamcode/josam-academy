@@ -209,3 +209,62 @@ export {
   TopBar,
   type TopBarProps,
 } from './layout/navigation.js';
+
+/**
+ * Feedback (PH-0.27). `QueryBoundary` makes the state matrix structurally impossible to skip:
+ * `loading`, `empty` and `error` are required props and omitting one is a type error (DEC-41,
+ * BR-1536).
+ */
+export {
+  QueryBoundary,
+  type QueryBoundaryProps,
+  type QueryLike,
+} from './architectural/QueryBoundary.js';
+export {
+  type AlertTone,
+  InlineAlert,
+  type InlineAlertProps,
+  OfflineBanner,
+  type OfflineBannerProps,
+  ReadOnlyBanner,
+  type ReadOnlyBannerProps,
+} from './feedback/banners.js';
+export {
+  type ConfirmAction,
+  ConfirmDialog,
+  type ConfirmDialogProps,
+  Dialog,
+  type DialogLabels,
+  type DialogProps,
+  Drawer,
+  type DrawerProps,
+  DropdownMenu,
+  type DropdownMenuProps,
+  type MenuItem,
+  Popover,
+  type PopoverProps,
+  Tooltip,
+  type TooltipProps,
+  useDisclosure,
+} from './feedback/overlays.js';
+export {
+  ProgressBar,
+  type ProgressProps,
+  ProgressRing,
+  type ProgressRingProps,
+  Skeleton,
+  type SkeletonProps,
+} from './feedback/progress.js';
+export {
+  EmptyState,
+  type EmptyStateProps,
+  ErrorState,
+  type ErrorStateProps,
+} from './feedback/states.js';
+export {
+  MIN_TOAST_DURATION_MS,
+  type ToastInput,
+  ToastProvider,
+  type ToastProviderProps,
+  useToast,
+} from './feedback/Toast.js';

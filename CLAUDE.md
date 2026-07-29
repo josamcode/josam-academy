@@ -167,10 +167,10 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.24` | Choice fields: `Select` `Combobox` `MultiSelect` `RadioGroup` `RadioCard` `Checkbox` `Switch` `Slider` `TagsInput` `RatingInput`                                                                                        |  A   | `0.21`         |   2 |   ✅   |   1.15 | 10 components; 28/28 fitness; jsdom patched          |
 | `PH-0.25` | Time/file fields: `DatePicker` `DurationField` `TimestampField` `FileDrop` `ImageDrop`                                                                                                                                  |  A   | `0.21`         | 1.5 |   ✅   |    0.8 | RTL calendar proven 4 ways; MIME sniffed             |
 | `PH-0.26` | Layout & nav: `AppShell` `TopBar` `SideNav` `BottomNav` `PageHeader` `PageFooter` `Breadcrumb` `Tabs` `SkipLink`                                                                                                        |  A   | `0.17`         | 1.5 |   ✅   |   0.75 | 2 primary actions = TS2322 (case 29)                 |
-| `PH-0.27` | Feedback: `Toast` `InlineAlert` `Dialog` `ConfirmDialog` `Drawer` `Popover` `Tooltip` `DropdownMenu` `Skeleton` `ProgressBar` `ProgressRing` `EmptyState` `ErrorState` `OfflineBanner` `ReadOnlyBanner` `QueryBoundary` |  A   | `0.17`         |   2 |   ⬜   |      — | `QueryBoundary` requires all three states            |
+| `PH-0.27` | Feedback: `Toast` `InlineAlert` `Dialog` `ConfirmDialog` `Drawer` `Popover` `Tooltip` `DropdownMenu` `Skeleton` `ProgressBar` `ProgressRing` `EmptyState` `ErrorState` `OfflineBanner` `ReadOnlyBanner` `QueryBoundary` |  A   | `0.17`         |   2 |   ✅   |    1.1 | 3 states required = TS2741 (case 31)                 |
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified; scope = Josam DB only (SB-24)      |
 
-**Progress: 22 / 28 · 78.6%** · Estimated total 19.0 d · Actual to date 11.05 d authored + founder execution
+**Progress: 23 / 28 · 82.1%** · Estimated total 19.0 d · Actual to date 12.15 d authored + founder execution
 
 > **The Redis health indicator is registered in the same task that installs `ioredis` — never
 > "later" (`SB-16`).** `11 §API-21` lists `redis` among the `GET /health` checks. `PH-0.6` built
@@ -189,6 +189,12 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 > once from the repository root across every workspace. The second path caught a real parser
 > defect at `PH-0.2` that the first structurally cannot see. A CI that only runs turbo goes green
 > on code the hook rejects, and the bug resurfaces in a pull request instead of locally.
+
+> **Wave 1 is complete — 69 / 69 components, `12 §20.12.1`.** 8 primitives · 8 architectural ·
+> 2 controls · 2 form · 24 fields · 9 layout/navigation · 16 feedback. All 22 Type-A tasks are
+> done. What remains in Phase 0 is the five founder-gated infrastructure tasks — `PH-0.8`, `0.9`,
+> `0.10`, `0.11`, `0.28` — plus the exit criteria in §7, which include **re-running**
+> `pnpm verify:fitness` (32 cases) rather than re-reading this line (`BR-1832`).
 
 > **Estimate-ratio caution (`DEC-56`, `BR-1802`).** `PH-0.1` came in at half its estimate, but it
 > is a Type-A task executed by AI with every version already resolved by the pre-`PH-0.1` pass.

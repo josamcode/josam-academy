@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |   Done | Status         |
 | ----------------------- | ------: | -----: | -------------- |
-| **0 — Foundation**      |      28 |     22 | 🟡 In progress |
+| **0 — Foundation**      |      28 |     23 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |      0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |      0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |      0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |      0 | ⬜ Not started |
 | 6 — Mobile              |      16 |      0 | ⬜ Not started |
 | 7 — Growth              |      14 |      0 | ⬜ Not started |
-| **Total**               | **191** | **22** | **11.5%**      |
+| **Total**               | **191** | **23** | **12.0%**      |
 
 **Milestones**
 
@@ -220,6 +220,75 @@ placeholders only (`<SERVER_IP>`, `<ADMIN_USER>`, `<SSH_PORT>`, `<OLD_PORT>`, `<
 
 **Diverged:** none. `§11` lists what this task deliberately does not do and the task that owns
 each, so no gap is mistaken for coverage.
+
+---
+
+### 2026-07-29 · PH-0.27 — Feedback: the sixteen, and Wave 1 complete
+
+**By:** AI
+**Time:** estimated 2.0 d → actual 1.1 d
+**Output:** `packages/ui/src/architectural/QueryBoundary.tsx`. `packages/ui/src/feedback/` —
+`banners.tsx` (`InlineAlert`, `OfflineBanner`, `ReadOnlyBanner`), `overlays.tsx` (`Dialog`,
+`ConfirmDialog`, `Drawer`, `Popover`, `Tooltip`, `DropdownMenu`), `progress.tsx` (`Skeleton`,
+`ProgressBar`, `ProgressRing`), `states.tsx` (`EmptyState`, `ErrorState`), `Toast.tsx` (`Toast`,
+`ToastProvider`, `useToast`). `feedback.spec.tsx` (86 tests) · `feedback.stories.tsx` (7 stories).
+Fitness cases **31** and **32** added.
+
+**Dependencies pinned by this task** (`BR-1815` — the installing phase pins the version):
+`@tanstack/react-query` **5.101.4** · `@radix-ui/react-dialog` **1.1.23** ·
+`@radix-ui/react-dropdown-menu` **2.1.24** · `@radix-ui/react-toast` **1.2.23** ·
+`@radix-ui/react-tooltip` **1.2.16** · `@radix-ui/react-progress` **1.1.16**. All exact
+(`BR-1591`) — pnpm added them as `^` ranges and they were rewritten.
+
+**Verified:** `pnpm lint` 9/9 · `pnpm typecheck` 8/8 · `pnpm test` 9/9 — **684 tests, 514 of them
+in `@josam/ui`** · `pnpm build` 5/5 · `pnpm verify:fitness` → **32 caught, 0 NOT caught**.
+
+**The task's stated Output is a compile error.** `QueryBoundary`'s `loading`, `empty` and `error`
+are required props, and case **31** proves it with `TS2741` rather than asserting it in prose.
+Case **32** does the same for `BR-1551` — an `EmptyState` without an `action` does not compile,
+because an empty screen with no way out is exactly what ships when the prop is optional and the
+deadline is close.
+
+**The finding: `BR-1470`'s focus return was doing nothing.**
+
+Radix implements "return focus to the trigger" by focusing its own `Dialog.Trigger` ref. These
+dialogs are **controlled** — a screen owns the `open` state and there is no `Dialog.Trigger`
+anywhere — so that ref was always null and the restore focused nothing. Focus landed on `<body>`,
+which means the next `Tab` restarted at the top of the document.
+
+Every visible part worked: the dialog opened, trapped focus, closed on `Escape`. The one part
+invisible to a sighted mouse user was the part that did not. `useReturnFocus` now tracks the last
+element focused outside any dialog through a `focusin` listener and restores it in
+`onCloseAutoFocus` — a listener rather than reading `activeElement` when `open` flips, because by
+the time any effect of ours runs Radix has already moved focus into the dialog, so we would capture
+its own first field. It is also correct for a dialog opened from a menu item or a keyboard shortcut,
+where there is no trigger element at all.
+
+**`QueryBoundary`'s state order is not the obvious one, and `BR-1538` is why.** Data is checked
+_before_ error and _before_ loading. A list that loaded and then failed to refresh keeps showing
+the list — replacing a working table with a full-page error because a background poll timed out
+discards the user's scroll position and selection to report something they can already see is
+stale. Both are asserted against the real TanStack Query rather than a hand-made object, because
+the claim is about what the library leaves in `data` after a failed refetch, and a mock would only
+assert my reading of the docs.
+
+**Three constraints written into types rather than documentation.**
+`Toast`'s only permitted action is **undo** (`BR-1550`): undo is the one action that is safe to
+lose, since a toast that vanishes before the user reaches it leaves them with the outcome they
+already asked for. "Retry", "View" and "Confirm" are questions, and a question that disappears
+after six seconds is `BR-1377`'s prohibition wearing a different label. The six-second floor is a
+`Math.max`, so asking for one second has no effect. `Tooltip`'s `content` is a `string`, not a
+`ReactNode` — a tooltip is unreachable by touch and gone when the pointer moves, so anything
+interactive inside one is unreachable for a large share of users and anything essential is
+information they never receive.
+
+**Two smaller defects the gates caught.** `ToastProvider` read its id counter from inside a
+`setState` updater, which React may invoke twice under StrictMode — two toasts, one id. It is a
+ref now. And `BR-1429` rejected `key={index}` on the skeleton rows; rather than a template literal,
+which slips past the rule's selector without changing anything (`SB-20`), each row carries an `id`.
+
+**Wave 1 is complete: 69 of 69 components** (`12 §20.12.1`) — 8 primitives, 8 architectural,
+2 controls, 2 form, 24 fields, 9 layout/navigation, 16 feedback.
 
 ---
 
