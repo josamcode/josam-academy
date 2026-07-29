@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.21` execution)                                                                                                                                                                      |
+| **Updated by**     | AI (`PH-0.22` execution)                                                                                                                                                                      |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.21` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.22` — Text fields: `TextField` `TextArea` `PasswordField` `NumberField` `CurrencyField` `CodeField`                                                                                     |
+| **Current task**   | _None in progress_ — `PH-0.22` complete                                                                                                                                                       |
+| **Next task**      | `PH-0.23` — Identity fields: `PhoneField` `EmailField` `OTPField`                                                                                                                             |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -91,6 +91,54 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.22 — Text fields: TextField, TextArea, PasswordField, NumberField, CurrencyField, CodeField
+
+**By:** AI
+**Time:** estimated 1.0 d -> actual 0.5 d
+**Output:**
+
+- Six fields in `packages/ui/src/fields/text-fields.tsx`. **All six consume `useFieldControl`**,
+  so the label association and the `aria-describedby` / `aria-invalid` wiring are `FormField`'s —
+  written once at `PH-0.21` rather than six times here.
+- No field accepts a `placeholder`. `BR-1402` — a placeholder is never the label, and it vanishes
+  the moment typing starts, which is exactly when someone checking what the field wanted needs it.
+
+**Verified:** 29 specs, all against a real DOM, asserting what the form **submits** rather than
+what the component renders.
+
+- Every field is located by `getByLabelText` and carries the ARIA wiring — the inheritance holds.
+- **`BR-1410`** — `'   spaced   '` typed, `'spaced'` submitted.
+- **`BR-826`** — `CurrencyField` submits integer minor units: `49.90` -> `4990`, `100` -> `10000`,
+  `0.05` -> `5`, `0.29` -> `29`, `1.13` -> `113`.
+- **`BR-1409`** — `NumberField` submits a `number`, asserted with `typeof`, not a numeric string.
+- **`BR-1414`** — `PasswordField` toggles type and accessible name, never sets
+  `autocomplete="off"`, distinguishes `current-password` from `new-password`, and its toggle never
+  submits the form.
+- `CodeField` is `dir="ltr"`, upper-cases on submit, and stops at its length.
+- Counters count and announce `aria-live="polite"`.
+- `pnpm build` 5/5 . `lint` 9/9 . `typecheck` 8/8 . `test` 9/9 . 197 specs in `packages/ui` .
+  `check:deps` clean . `verify:fitness` 25/25 . `storybook build` succeeds.
+
+**Diverged:** none.
+
+**Notes:**
+
+- **A second assertion of mine was wrong, and failing it is what surfaced the real number.**
+  The rounding test claimed `49.90 * 100` truncates to `4989`. It does not — the product is
+  `4990.000000000001`, which truncates correctly. The genuine failures are the products landing
+  just _below_ an integer: `0.29 * 100` is `28.999999999999996`, truncating to **28**, a
+  one-piastre undercharge on a value the user typed exactly. Counted rather than hand-waved:
+  **1,145 of the 20,000 amounts under 200.00** truncate to the wrong integer. The assertion now
+  states that number, so nobody later decides truncation is close enough. (`BR-1835`.)
+- `Counter` reads through `useWatch` rather than `formState`, so a keystroke re-renders the
+  counter and not the whole form — the uncontrolled-by-default property `13 §4` chose React Hook
+  Form for.
+- `PasswordField`'s toggle is a plain `<button>` rather than `IconButton`: it lives inside the
+  control and must not read as a separate action. It is still a real button with a real accessible
+  name and `aria-pressed`.
 
 ---
 

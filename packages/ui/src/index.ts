@@ -72,3 +72,19 @@ export {
   useFieldControl,
   useFormField,
 } from './form/FormField.js';
+
+/** Text fields (PH-0.22). All six consume `useFieldControl`, so the ARIA wiring is FormField's. */
+export {
+  CodeField,
+  type CodeFieldProps,
+  CurrencyField,
+  type CurrencyFieldProps,
+  NumberField,
+  type NumberFieldProps,
+  PasswordField,
+  type PasswordFieldProps,
+  TextArea,
+  type TextAreaProps,
+  TextField,
+  type TextFieldProps,
+} from './fields/text-fields.js';
