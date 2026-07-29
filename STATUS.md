@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |   Done | Status         |
 | ----------------------- | ------: | -----: | -------------- |
-| **0 — Foundation**      |      28 |     21 | 🟡 In progress |
+| **0 — Foundation**      |      28 |     22 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |      0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |      0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |      0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |      0 | ⬜ Not started |
 | 6 — Mobile              |      16 |      0 | ⬜ Not started |
 | 7 — Growth              |      14 |      0 | ⬜ Not started |
-| **Total**               | **191** | **21** | **11.0%**      |
+| **Total**               | **191** | **22** | **11.5%**      |
 
 **Milestones**
 
@@ -220,6 +220,65 @@ placeholders only (`<SERVER_IP>`, `<ADMIN_USER>`, `<SSH_PORT>`, `<OLD_PORT>`, `<
 
 **Diverged:** none. `§11` lists what this task deliberately does not do and the task that owns
 each, so no gap is mistaken for coverage.
+
+---
+
+### 2026-07-29 · PH-0.26 — Layout and navigation
+
+**By:** AI
+**Time:** estimated 1.5 d → actual 0.75 d
+**Output:** `packages/ui/src/layout/` — `AppShell.tsx` (`AppShell`), `Breadcrumb.tsx`
+(`Breadcrumb`, `SkipLink`), `PageHeader.tsx` (`PageHeader`, `PageFooter`), `navigation.tsx`
+(`TopBar`, `SideNav`, `BottomNav`, `Tabs`). `layout.spec.tsx` (63 tests) ·
+`layout.stories.tsx` (6 stories). Fitness cases **29** and **30** added.
+
+**Verified:** `pnpm lint` 9/9 · `pnpm typecheck` 8/8 · `pnpm test` 9/9 · `pnpm build` 5/5 ·
+`pnpm verify:fitness` → **30 caught, 0 NOT caught**.
+
+**The task's stated Output — `PageHeader` enforces one primary action — is a compile error, and
+that is proven by compiling the violation** (case 29, `TS2322`). The mechanism is that
+`primaryAction` is a _description_ rather than a `ReactNode`. A `ReactNode` prop cannot express
+`BR-1549` at all: `<>{save}{publish}</>` is one valid node containing two buttons, and no type can
+see inside a fragment. An object holds one label and one handler and nothing else. Case 30 extends
+the same idea to `BR-1347` — the disabled arm of the union cannot be written without its reason.
+
+**The finding that matters: a test that agreed with the bug.**
+
+`TopBar`, `SideNav` and `BottomNav` moved the roving `tabIndex` on arrow keys and **left focus
+where it was**. Pressing `ArrowDown` in the sidebar did nothing visible. The DOM looked entirely
+correct — one tab stop, the right element marked — and the spec I had written to prove it asserted
+_which element carried `tabindex="0"`_, so it passed against the defect. Only `Tabs` moved focus,
+because `Tabs` happened to be written last.
+
+It surfaced from the opposite direction. `Tabs` restored focus after **every** keydown, `Tab`
+included, so tabbing out of the tab strip moved focus into the panel and a queued callback pulled
+it straight back — a keyboard trap. That one failed immediately, because its spec asserted
+`document.activeElement`. Chasing it exposed the three components whose specs did not.
+
+Both are now one mechanism: `useRovingFocus` owns the focus move, performs it in a `useEffect`
+keyed on the active index (so it runs after React has committed the new `tabIndex`, not before),
+and only from a branch that called `preventDefault`. The `SideNav` spec asserts
+`document.activeElement`.
+
+**The general lesson, which is the reusable part:** asserting the _marker_ rather than the _effect_
+produces a test that passes on a broken component. `tabindex="0"` is a marker; the focused element
+is the effect. Same shape as `PH-0.21`'s focus-first-error, which passed on React Hook Form's
+built-in behaviour rather than on ours (`SB-19`).
+
+**`SkipLink`, where two subtleties decide whether it works at all.** It must be in the DOM and
+focusable while invisible — `display: none` until focus cannot work, because an element that is
+not rendered cannot receive the focus that would reveal it. And its target must be focusable, or
+the browser moves the _scroll_ position and leaves focus on the link, so the next `Tab` returns to
+the second nav item. The link appears to work and does nothing. Both are asserted directly, and
+`AppShell` gives `main` a `tabIndex={-1}` for the second.
+
+**One more direction-dependent keyboard contract.** The inline arrows in `TopBar`, `BottomNav` and
+`Tabs` resolve against the document direction, asserted as a four-case table exactly like
+`PH-0.25`'s calendar. `SideNav` is vertical and deliberately ignores the inline arrows entirely —
+arrow keys that do nothing are better than arrow keys that swallow a scroll.
+
+`Breadcrumb` enforces `BR-1366`'s floor itself and renders **nothing** at two levels or fewer,
+rather than leaving forty call sites to remember it.
 
 ---
 

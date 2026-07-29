@@ -396,6 +396,48 @@ TSX
 check "nameless control in a feature file" "pnpm --filter @josam/web run lint" "control-has-associated-label|label"
 rm -f apps/web/app/__violation.tsx
 
+# ── 29. BR-1549 — a second primary action is a TYPE error, not a review comment ───────────
+# The PH-0.26 Output. `PageHeader.primaryAction` is a description, not a ReactNode, precisely so
+# that this cannot compile: a ReactNode prop would accept `<>{save}{publish}</>` as one valid node
+# containing two buttons, and no type can see inside a fragment.
+hr; echo "29. BR-1549 — two primary actions on a PageHeader fail the build"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { PageHeader } from './layout/PageHeader.js';
+
+export function Violation() {
+  return (
+    <PageHeader
+      title="Courses"
+      primaryAction={[
+        { label: 'Save', onClick: () => undefined },
+        { label: 'Publish', onClick: () => undefined },
+      ]}
+    />
+  );
+}
+TSX
+check "two primary actions" "pnpm --filter @josam/ui run typecheck" "TS2322|not assignable"
+rm -f packages/ui/src/__violation.tsx
+
+# ── 30. BR-1548 / BR-1472 — a disabled primary action must still say why ──────────────────
+# BR-1347 through the type system: PrimaryAction carries Button's DisabledState union, so the
+# disabled arm cannot be written without its reason. Same shape as case 23, one level further out.
+hr; echo "30. BR-1347 — a disabled primary action with no reason fails the build"
+cat > packages/ui/src/__violation.tsx <<'TSX'
+import { PageHeader } from './layout/PageHeader.js';
+
+export function Violation() {
+  return (
+    <PageHeader
+      title="Courses"
+      primaryAction={{ label: 'Publish', onClick: () => undefined, disabled: true }}
+    />
+  );
+}
+TSX
+check "disabled with no reason" "pnpm --filter @josam/ui run typecheck" "TS2322|disabledReason|not assignable"
+rm -f packages/ui/src/__violation.tsx
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

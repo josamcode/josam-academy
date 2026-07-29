@@ -176,3 +176,36 @@ export {
   toIso,
   weekdayNames,
 } from './fields/calendar.js';
+
+/**
+ * Layout and navigation (PH-0.26). `PageHeader` owns the page's single `h1` and accepts exactly
+ * one `primaryAction` — a second is a type error, not a review comment (BR-1548, BR-1549).
+ */
+export { AppShell, APP_SHELL_MAIN_ID, type AppShellProps } from './layout/AppShell.js';
+export {
+  Breadcrumb,
+  type BreadcrumbItem,
+  type BreadcrumbProps,
+  SkipLink,
+  type SkipLinkProps,
+} from './layout/Breadcrumb.js';
+export {
+  PageFooter,
+  type PageFooterProps,
+  PageHeader,
+  type PageHeaderProps,
+  type PrimaryAction,
+  type SecondaryAction,
+} from './layout/PageHeader.js';
+export {
+  BottomNav,
+  type BottomNavProps,
+  type NavItem,
+  SideNav,
+  type SideNavProps,
+  type TabItem,
+  Tabs,
+  type TabsProps,
+  TopBar,
+  type TopBarProps,
+} from './layout/navigation.js';

@@ -166,11 +166,11 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.23` | Identity fields: `PhoneField` `EmailField` `OTPField`                                                                                                                                                                   |  A   | `0.21`         |   1 |   ✅   |    0.5 | LTR survives RTL doc; paste fills all six            |
 | `PH-0.24` | Choice fields: `Select` `Combobox` `MultiSelect` `RadioGroup` `RadioCard` `Checkbox` `Switch` `Slider` `TagsInput` `RatingInput`                                                                                        |  A   | `0.21`         |   2 |   ✅   |   1.15 | 10 components; 28/28 fitness; jsdom patched          |
 | `PH-0.25` | Time/file fields: `DatePicker` `DurationField` `TimestampField` `FileDrop` `ImageDrop`                                                                                                                                  |  A   | `0.21`         | 1.5 |   ✅   |    0.8 | RTL calendar proven 4 ways; MIME sniffed             |
-| `PH-0.26` | Layout & nav: `AppShell` `TopBar` `SideNav` `BottomNav` `PageHeader` `PageFooter` `Breadcrumb` `Tabs` `SkipLink`                                                                                                        |  A   | `0.17`         | 1.5 |   ⬜   |      — | `PageHeader` enforces one primary action             |
+| `PH-0.26` | Layout & nav: `AppShell` `TopBar` `SideNav` `BottomNav` `PageHeader` `PageFooter` `Breadcrumb` `Tabs` `SkipLink`                                                                                                        |  A   | `0.17`         | 1.5 |   ✅   |   0.75 | 2 primary actions = TS2322 (case 29)                 |
 | `PH-0.27` | Feedback: `Toast` `InlineAlert` `Dialog` `ConfirmDialog` `Drawer` `Popover` `Tooltip` `DropdownMenu` `Skeleton` `ProgressBar` `ProgressRing` `EmptyState` `ErrorState` `OfflineBanner` `ReadOnlyBanner` `QueryBoundary` |  A   | `0.17`         |   2 |   ⬜   |      — | `QueryBoundary` requires all three states            |
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified; scope = Josam DB only (SB-24)      |
 
-**Progress: 21 / 28 · 75.0%** · Estimated total 19.0 d · Actual to date 10.3 d authored + founder execution
+**Progress: 22 / 28 · 78.6%** · Estimated total 19.0 d · Actual to date 11.05 d authored + founder execution
 
 > **The Redis health indicator is registered in the same task that installs `ioredis` — never
 > "later" (`SB-16`).** `11 §API-21` lists `redis` among the `GET /health` checks. `PH-0.6` built
@@ -211,7 +211,13 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 >    Use the `pressArrow()` helper (press, tick, release). Raising userEvent's `delay` does not
 >    work — it sits between keystrokes, not within one. `PH-0.26`'s `Tabs` and `SideNav` need this.
 >
-> 3. **A real `<button>` synthesises a click from `Enter` and `Space`.** A keydown handler that
+> 3. **Assert the EFFECT, not the marker.** `PH-0.26` shipped three navs whose arrow keys moved
+>    the roving `tabIndex` and left focus behind — visibly doing nothing — and the specs passed,
+>    because they asserted which element carried `tabindex="0"`. `tabindex` is the marker;
+>    `document.activeElement` is the effect. Same shape as `PH-0.21`'s inert focus-first-error
+>    (`SB-19`). Whenever a test can assert either, assert the one a user would notice.
+>
+> 4. **A real `<button>` synthesises a click from `Enter` and `Space`.** A keydown handler that
 >    also toggles state runs twice and nets to nothing — inert to a keyboard, perfect with a mouse.
 >    `preventDefault()` on both keys, and test every control by keyboard alone; the pointer tests
 >    passed throughout on the broken `MultiSelect`.
