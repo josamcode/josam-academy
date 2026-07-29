@@ -20,7 +20,7 @@
 
 | Phase                   |   Tasks |   Done | Status         |
 | ----------------------- | ------: | -----: | -------------- |
-| **0 — Foundation**      |      29 |     24 | 🟡 In progress |
+| **0 — Foundation**      |      29 |     25 | 🟡 In progress |
 | 1 — Identity & Commerce |      32 |      0 | ⬜ Not started |
 | 2 — Content & Learning  |      34 |      0 | ⬜ Not started |
 | 3 — Operations & Launch |      26 |      0 | ⬜ Not started |
@@ -28,7 +28,7 @@
 | 5 — AI Mentor           |      18 |      0 | ⬜ Not started |
 | 6 — Mobile              |      16 |      0 | ⬜ Not started |
 | 7 — Growth              |      14 |      0 | ⬜ Not started |
-| **Total**               | **192** | **24** | **12.5%**      |
+| **Total**               | **192** | **25** | **13.0%**      |
 
 **Milestones**
 
@@ -220,6 +220,31 @@ placeholders only (`<SERVER_IP>`, `<ADMIN_USER>`, `<SSH_PORT>`, `<OLD_PORT>`, `<
 
 **Diverged:** none. `§11` lists what this task deliberately does not do and the task that owns
 each, so no gap is mistaken for coverage.
+
+---
+
+### 2026-07-29 · PH-0.10 — ✅ DONE. Run #3 green, both images published
+
+**Verified on GitHub, not locally** (`BR-1768`). Run
+<https://github.com/josamcode/josam-academy/actions/runs/30465477589>, commit `d0ce02d9`.
+
+Three jobs, all `success`. Every step of `verify` green, in order: install → produce every
+generated input → lint (turbo) → lint (root-level hook path) → lint styles → format → module
+boundaries → catalogs → typecheck → test → build → **verify:fitness** → tree-clean check.
+
+Both images confirmed **pullable from the registry**, not merely reported as pushed — the manifest
+was requested directly and returned HTTP 200 for each:
+
+```
+ghcr.io/josamcode/josam-academy/api:sha-d0ce02d9f0334c62acd610294d2ae273008e8fa4
+ghcr.io/josamcode/josam-academy/web:sha-d0ce02d9f0334c62acd610294d2ae273008e8fa4
+```
+
+`BR-886` — deploy and roll back by the SHA tag. `latest` names a different image after every push,
+so "redeploy latest" redeploys the thing being rolled back.
+
+**Outstanding, founder-side:** install the Renovate GitHub App. `renovate.json` is committed and
+enforces nothing until it is enabled.
 
 ---
 
