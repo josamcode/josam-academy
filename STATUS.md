@@ -7,10 +7,10 @@
 | Field              | Value                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.23` execution)                                                                                                                                                                      |
+| **Updated by**     | AI (`PH-0.7` runbook authored)                                                                                                                                                                |
 | **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.23` complete                                                                                                                                                       |
-| **Next task**      | `PH-0.24` — Choice fields: `Select` `Combobox` `MultiSelect` `RadioGroup` `RadioCard` `Checkbox` `Switch` `Slider` `TagsInput` `RatingInput`                                                  |
+| **Current task**   | `PH-0.7` — runbook committed, **awaiting founder execution**                                                                                                                                  |
+| **Next task**      | `PH-0.7` execution by founder. `PH-0.8` does not start until 0.7 is executed.                                                                                                                 |
 | **Production URL** | _Not deployed_                                                                                                                                                                                |
 | **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
 
@@ -91,6 +91,63 @@
 **Diverged:** anything different from the documents (or "none")
 **Notes:** anything the next session needs to know
 ```
+
+---
+
+### 2026-07-29 · PH-0.7 — VPS hardening runbook (Type B — authored, not yet executed)
+
+**By:** AI (authored). **Execution: founder.**
+**Time:** estimated 1.0 d → actual 0.3 d to author. **The task is NOT done** — `BR-1761`,
+`BR-1768`: it is done when the founder pastes back Step 8.1's output, not when this file commits.
+**Output:** `docs/runbooks/vps-hardening.md` — 12 sections, 15 "already configured differently"
+branches, 3 hard gates, 7 lockout-recovery modes.
+
+**Written for a live box, not a fresh install:**
+
+- Every step reads the current state before changing it, and branches where the answer can
+  reasonably differ. §1.3 records the whole starting state so later steps compare against it.
+- **Three gates that make lockout impossible**, in this order: key login proven in a second
+  session **before** root is disabled · a session proven on the new port **before** the firewall
+  allows only that port · a new session proven **after** `ufw enable`. Two rescue sessions stay
+  open throughout and are closed last.
+- The provider web console is proven working at Step 1.1 **as a gate**, because it is the entry
+  point of all seven recovery procedures.
+
+**The finding that shapes §5 — `ufw` does not filter Docker-published ports.** Docker's rules sit
+in `nat`/`FORWARD`, traversed before the `INPUT` chain `ufw` manages, so a published container
+port is reachable from the internet with `ufw` active and default-deny. Two consequences:
+enabling `ufw` will **not** cut Coolify off, and `ufw` does **not** protect Coolify's dashboard.
+That is precisely why `PH-0.8`'s provider firewall matters — it sits outside the host where
+Docker's rules cannot reach. A `DOCKER-USER` rule would also work and is deliberately **not**
+attempted here: getting it wrong takes a running service off the internet, and `PH-0.8` achieves
+the same restriction with no risk to it.
+
+**Other things worth naming:**
+
+- Ubuntu 24.04 uses **socket activation** for ssh, so `Port` in `sshd_config` alone does not change
+  the listening port. §3.1 detects which mode is in use and branches. This is the commonest reason
+  a port change appears to work and does nothing.
+- `PasswordAuthentication no` alone is **not sufficient** — PAM keyboard-interactive can still
+  accept a password. §4.1 adds `KbdInteractiveAuthentication no` and
+  `AuthenticationMethods publickey`, and §4.2's **third** login test is the one that proves it;
+  the other two pass while passwords still work.
+- `BR-1701` is verified **from outside the host**, not with a local `ss`. A container published on
+  `0.0.0.0:5432` shows as bound locally _and_ answers remotely; only the remote test distinguishes
+  them.
+- `unattended-upgrades` is configured with `Automatic-Reboot "false"` — an unannounced 06:00
+  reboot on 2 vCPU running the whole stack is an outage, not a patch.
+- §9 covers the **ninety-day exposure**: hardening closes the door, it does not establish nobody
+  came in. Authorized-key, uid-0, cron, timer and listener checks, with the explicit instruction
+  that a real finding means rebuild rather than patch — cheap now, because no production data
+  exists.
+
+**Verified:** the artifact only. No server was touched, and none could be — `CLAUDE.md §3`
+forbids it. Checked mechanically: **no IP, key, port or credential appears in the file**; six
+placeholders only (`<SERVER_IP>`, `<ADMIN_USER>`, `<SSH_PORT>`, `<OLD_PORT>`, `<KEY_PATH>`,
+`<YOUR_IP>`).
+
+**Diverged:** none. `§11` lists what this task deliberately does not do and the task that owns
+each, so no gap is mistaken for coverage.
 
 ---
 
