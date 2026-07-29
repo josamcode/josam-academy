@@ -77,6 +77,13 @@ COPY --from=build --chown=node:node /out/package.json ./package.json
 COPY --from=build --chown=node:node /repo/apps/api/dist ./dist
 COPY --from=build --chown=node:node /repo/apps/api/prisma ./prisma
 
+# `prisma.config.ts` too, not just the schema. Prisma 7 reads `datasource.url` from the config
+# when running `prisma migrate deploy`, and without the file it fails with
+# "The datasource.url property is required in your Prisma config file" — so `BR-887` (migrations
+# run before the new image goes live) would be unexecutable from this image. Found at PH-0.11 by
+# running the migration inside the built image rather than assuming it would work.
+COPY --from=build --chown=node:node /repo/apps/api/prisma.config.ts ./prisma.config.ts
+
 # 4000, not 3000: `apps/web` owns 3000 and both run on the same host. Verified by running the
 # image — it logs `"port":4000` on start.
 EXPOSE 4000
