@@ -268,6 +268,87 @@ that consumes it is not a config file that works. If a tool ships a validator, i
 
 ---
 
+### 2026-07-29 · PH-0.11 — Deploy & rollback runbook (authored; not executed)
+
+**By:** AI authored · **founder executes**
+**Time:** estimated 0.3 d authoring → actual 0.35 d. Execution estimated 0.2 d, not yet run.
+**Status:** 🟡 **Authored, not done** (`BR-1768`).
+
+**Output:** `docs/runbooks/deploy-and-rollback.md`, placeholders only.
+
+**Three defects found by testing the deploy path instead of describing it**, all of which would
+have surfaced mid-deploy on a box carrying five live client applications:
+
+1. **The API image could not run its own migrations.** The `prisma` CLI was a devDependency, so
+   `pnpm --prod deploy` excluded it. The image carried `prisma/migrations` and nothing able to
+   apply them, which makes `BR-887` — migrations run before the new image goes live —
+   unexecutable. Moved to `dependencies`; **the image size did not change** (883 MB before and
+   after), because the CLI was already present transitively.
+2. **`prisma.config.ts` was not in the runtime image.** Prisma 7 reads `datasource.url` from it,
+   so `migrate deploy` failed with _"The datasource.url property is required in your Prisma config
+   file"_. Now copied alongside the schema.
+3. **`dotenv` was a devDependency** and `prisma.config.ts` imports it, so copying the config alone
+   would have failed at load. Moved to `dependencies`.
+
+Proven by running the migration **inside the built image** against the real database, not by
+reading the Dockerfile:
+
+```
+Prisma schema loaded from prisma/schema.prisma.
+1 migration found in prisma/migrations
+No pending migrations to apply.
+```
+
+**The binding constraint is §0 of the runbook, with an explicit table of what is NOT touched:**
+`coolify-proxy`, the existing client containers, the client `postgres:18-alpine` and `redis:7.2`,
+the provider and host firewalls, and Coolify's own settings. The mechanism that makes this
+provable rather than promised is that **§1–§9 never give an application a domain** — an app with no
+domain is invisible to `coolify-proxy`, so Coolify never regenerates or reloads proxy
+configuration. Verification runs through a temporary host port instead. §10, which attaches a
+domain, is the only section that causes a proxy reload; it is **optional**, has its own gate, and
+requires re-checking the client sites within the same minute.
+
+**The database decision, with numbers rather than instinct.** The founder's instinct — a separate
+container, because the client database is not theirs to risk — is right, and that is the _second_
+reason. The first is that sharing is not possible without changing the client's database server:
+Josam Academy pins `pgvector/pgvector:0.8.5-pg16` and the client instance runs `postgres:18-alpine`
+— a different major version **and** no `pgvector`. Sharing would mean either running production on
+PostgreSQL 18 while development is on 16 (`BR-1810`), or installing an extension into another
+business's production database. Measured cost of not sharing: **33.7 MiB** for Postgres and
+**7.3 MiB** for Redis at rest, about half a percent of the machine.
+
+**The `/health` gate asserts three things, not one**: `status: ok`, `redis: ok` (meaningful because
+`PH-0.30` proved that indicator reports failure and recovers), and **`version` equal to the
+deployed SHA** — without which a failed deploy that silently left the old container running reads
+as a success. The rollback gate asserts the same field reads the _older_ SHA, then the newer one
+again, because a rollback you cannot undo is a one-way door.
+
+---
+
+### 2026-07-29 · PH-0.8 — ⏸️ DEFERRED to after Phase 0 exit
+
+**Founder decision, 2026-07-29.** Not cancelled, not permanently deprioritised: scheduled after
+Phase 0 exit rather than in this session, because there are tasks with real payoff outstanding.
+
+The runbook is **already written and committed** (`docs/runbooks/cloudflare-tunnel.md`, `9ae3d28`),
+so resuming costs execution time only. It has been moved to the end of the queue in `CLAUDE.md §5`.
+
+**What this leaves open, recorded rather than softened:**
+
+- **`SB-22` stays OPEN.** The Coolify dashboard is reachable from the internet on port 8000 — a
+  known live gap with an owner. **Not closed. Not accepted.**
+- **`BR-1702` is UNIMPLEMENTED.** The origin IP is exposed and the origin firewall does not
+  restrict HTTP to Cloudflare ranges.
+- **Any exit criterion depending on either reads "not met — deferred"** — never "pending", never
+  "passing".
+
+One incidental consequence worth knowing: because port 8000 stays open, direct access to Coolify
+remains available if the dashboard is ever needed urgently. That is a recovery path in
+`PH-0.11 §11` today and it disappears when `PH-0.8` runs — which is the correct trade, just not
+one to be surprised by.
+
+---
+
 ### 2026-07-29 · PH-0.8 — Cloudflare Tunnel runbook (authored; not executed)
 
 **By:** AI authored · **founder executes**

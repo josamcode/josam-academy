@@ -150,10 +150,9 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.5`  | Docker Compose: Postgres 16 + pgvector, Redis 7, MailHog                                                                                                                                                                |  A   | `0.1`          | 0.5 |   ✅   |    0.2 | Stack healthy; 127.0.0.1-only proven                  |
 | `PH-0.6`  | Prisma init, connection, first empty migration                                                                                                                                                                          |  A   | `0.5`          | 0.5 |   ✅   |   0.45 | `pnpm db:migrate` succeeds — empty migration applied  |
 | `PH-0.7`  | **VPS hardening**: SSH keys, disable root, fail2ban, ufw, unattended-upgrades                                                                                                                                           |  B   | —              |   1 |   ✅   |    0.3 | Executed; output pasted back; port 8000 open          |
-| `PH-0.8`  | Cloudflare: DNS, proxied records, TLS, origin firewall rules                                                                                                                                                            |  B   | `0.7`          | 0.5 |   🟡   |    0.3 | Runbook authored — founder executes, then pastes back |
 | `PH-0.9`  | **Coolify already installed** — verify, rotate admin credential, unbind from 0.0.0.0, firewall it, apply `08 §11.1` memory limits                                                                                       |  B   | `0.7`          | 0.5 |   ⬜   |      — | Limits RECALCULATED for a shared box (SB-23)          |
 | `PH-0.10` | GitHub Actions: lint → typecheck → test → build → push to ghcr.io                                                                                                                                                       |  B   | `0.2`          |   1 |   ✅   |   1.15 | Run #3 green; both images pullable by SHA tag         |
-| `PH-0.11` | Coolify deploy from registry + rollback by tag verification                                                                                                                                                             |  B   | `0.9`, `0.10`  | 0.5 |   ⬜   |      — | Deploy < 2 min; rollback verified                     |
+| `PH-0.11` | Coolify deploy from registry + rollback by tag verification                                                                                                                                                             |  B   | `0.9`, `0.10`  | 0.5 |   🟡   |   0.35 | Runbook authored — founder executes, then pastes back |
 | `PH-0.12` | `packages/tokens`: both themes → CSS vars + RN constants                                                                                                                                                                |  A   | `0.1`          |   1 |   ✅   |    0.4 | Tokens in web bundle; 40 specs incl. contrast         |
 | `PH-0.13` | `packages/i18n`: AR/EN catalogs, 6-form Arabic plurals, locale utils                                                                                                                                                    |  A   | `0.1`          |   1 |   ✅   |    0.4 | 48 specs; all six AR forms proven reachable           |
 | `PH-0.14` | Tailwind 4 bound to tokens; no palette utilities available                                                                                                                                                              |  A   | `0.12`         | 0.5 |   ✅   |    0.3 | 7 prohibited classes emit no rule (verified)          |
@@ -173,8 +172,9 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.28` | **Backups + monitoring**: daily `pg_dump` → R2, weekly restore verify, UptimeRobot, push alerts                                                                                                                         |  B   | `0.9`          |   1 |   ⬜   |      — | Restore verified; scope = Josam DB only (SB-24)       |
 | `PH-0.29` | **`BR-1544` conformance** — `readOnly`/`disabled` distinct on all 24 fields, `disabled` carrying a reason, plus a fitness function                                                                                      |  A   | `0.27`         | 0.5 |   ✅   |   0.45 | Bare `disabled?: boolean` fails lint (case 33)        |
 | `PH-0.30` | **Phase 0 conformance closure** — criterion 6 in a real browser, roster gate, the four unowned checks, Redis health indicator                                                                                           |  A   | `0.27`, `0.10` |   1 |   ✅   |    1.1 | 40/40 fitness; 49 stories × 4 combos green            |
+| `PH-0.8`  | **DEFERRED to after Phase 0 exit** — Cloudflare Tunnel, origin firewall rules. Runbook already authored: `docs/runbooks/cloudflare-tunnel.md`                                                                           |  B   | `0.7`          | 0.5 |   ⏸️   |    0.3 | Deferred by founder decision. `SB-22` stays OPEN      |
 
-**Progress: 26 / 30 · 86.7%** · Estimated total 20.5 d · Actual to date 15.15 d authored + founder execution
+**Progress: 26 / 30 · 86.7%** · Estimated total 20.5 d · Actual to date 15.5 d authored + founder execution
 
 > **The Redis health indicator is registered in the same task that installs `ioredis` — never
 > "later" (`SB-16`).** `11 §API-21` lists `redis` among the `GET /health` checks. `PH-0.6` built
@@ -205,6 +205,19 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 > once from the repository root across every workspace. The second path caught a real parser
 > defect at `PH-0.2` that the first structurally cannot see. A CI that only runs turbo goes green
 > on code the hook rejects, and the bug resurfaces in a pull request instead of locally.
+
+> **`PH-0.8` is DEFERRED by founder decision (2026-07-29), not cancelled and not deprioritised
+> permanently.** It is scheduled for **after Phase 0 exit**. Its runbook is already written and
+> committed (`docs/runbooks/cloudflare-tunnel.md`), so resuming it costs execution time only.
+>
+> Consequences, which are recorded rather than softened:
+>
+> - **`SB-22` stays OPEN** — the Coolify dashboard is reachable from the internet on port 8000. A
+>   known live gap with an owner. Not closed, not accepted.
+> - **`BR-1702` is UNIMPLEMENTED** — the origin IP is exposed and the origin firewall does not
+>   restrict HTTP to Cloudflare ranges.
+> - Any exit criterion depending on either reads **"not met — deferred"**. Never "pending", never
+>   "passing".
 
 > **Wave 1 is complete — 69 / 69 components, `12 §20.12.1`.** 8 primitives · 8 architectural ·
 > 2 controls · 2 form · 24 fields · 9 layout/navigation · 16 feedback. All 22 Type-A tasks are
