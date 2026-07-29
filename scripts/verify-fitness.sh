@@ -521,6 +521,26 @@ TSX
 check "readOnly and disabled together" "pnpm --filter @josam/ui run typecheck" "TS2322|readOnly|not assignable"
 rm -f packages/ui/src/__violation.tsx
 
+# ── 36. SB-15 — the root-level lint path is live, not a no-op ────────────────────────────
+# `PH-0.10` runs lint TWICE on purpose: `turbo run lint` inside each workspace, and `lint:hook`
+# once from the repository root the way the pre-commit hook does. The second caught a real parser
+# defect at `PH-0.2` that the first structurally cannot see.
+#
+# A second invocation that silently matched no files would look exactly like a second invocation
+# that passed — the failure mode BR-1830 exists for. This puts a violation where only the root
+# path is asked about, and requires it to be reported.
+hr; echo "36. SB-15 — pnpm lint:hook actually lints the workspaces"
+# A LINT violation, not a type error. The first version of this case used `const x: string = 1`
+# and reported the case as NOT caught — correctly: ESLint does not report type errors, so the
+# case was testing the wrong tool. BR-855's selector is unambiguous and fires on a single line.
+cat > packages/ui/src/__violation.ts <<'TS'
+export function violate(token: string): void {
+  localStorage.setItem('session', token);
+}
+TS
+check "root-level lint sees workspace files" "pnpm lint:hook" "BR-855|no-restricted-syntax"
+rm -f packages/ui/src/__violation.ts
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

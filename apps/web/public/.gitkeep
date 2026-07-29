@@ -1,0 +1,6 @@
+Static assets served from the site root — favicon, robots.txt, opengraph images.
+
+Kept in git deliberately. `apps/web/Dockerfile` copies this directory into the runtime image, and
+Docker fails the build outright when a COPY source does not exist. An empty directory that git
+does not track is a directory that exists on the machine where the Dockerfile was written and
+nowhere else, which is the class of failure that only appears in CI.

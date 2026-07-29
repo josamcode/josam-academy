@@ -223,6 +223,78 @@ each, so no gap is mistaken for coverage.
 
 ---
 
+### 2026-07-29 · PH-0.10 — CI pipeline: lint → typecheck → test → build → ghcr.io
+
+**By:** AI authored and **verified locally**; three founder settings outstanding
+**Time:** estimated 1.0 d → actual 0.6 d
+**Status:** 🟡 **Not done.** `BR-1761` — a task is done when its Output exists and CI is green.
+The Output is _a tagged image produced by a push to `main`_, and no push has run yet. Everything
+below was verified on this machine; nothing has been verified on GitHub.
+
+**Output:** `.github/workflows/ci.yml` · `apps/api/Dockerfile` · `apps/web/Dockerfile` ·
+`.dockerignore` · `renovate.json` · `docs/runbooks/ci-pipeline.md` · `lint:hook` root script ·
+`apps/web/public/.gitkeep` · fitness case **36**.
+
+**Verified locally:** `pnpm lint` 9/9 · `pnpm lint:hook` clean · `pnpm lint:css` clean ·
+`pnpm format:check` clean · `pnpm check:deps` **0 violations** · `pnpm check:catalogs` clean ·
+`pnpm typecheck` 8/8 · `pnpm test` 9/9 · `pnpm build` 5/5 · `pnpm verify:fitness` →
+**36 caught, 0 NOT caught**.
+
+**Both images were built AND RUN, not merely built.**
+
+| Check                                        | Result                                                                               |
+| -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| API image builds                             | ✅                                                                                   |
+| API container starts                         | ✅ Nest boots, `GET /health` mapped, logs `"port":4000`                              |
+| API non-root (`BR-1703`)                     | ✅ `node`, uid 1000                                                                  |
+| Web image builds                             | ✅                                                                                   |
+| Web non-root                                 | ✅ `node`                                                                            |
+| All five route groups **from the container** | ✅ `/` `/catalog` `/login` `/dashboard` `/admin` → 200                               |
+| Emitted CSS resolves, carries real utilities | ✅ 27,076 bytes; `bg-bg-base`, `text-text-primary`, `rounded-lg`, `flex-col` present |
+| Sizes                                        | API 875 MB · web 376 MB                                                              |
+
+The CSS assertion is deliberate. `PH-0.17` shipped a stylesheet of 3,083 bytes holding tokens and
+**zero utilities** while every gate was green (`BR-1834`), and a standalone Next build has its own
+version of that failure: `.next/static` is not part of `.next/standalone`, so omitting one `COPY`
+produces a site that renders unstyled and reports itself healthy.
+
+**Four defects found by running rather than by reading.**
+
+1. **No `.dockerignore` existed.** `COPY . .` pulled the host `node_modules` into the build and
+   pnpm aborted — `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY`. The loud failure is the lucky one;
+   the quiet version is an image whose contents depend on who built it.
+2. **`pnpm deploy` needs `--legacy` on pnpm 10+**, which now expects `inject-workspace-packages`.
+3. **`apps/web/public` did not exist**, and Docker fails outright on a missing `COPY` source. Git
+   does not track empty directories, so this would have been a CI-only failure.
+4. **`output: 'standalone'` broke `pnpm build` on Windows.** Tracing writes symlinks, and Windows
+   refuses without Developer Mode: `EPERM: operation not permitted, symlink`. It is now opt-in via
+   `NEXT_OUTPUT_STANDALONE`, set in the Dockerfile. A local build that works for only some of the
+   people who must run it is worse than one environment variable — and this is the founder's own
+   machine. If the variable is ever dropped from the Dockerfile the failure is loud: the `COPY`
+   finds no `.next/standalone`.
+
+**Fitness case 36 caught a real gap in my own test before it caught anything else.** The two-path
+lint claim (`SB-15`) was asserted only in a comment, so I added a case that puts a violation where
+only `lint:hook` is asked about. The first version used `const x: string = 1` and reported **NOT
+caught** — correctly: that is a type error, and ESLint does not report type errors, so the case was
+testing the wrong tool. With a real lint violation (`BR-855`) it passes. Both halves of that are
+`BR-1830` working: the suite is what tells you whether a proof proves anything.
+
+**All three debt items the founder named are in the workflow:** lint by both paths (`SB-15`, and
+now proven by case 36), `verify:fitness` on every push (`BR-1831`), and `renovate.json` against the
+`13 §16.1` policy. The workflow additionally runs `format:check`, `check:deps` and `check:catalogs`,
+which were passing locally but had no gate.
+
+**One warning silenced, deliberately.** `check:deps` reported `no-orphans: packages/ui/vitest.setup.ts`
+— a real orphan by design, since a `setupFiles` entry is a path a runner loads rather than an
+import. Excluded alongside the config files. A standing warning is where the next real one hides.
+
+**What is still the founder's:** enable read/write workflow permissions, push and confirm the run
+is green with two SHA-tagged images, and install Renovate — reading its onboarding PR against
+`13 §16.1` before merging. Full checklist and recovery table in `docs/runbooks/ci-pipeline.md`.
+
+---
+
 ### 2026-07-29 · PH-0.29 — `BR-1544` conformance across all 24 fields
 
 **By:** AI · **remedial, founder-instructed after `PH-0.27`**

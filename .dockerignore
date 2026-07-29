@@ -1,0 +1,58 @@
+# Everything the image must NOT inherit from a developer's machine.
+#
+# Without this, `COPY . .` drags the host `node_modules` into the build. In a pnpm workspace that
+# is a tree of symlinks into `/repo/node_modules/.pnpm` — paths that do not resolve inside the
+# container — and pnpm then decides the store is stale and tries to delete the directory, which it
+# refuses to do without a TTY:
+#
+#     [ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY]
+#
+# That is the loud failure. The quiet one matters more: a build that copies host `node_modules`
+# and happens to work is an image whose contents depend on whoever built it, which is the exact
+# thing a lockfile and `--frozen-lockfile` exist to prevent.
+
+# ── Dependencies and build output. The image builds these itself.
+node_modules
+**/node_modules
+dist
+**/dist
+.next
+**/.next
+.turbo
+**/.turbo
+storybook-static
+**/storybook-static
+*.tsbuildinfo
+
+# ── Local state that must never reach an image.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Version control and CI.
+.git
+.gitignore
+.github
+.husky
+
+# ── Editor and OS noise.
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# ── Documentation and specification. Large, and no build step reads it.
+docs
+*.md
+!README.md
+
+# ── Test and coverage artefacts.
+coverage
+**/coverage
+playwright-report
+test-results
+
+# NOTE: `patches/` is deliberately NOT ignored. `pnpm install --frozen-lockfile` applies it, and
+# an image built without it silently differs from every other environment (`SB-26`).

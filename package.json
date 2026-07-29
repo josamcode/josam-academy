@@ -12,6 +12,7 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
+    "lint:hook": "eslint . --max-warnings=0 --no-warn-ignored",
     "lint:css": "stylelint \"{apps,packages}/**/*.css\" --allow-empty-input",
     "test": "turbo run test",
     "format": "prettier --write .",

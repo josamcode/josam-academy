@@ -1,0 +1,189 @@
+# `PH-0.10` — lint → typecheck → test → build → push to ghcr.io.
+#
+# No deploy step. `PH-0.11` adds that once `PH-0.9` has hardened Coolify; this workflow ends at a
+# tagged image in the registry, which is `BR-885`'s requirement — nothing builds on the server.
+#
+# **This is the only gate on `main`.** Branch protection is unavailable on private repositories on
+# the current plan, so nothing server-side prevents a direct push and nothing blocks a merge on a
+# red run. The pre-commit hook and commitlint are the local line of defence and are bypassable with
+# `--no-verify`. Treat a red run here as a broken `main`, not as a blocked pull request.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  # One run per ref. A superseded push has nothing to say that its successor does not.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege by default; the publish job widens it for itself alone (`BR-1704`).
+permissions:
+  contents: read
+
+env:
+  # `BR-1810` — identical to `engines.node`, `.nvmrc`, `packageManager` and every Dockerfile base.
+  NODE_VERSION: '24.18.0'
+  PNPM_VERSION: '11.17.0'
+
+jobs:
+  verify:
+    name: lint · typecheck · test · build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install
+        # `--frozen-lockfile` fails rather than silently resolving differently from the lockfile,
+        # which is the entire reason the lockfile is committed. It also applies `patches/` —
+        # `jsdom@30.0.0` is patched, and without it six specs fail inside node_modules (`SB-26`).
+        run: pnpm install --frozen-lockfile
+
+      # ── Lint, BOTH ways ──────────────────────────────────────────────────────────────────
+      #
+      # `SB-15`, and this is not redundancy. The two invocations see different things:
+      #
+      #   `turbo run lint`  runs `eslint .` INSIDE each workspace, so each has its own tsconfig
+      #                     root and its own parser project.
+      #   `lint:hook`       runs eslint ONCE from the repository root across every workspace,
+      #                     exactly as the pre-commit hook does.
+      #
+      # At `PH-0.2` the second caught a real parser defect — a missing `tsconfigRootDir`, reported
+      # as "multiple candidate TSConfigRootDirs" on 14 files — that the first structurally cannot
+      # see. A CI that only runs turbo goes green on code the hook rejects, and the bug resurfaces
+      # in a pull request instead of locally.
+      - name: Lint (per workspace, via turbo)
+        run: pnpm lint
+
+      - name: Lint (root-level, the pre-commit hook path)
+        run: pnpm lint:hook
+
+      - name: Lint styles
+        run: pnpm lint:css
+
+      - name: Check formatting
+        # `--check`, never `--write`. A CI job that reformats is a CI job that can hide a diff from
+        # the person who has to review it (`BR-1834` — assert an autofixer's output, do not run it).
+        run: pnpm format:check
+
+      - name: Check module boundaries
+        run: pnpm check:deps
+
+      - name: Check translation catalogs
+        # `BR-524` — Arabic defines the key space, so a missing Arabic string must not compile and
+        # an English key with no Arabic counterpart is a catalog that lies about its coverage.
+        run: pnpm check:catalogs
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      # ── The proof that the enforcement is real ───────────────────────────────────────────
+      #
+      # `BR-1831`. 35 deliberate violations, each of which must fail the build. Three of the
+      # original fitness functions were **silently dead** when written — they loaded cleanly and
+      # enforced nothing — and only this suite found them. A proof that re-runs when somebody
+      # remembers is not a safety net, so it runs on every push next to lint.
+      #
+      # It writes and deletes files under `packages/` and `apps/`, so it runs after `build`: a
+      # failure mid-case would otherwise leave a violation file behind for the build to compile.
+      - name: Verify fitness functions (BR-1725)
+        run: pnpm verify:fitness
+
+      - name: Fail if the fitness run left the tree dirty
+        # Every case is supposed to restore the tree before the next runs. If one aborted midway,
+        # a violation file is still on disk — and a green run that leaves the repository modified
+        # is a green run nobody should trust.
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::verify:fitness left the working tree dirty — a case aborted mid-way"
+            git status --porcelain
+            exit 1
+          fi
+
+  publish:
+    name: build and push images
+    needs: verify
+    # Pull requests get the gate, not the registry. An image per PR fills the package store with
+    # tags nothing will ever deploy, and a fork PR cannot be given a write token safely.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      # One app's failure must not cancel the other's push: a half-published pair is recoverable,
+      # a cancelled one leaves no record of which succeeded.
+      fail-fast: false
+      matrix:
+        app: [api, web]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # The workflow-scoped token. No founder-held secret is involved, which is why this task
+          # needed nothing from the server or from a credential store.
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ matrix.app }}
+          # `BR-886` — the SHA tag is the rollback handle: redeploying a previous release is
+          # redeploying its tag. `latest` is a convenience for `docker pull` and must never be
+          # what a deployment references, because it names a different image every push.
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/${{ matrix.app }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # GitHub's cache backend, scoped per app so the two do not evict each other.
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+
+      - name: Report the deployable tag
+        run: |
+          echo "### \`${{ matrix.app }}\` image published" >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Deploy and roll back by SHA tag, never by `latest` (BR-886):' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo 'ghcr.io/${{ github.repository }}/${{ matrix.app }}:sha-${{ github.sha }}' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

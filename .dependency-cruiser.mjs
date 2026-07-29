@@ -34,6 +34,9 @@ export default {
           '\\.spec\\.tsx?$',
           // Tool entry points. Nothing imports a config file; a runner loads it.
           '(^|/)(eslint|prettier|stylelint|vitest|next|commitlint|lint-staged|postcss|prisma)\\.config\\.[cm]?[jt]s$',
+          // Same class: a `setupFiles` entry is a path a runner loads, not an import. Added at
+          // PH-0.10 so the run is clean — a standing warning is where the next real one hides.
+          '(^|/)vitest\\.setup\\.ts$',
           'apps/web/\\.storybook/',
           // Next.js routes are entry points the framework discovers, not modules anything imports.
           'apps/web/app/',
