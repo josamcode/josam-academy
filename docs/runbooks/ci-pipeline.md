@@ -72,6 +72,55 @@ omitting one `COPY` produces a site that renders with no CSS and reports itself 
 
 ---
 
+## Generated state — the rule this pipeline learned the hard way
+
+`BR-1838`. CI run #2 failed with 21 `no-unsafe-*` errors across the three Prisma files. Nothing was
+wrong with them: `prisma generate` writes a gitignored directory that had existed on the
+development machine since `PH-0.6`, so `pnpm lint` passed locally every time it was run and could
+not have caught it at any point.
+
+Three artifacts in this repository are generated and gitignored:
+
+| Artifact                  | Produced by                                  | Needed by                     |
+| ------------------------- | -------------------------------------------- | ----------------------------- |
+| `apps/api/src/generated/` | `apps/api` `postinstall` → `prisma generate` | lint, typecheck, test, build  |
+| `packages/*/dist/`        | `turbo run build --filter=./packages/*`      | `lint:hook`, `apps/web` build |
+| `apps/web/.next/`         | `next build`                                 | the image only                |
+
+The workflow produces all three **before anything verifies**, in one step, deliberately not relying
+on a later step having gone first. `lint:hook` does not go through turbo, so it never builds its own
+inputs — before this, it passed only because `turbo run lint` happened to precede it.
+
+### The standing check
+
+Delete every gitignored build artifact and run the full verification. Anything that fails was never
+being verified.
+
+```bash
+rm -rf node_modules apps/*/node_modules packages/*/node_modules
+rm -rf packages/*/dist apps/api/dist apps/api/src/generated apps/web/.next
+pnpm install --frozen-lockfile
+pnpm turbo run db:generate && pnpm turbo run build --filter=./packages/*
+pnpm lint && pnpm lint:hook && pnpm typecheck && pnpm test && pnpm build && pnpm verify:fitness
+```
+
+Worth running before any change to the pipeline, and once before Phase 0 exit.
+
+---
+
+## Local setup — one command per machine
+
+```bash
+pnpm exec turbo telemetry disable
+```
+
+Turborepo reports anonymous usage by default. The CI workflow sets `TURBO_TELEMETRY_DISABLED=1`,
+but that variable is the only **repository-scoped** switch — `turbo telemetry disable` writes to a
+per-user config outside the repository, so it cannot be committed and has to be run once per
+machine. Stated here rather than assumed.
+
+---
+
 ## Founder checklist
 
 Nothing here needs the server, and nothing here needs a credential to be handed over. The registry
@@ -150,14 +199,15 @@ it. Knowing what red looks like is the difference between a gate and a decoratio
 
 ## Recovery
 
-| Symptom                                                | Cause                                                                                         | Fix                                                                  |
-| ------------------------------------------------------ | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `denied: permission_denied` at the push step           | Workflow permissions are read-only                                                            | Founder checklist step 1                                             |
-| `ERR_PNPM_OUTDATED_LOCKFILE`                           | A `package.json` changed without `pnpm install` being committed                               | Run `pnpm install` locally and commit `pnpm-lock.yaml`               |
-| Fitness step fails but the same command passes locally | Almost always a real difference: CI installs from the lockfile, a local tree may have drifted | Run `pnpm install --frozen-lockfile` locally, then re-run            |
-| "left the working tree dirty"                          | A `verify:fitness` case aborted midway and left a violation file                              | Read the printed `git status`; the named file is the case that broke |
-| Web image serves pages with no styling                 | `.next/static` was not copied beside the standalone server                                    | Both `COPY` lines in `apps/web/Dockerfile` — see the comment there   |
-| Image builds, container exits immediately              | A missing runtime file, usually a workspace symlink                                           | `docker run --entrypoint sh -it <image>` and look                    |
+| Symptom                                                | Cause                                                                                         | Fix                                                                                                   |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `denied: permission_denied` at the push step           | Workflow permissions are read-only                                                            | Founder checklist step 1                                                                              |
+| A wall of `no-unsafe-*` errors on files that are fine  | A generated artifact is missing — almost always the Prisma client (`BR-1838`)                 | `pnpm install` regenerates it via `postinstall`; if a schema was edited, `pnpm turbo run db:generate` |
+| `ERR_PNPM_OUTDATED_LOCKFILE`                           | A `package.json` changed without `pnpm install` being committed                               | Run `pnpm install` locally and commit `pnpm-lock.yaml`                                                |
+| Fitness step fails but the same command passes locally | Almost always a real difference: CI installs from the lockfile, a local tree may have drifted | Run `pnpm install --frozen-lockfile` locally, then re-run                                             |
+| "left the working tree dirty"                          | A `verify:fitness` case aborted midway and left a violation file                              | Read the printed `git status`; the named file is the case that broke                                  |
+| Web image serves pages with no styling                 | `.next/static` was not copied beside the standalone server                                    | Both `COPY` lines in `apps/web/Dockerfile` — see the comment there                                    |
+| Image builds, container exits immediately              | A missing runtime file, usually a workspace symlink                                           | `docker run --entrypoint sh -it <image>` and look                                                     |
 
 There is no production impact from anything in this runbook: the pipeline touches a registry and
 nothing else. The first change that can affect a running service is `PH-0.11`.

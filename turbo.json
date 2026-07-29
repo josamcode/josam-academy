@@ -3,20 +3,37 @@
   "ui": "stream",
   "globalDependencies": [".nvmrc", ".npmrc"],
   "tasks": {
+    // Prisma's client is GENERATED, not published. `apps/api/src/generated/` is gitignored, so a
+    // clean checkout has no PrismaClient type at all and every no-unsafe-* rule fires at once.
+    // CI run #2 failed exactly this way (BR-1838).
+    //
+    // `postinstall` in apps/api is the PRIMARY mechanism: it makes "installed" imply "generated"
+    // in every environment, including the paths that never touch turbo. This task closes a
+    // second, narrower hole — a schema edited without a reinstall, where postinstall does not
+    // re-run.
+    //
+    // It also makes turbo's cache honest. Turbo hashes git-tracked files, and this directory is
+    // ignored, so deleting it changed no cache key: `pnpm lint` REPLAYED a green result against a
+    // tree that could not lint. Declaring the output means turbo restores the client rather than
+    // assuming it is present.
+    "db:generate": {
+      "inputs": ["prisma/schema.prisma"],
+      "outputs": ["src/generated/**"]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "db:generate"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "db:generate"],
       "outputs": []
     },
     "lint": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "db:generate"],
       "outputs": []
     },
     "test": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "db:generate"],
       "outputs": []
     },
     "dev": {

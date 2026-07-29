@@ -5,6 +5,7 @@
   "description": "NestJS API. Scaffolded at PH-0.3.",
   "main": "./dist/main.js",
   "scripts": {
+    "postinstall": "prisma generate",
     "build": "prisma generate && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",

@@ -223,6 +223,66 @@ each, so no gap is mistaken for coverage.
 
 ---
 
+### 2026-07-29 · PH-0.10 (fix) — the generated-state hole, found by CI run #2
+
+**By:** AI
+**Time:** +0.35 d (`PH-0.10` running total 0.95 d against 1.0 estimated)
+
+**What failed.** 21 errors across the three Prisma files, all `no-unsafe-*`. Not a code defect:
+`prisma generate` writes `apps/api/src/generated/`, which is gitignored. It ran once at `PH-0.6`
+and has existed on the development machine ever since, so `pnpm lint` passed there every time. On a
+clean checkout the directory does not exist, `PrismaClient` resolves to an error type, and every
+`no-unsafe-*` rule fires at once.
+
+**The property that matters: `pnpm lint` could not have caught this locally at any point.** It was
+not a skipped check or a weak rule. Its inputs were being supplied by history.
+
+**Where the fix went, and why not the alternatives.**
+
+`postinstall` in `apps/api`, so "installed" implies "generated".
+
+- **Not an explicit CI step.** It would have fixed CI and left a clean local clone broken — the
+  divergence that caused this in the first place.
+- **Not a turbo `dependsOn` alone.** `lint:hook` never goes through turbo; that is the entire
+  reason it exists (`SB-15`). A turbo-only fix leaves uncovered exactly the path that caught the
+  last defect of this class.
+- A turbo `db:generate` task **was** added as well, closing a second, narrower hole: a schema
+  edited without a reinstall, where `postinstall` does not re-run.
+
+**Two more instances, found by asking the same question of everything else generated.**
+
+1. **`packages/tokens` and `packages/i18n` `dist/`.** `packages/ui` and `apps/web` resolve them
+   through built output. Deleting it produces **38 errors** of the identical shape. CI passed only
+   because `turbo run lint` builds them via `^build` and happened to run _before_ `lint:hook`,
+   which does not. Reordering two steps would have reproduced run #2. The workflow now has an
+   explicit "produce every generated input" step ahead of all verification, so neither lint path
+   depends on the other having gone first.
+2. **The build cache replayed a green result.** Turbo hashes git-tracked files; the generated
+   directory is ignored, so deleting it changed no cache key and `pnpm lint` **replayed a cached
+   PASS against a tree that could not lint**. Declaring `outputs: ["src/generated/**"]` makes turbo
+   restore the client instead of assuming it. Verified: delete the client, run `pnpm lint`, and the
+   cache now _restores_ it rather than skipping past.
+
+**Docker was confirmed, not assumed — and it broke.** Adding `postinstall` made
+`pnpm install --frozen-lockfile` fail in the deps stage, which copies only `package.json` files:
+`prisma generate` had no schema. The Prisma schema is now an input to the **install** rather than
+to the build, copied in both Dockerfiles before install. Both images rebuilt, both run, API boots
+as `node` and maps `/health`, web serves all five route groups 200.
+
+**Proven against a genuinely clean tree**, which is the only proof that counts here: every
+gitignored artifact deleted, `node_modules` removed, `pnpm install --frozen-lockfile`, then the
+full sequence. `lint:hook` went from 38 errors to 0. `verify:fitness` **36 caught, 0 NOT caught**.
+
+**Recorded as `BR-1838`** in `12 §19.1`, beside `BR-1830` and `BR-1837`, with all three instances
+and the standing check: delete every gitignored build artifact, then run the full verification —
+anything that fails was never being verified.
+
+**Two warnings from the run.** `pnpm/action-setup@v4` targets Node 20, which GitHub is deprecating
+— logged as `SB-29` against the Renovate policy that will surface the bump. Turborepo telemetry was
+on by default and is now off (`SB-30`, closed).
+
+---
+
 ### 2026-07-29 · PH-0.10 — CI pipeline: lint → typecheck → test → build → ghcr.io
 
 **By:** AI authored and **verified locally**; three founder settings outstanding
@@ -1851,6 +1911,8 @@ functioning in TypeScript 7.0`, exit 2.
 
 | ID          | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Reason deferred                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Revisit at                                                                                                                   |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `SB-29`     | **`pnpm/action-setup@v4` runs on Node 20, which GitHub is deprecating.** The warning appears on every CI run and is not blocking.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Renovate manages GitHub Actions majors under manual review (`13 §16.1`, `BR-1828` neighbours), so the bump will arrive as a PR rather than needing to be remembered. Until then the action works; the deprecation removes the Node 20 runtime from runners at a date GitHub has not fixed. Do not pre-emptively pin to a fork or a SHA — the Renovate PR is the intended path, and this row exists so the warning is not mistaken for noise when it appears.                                                                                                                                            | **When Renovate opens the PR**, or Phase 0 exit, whichever is first                                                          |
+| ~~`SB-30`~~ | ~~Turborepo telemetry is enabled by default and nobody opted in.~~ **Closed 2026-07-29.**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | ✅ `TURBO_TELEMETRY_DISABLED=1` is set for the whole CI workflow, alongside `NEXT_TELEMETRY_DISABLED`. The variable is the only repository-scoped switch — `turbo telemetry disable` writes to a per-user config outside the repository — so the **local** opt-out is a one-time command per machine and is documented in `docs/runbooks/ci-pipeline.md` rather than assumed.                                                                                                                                                                                                                           | ✅ **Done**                                                                                                                  |
 | ~~`SB-28`~~ | ~~`BR-1544` is honoured by `PH-0.25`'s five fields only.~~ **Closed by `PH-0.29`, 2026-07-29.** The count was wrong when raised — nineteen of twenty-four fields, not sixteen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ✅ **Closed.** One `Availability` union for all 24 fields, `OptionAvailability` for options, and fitness cases **33**–**35** so it cannot recur: a bare `disabled?: boolean` fails lint, `disabled: true` without a reason fails typecheck, and `readOnly` with `disabled` fails typecheck.                                                                                                                                                                                                                                                                                                             | ✅ **Done**                                                                                                                  |
 | `SB-26`     | **A patched dependency (`patches/jsdom@30.0.0.patch`) and the geometry it does not restore.** jsdom's `getComputedStyle` throws on any `calc()` mixing a percentage with a length; the patch adds the missing null guard. Separately, `packages/ui/vitest.setup.ts` shims `ResizeObserver`, `scrollIntoView` and pointer capture, none of which jsdom can implement without a layout engine.                                                                                                                                                                                                                                                                                                           | The patch is upstream-correct and should be **dropped when jsdom ships the fix** — `src/test-environment.spec.tsx` exists so its absence fails loudly rather than as a stack trace inside `node_modules`. The shims are deliberately **inert**, so component specs prove semantics, keyboard operation, ARIA wiring and value flow, and prove **nothing** about popover placement, scroll-into-view or viewport collision. That surface is covered only by Storybook in a real browser, which is why a green `pnpm test` is not by itself evidence that a floating control is positioned correctly.     | **Phase 0 exit** — recheck jsdom upstream; **`PH-0.27`** depends on it most (`Popover`, `Tooltip`, `DropdownMenu`, `Drawer`) |
 | `SB-27`     | **`jsx-a11y/control-has-associated-label` is scoped off for `packages/ui/src/fields/**`.** `FormField` owns the `<label htmlFor>` and each field body owns the control carrying the matching id, so the association is real at runtime and structurally invisible to a rule that reads one JSX tree at a time.                                                                                                                                                                                                                                                                                                                                                                                         | Scoping a rule is indistinguishable from disabling it unless the remaining coverage is proven, so fitness case **28** asserts the rule still fails a build in `apps/web`. The compensating controls inside the scope are stronger than the rule: `useFormField()` throws outside a `FormField`, every field spec locates its control with `getByLabelText` (which resolves through the accessibility tree), and axe runs over all four theme/direction combinations. Revisit if a field body is ever written that does **not** go through `FormField` — at that point the scope is wrong, not the rule. | **Phase 0 exit**                                                                                                             |

@@ -18,6 +18,13 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
 COPY patches ./patches
 COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
+
+# The Prisma schema is an INPUT TO THE INSTALL, not to the build. `apps/api`'s `postinstall` runs
+# `prisma generate`, so `pnpm install` fails here without it — which is the point: the generated
+# client is now a property of having installed, in this image exactly as on a laptop and in CI
+# (`BR-1838`). It changes rarely, so it costs the cache almost nothing.
+COPY apps/api/prisma.config.ts ./apps/api/
+COPY apps/api/prisma ./apps/api/prisma
 COPY packages/config/package.json ./packages/config/
 COPY packages/i18n/package.json ./packages/i18n/
 COPY packages/tokens/package.json ./packages/tokens/

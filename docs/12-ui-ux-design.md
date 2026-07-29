@@ -1195,6 +1195,46 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   called wrong — because the assertions never checked which field received focus. `BR-1835` says
   make the test fail first; this says make sure the thing it fails on is the thing that matters.
 
+- `BR-1838` — **Verification that depends on generated state is not verification until it has run
+  against a clean tree.** A build artifact that exists on the machine where a check was written
+  hides every failure that depends on its absence, and no amount of running that check locally can
+  reveal it.
+
+  Observed at `PH-0.10`, CI run #2. `prisma generate` writes `apps/api/src/generated/`, which is
+  gitignored. It ran once during `PH-0.6` and has existed on the development machine ever since,
+  so `pnpm lint` passed there every time it was run. On a clean checkout the directory does not
+  exist, `PrismaClient` resolves to an error type, and **every `no-unsafe-*` rule fires at once** —
+  21 errors across three files, none of which had anything wrong with them.
+
+  The critical property: **`pnpm lint` could not have caught this locally at any point.** It was
+  not a check that was skipped, or a rule that was too weak. It was a check whose inputs were
+  silently supplied by history.
+
+  Two further instances surfaced the moment the question was asked of everything else generated:
+
+  1. **`packages/tokens` and `packages/i18n` `dist/`.** `packages/ui` and `apps/web` resolve them
+     through built output, also gitignored. Removing it produces 38 errors of the identical shape.
+     CI passed only because `turbo run lint` builds them via `^build` and happened to run **before**
+     `lint:hook`, which does not. Reordering two steps would have reproduced run #2 exactly. That
+     is not a passing check; it is a failing check that has not been asked yet.
+  2. **The build cache replayed a green result.** Turborepo hashes git-tracked files. The generated
+     directory is ignored, so deleting it changed no cache key, and `pnpm lint` **replayed a cached
+     PASS against a tree that could not lint**. A cache that does not know about an input cannot
+     know the input is missing.
+
+  What follows:
+
+  - Generated artifacts are produced by **installing**, not by remembering to run a command.
+    `prisma generate` belongs in `postinstall`, so "installed" implies "generated" in CI, in a
+    clean clone, in the Docker image and in an editor. A CI-only step fixes CI and leaves the
+    clean clone broken, which is the divergence that caused this.
+  - Every generated artifact is **declared to the build system** with its inputs and outputs, so
+    the cache can neither miss its absence nor replay around it.
+  - A pipeline step that produces generated inputs produces **all** of them. One that produces some
+    is the same defect wearing a reassuring label.
+  - The check is: delete every gitignored build artifact, then run the full verification. Anything
+    that fails was never being verified.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

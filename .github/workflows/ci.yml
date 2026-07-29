@@ -30,6 +30,14 @@ env:
   NODE_VERSION: '24.18.0'
   PNPM_VERSION: '11.17.0'
 
+  # Turborepo reports anonymous usage data by default. This is a public repository and nobody opted
+  # in, so it is off. The variable is the only repository-scoped switch — `turbo telemetry disable`
+  # writes to a per-user config outside the repo, which is why it is also in the local-setup notes
+  # rather than assumed.
+  TURBO_TELEMETRY_DISABLED: '1'
+  # Same reasoning for the Next.js build, which the web image also sets.
+  NEXT_TELEMETRY_DISABLED: '1'
+
 jobs:
   verify:
     name: lint · typecheck · test · build
@@ -52,7 +60,32 @@ jobs:
         # `--frozen-lockfile` fails rather than silently resolving differently from the lockfile,
         # which is the entire reason the lockfile is committed. It also applies `patches/` —
         # `jsdom@30.0.0` is patched, and without it six specs fail inside node_modules (`SB-26`).
+        #
+        # This step also runs `apps/api`'s `postinstall`, which is where `prisma generate` lives.
+        # The Prisma client is generated and gitignored, so a clean checkout has no `PrismaClient`
+        # type and every `no-unsafe-*` rule fires at once — 21 errors across three files, which is
+        # how CI run #2 failed. Making it a `postinstall` rather than a step here is deliberate:
+        # a CI-only step would have fixed CI and left a clean local clone broken, and the whole
+        # lesson is that the two must not diverge (`BR-1838`).
         run: pnpm install --frozen-lockfile
+
+      # ── Generated inputs, before ANYTHING verifies ────────────────────────────────────────
+      #
+      # `packages/ui` and `apps/web` resolve `@josam/tokens` and `@josam/i18n` through their built
+      # `dist/`, which is gitignored. Without it, `lint:hook` produces 38 errors of exactly the
+      # same shape as the Prisma failure — `no-unsafe-*` cascading from types that cannot resolve.
+      #
+      # `turbo run lint` would build them itself via `^build`. `lint:hook` would not, and it only
+      # passed because the turbo step happened to run first. That is a real defect standing one
+      # step away: reorder these two and CI fails the way run #2 did. Building the shared packages
+      # explicitly means neither path depends on the other having gone first (`BR-1838`).
+      - name: Produce every generated input
+        # Self-sufficient on purpose: it regenerates the Prisma client too, rather than trusting
+        # that `postinstall` ran. Both are cheap and cached, and a step named "generated inputs"
+        # that produces only some of them is the same defect wearing a reassuring label.
+        run: |
+          pnpm turbo run db:generate
+          pnpm turbo run build --filter=./packages/*
 
       # ── Lint, BOTH ways ──────────────────────────────────────────────────────────────────
       #
