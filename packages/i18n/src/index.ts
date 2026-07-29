@@ -30,4 +30,12 @@ export { en } from './catalogs/en.js';
 
 export { interpolate, translate, type TranslateParams, translator } from './translate.js';
 
-export { formatDate, formatMoney, formatNumber, formatPercent } from './format.js';
+export {
+  currencyFractionDigits,
+  formatDate,
+  formatMoney,
+  formatNumber,
+  formatPercent,
+  fromMinorUnits,
+  toMinorUnits,
+} from './format.js';

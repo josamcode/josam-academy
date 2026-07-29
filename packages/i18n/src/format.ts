@@ -39,12 +39,44 @@ export function formatPercent(locale: Locale, fraction: number, fractionDigits =
 }
 
 /**
- * `BR-826` — all monetary values are stored as **integer minor units** with an explicit currency
- * code; floating-point money is prohibited. So this takes minor units and the currency, and does
- * the scaling itself using the currency's own exponent rather than assuming 100.
+ * How many minor units make one major unit of `currency` — 100 for EGP and USD, 1000 for JOD,
+ * KWD and BHD, 1 for JPY.
  *
- * Assuming two decimal places is wrong for JOD and KWD (three) and for JPY (zero) — all
- * plausible for this audience, and the kind of bug that only appears once real money moves.
+ * Every conversion in the codebase goes through here. It exists because it did not: `PH-0.13`
+ * got the exponent right in `formatMoney` and `PH-0.22` then hardcoded `* 100` in
+ * `CurrencyField`, so a JOD amount typed as 12.345 was stored as 1235 and rendered back as
+ * 1.235 — a tenfold error, on money, that both sides of the round trip agreed on.
+ *
+ * `BR-1355` — abstraction on the third use. This is the third (`formatMoney`, `toMinorUnits`,
+ * `fromMinorUnits`), and the alternative is the same constant written in three places, which is
+ * how the first two disagreed.
+ */
+export function currencyFractionDigits(currency: string): number {
+  return (
+    new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions()
+      .maximumFractionDigits ?? 2
+  );
+}
+
+/**
+ * Major units in, integer minor units out (`BR-826`).
+ *
+ * **Rounds, never truncates.** `0.29 * 100` is `28.999999999999996` in IEEE 754, so truncation
+ * yields 28 — a one-piastre undercharge on a value the user typed exactly. 1,145 of the 20,000
+ * amounts under 200.00 truncate to the wrong integer, so this is not an edge case.
+ */
+export function toMinorUnits(major: number, currency: string): number {
+  return Math.round(major * 10 ** currencyFractionDigits(currency));
+}
+
+/** Integer minor units in, major units out. The inverse of `toMinorUnits`. */
+export function fromMinorUnits(minorUnits: number, currency: string): number {
+  return minorUnits / 10 ** currencyFractionDigits(currency);
+}
+
+/**
+ * `BR-826` — monetary values are integer minor units with an explicit currency code;
+ * floating-point money is prohibited.
  */
 export function formatMoney(locale: Locale, minorUnits: number, currency: string): string {
   if (!Number.isInteger(minorUnits)) {
@@ -53,10 +85,9 @@ export function formatMoney(locale: Locale, minorUnits: number, currency: string
     );
   }
 
-  const formatter = numberFormatter(locale, { style: 'currency', currency });
-  const digits = formatter.resolvedOptions().maximumFractionDigits ?? 2;
-
-  return formatter.format(minorUnits / 10 ** digits);
+  return numberFormatter(locale, { style: 'currency', currency }).format(
+    fromMinorUnits(minorUnits, currency),
+  );
 }
 
 const dateFormatters = new Map<string, Intl.DateTimeFormat>();

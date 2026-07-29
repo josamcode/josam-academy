@@ -106,6 +106,36 @@ describe('BR-826 — CurrencyField stores integer minor units', () => {
     });
   });
 
+  it('uses the CURRENCY exponent, not a hardcoded 100', async () => {
+    // JOD has three decimal places. Hardcoded, 12.345 stored 1235 and formatMoney rendered it
+    // back as 1.235 — a tenfold error both halves of the round trip agreed on.
+    const { submitted, user } = harness(<CurrencyField currency="JOD" />);
+
+    await user.type(screen.getByLabelText(/Value/), '12.345');
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+
+    await waitFor(() => {
+      expect(submitted).toHaveBeenCalledWith(
+        expect.objectContaining({ value: 12345 }),
+        expect.anything(),
+      );
+    });
+  });
+
+  it('JPY has no minor unit, so the integer passes through unscaled', async () => {
+    const { submitted, user } = harness(<CurrencyField currency="JPY" />);
+
+    await user.type(screen.getByLabelText(/Value/), '12345');
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+
+    await waitFor(() => {
+      expect(submitted).toHaveBeenCalledWith(
+        expect.objectContaining({ value: 12345 }),
+        expect.anything(),
+      );
+    });
+  });
+
   it('rounds rather than truncating, and this is not a rare edge', () => {
     // The first version of this test named 49.90 as the failing case. It is not:
     // 49.9 * 100 is 4990.000000000001, which truncates correctly. The real failures are the

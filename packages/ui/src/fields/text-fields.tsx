@@ -2,6 +2,7 @@
 
 import { Eye, EyeOff } from 'lucide-react';
 import { type ChangeEvent, type ReactNode, useCallback, useRef, useState } from 'react';
+import { toMinorUnits } from '@josam/i18n';
 import { useWatch } from 'react-hook-form';
 
 import { useFieldControl, useFormField } from '../form/FormField.js';
@@ -221,19 +222,20 @@ export interface CurrencyFieldProps {
 }
 
 /**
- * `BR-826` — money is integer **minor units**. The user types major units, and the field stores
- * minor: 49.90 in, 4990 held.
+ * `BR-826` — money is integer **minor units**. The user types major units, the field stores minor.
  *
- * The conversion **rounds**, never truncates. `0.29 * 100` is `28.999999999999996` in IEEE 754,
- * so truncation yields 28 — a one-piastre undercharge on a value the user typed exactly. That is
- * not a rare edge: 1,145 of the 20,000 amounts under 200.00 truncate to the wrong integer.
+ * The conversion goes through `toMinorUnits` in `@josam/i18n`, which uses the **currency's own
+ * exponent**. This file originally hardcoded `* 100`, which is right for EGP and wrong for every
+ * three-decimal currency and for JPY: a JOD amount typed as 12.345 was stored as 1235 and rendered
+ * back by `formatMoney` as 1.235 — a tenfold error that both halves of the round trip agreed on,
+ * so nothing looked inconsistent. Found by auditing every money path after PH-0.22.
  */
 export function CurrencyField({ currency, disabled = false }: CurrencyFieldProps) {
   const control = useFieldControl({
     setValueAs: (value: unknown) => {
       if (typeof value !== 'string' || value.trim() === '') return undefined;
       const major = Number(value);
-      return Number.isFinite(major) ? Math.round(major * 100) : undefined;
+      return Number.isFinite(major) ? toMinorUnits(major, currency) : undefined;
     },
   });
 
