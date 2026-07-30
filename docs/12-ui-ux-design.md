@@ -1348,6 +1348,36 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   tasks. When a cycle is found, look for the leaf — it is usually the only legal fix, and it is
   usually obvious once the graph is drawn from the data rather than from the feature names.
 
+- `BR-1844` — **A task runner that filters the environment will hide a missing variable behind a
+  local dotenv file.** Declare every variable a task needs to the runner, and verify by running
+  with the dotenv file MOVED ASIDE.
+
+  **Worked example — `PH-1.1` to `PH-1.4`, 2026-07-30.** `turbo.json` declared no `env` keys.
+  Turbo 2 runs tasks in strict env mode: a task receives only what is declared, and undeclared
+  variables are removed from the task environment entirely — not merely excluded from the cache
+  key, which is what the option looks like it does.
+
+  Locally this was **undetectable**. `apps/api/.env` exists and the vitest setup loads
+  `dotenv/config`, so the values arrive inside the test process from the file and never travel
+  through the task runner. CI has no `.env`, so the same suites read the process environment,
+  where the runner had already stripped them. **Every local gate passed and CI was red for four
+  consecutive tasks.**
+
+  **The check is to run the suite with the dotenv file moved aside and the variables supplied
+  only through the process environment, with the runner's cache forced off.** Both halves matter:
+  without moving the file you test dotenv, and without forcing the cache you may replay a green
+  result computed under different conditions.
+
+  Same family as `BR-1838` — verification that depends on state a clean environment does not
+  produce. There, generated files; here, environment variables. The tell is identical: *the local
+  gate could not have caught it at any point*, so its passing was never evidence.
+
+  **Corollary, and it is the expensive half.** Four tasks were reported done on a green local gate
+  while the authoritative check was red. `BR-1761` says a task is done when its Output exists and
+  CI is green. When CI cannot be observed from where the work happens, the task **stops** and
+  somebody who can see it looks. "Committed and pushed" is a description of an action, never of a
+  result.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

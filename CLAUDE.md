@@ -48,6 +48,20 @@ For every task, in this exact order. **Do not batch tasks.** One task, one verif
              Paste the real terminal output. Never claim success not observed.
              Every new assertion is made to FAIL once before it is trusted
              (BR-1835) — a green test you have never seen red proves nothing.
+
+             THE LOCAL GATE IS NOT THE GATE. A task is not done until CI is
+             GREEN ON THE PUSHED COMMIT (BR-1761). The local run and CI diverged
+             for FOUR CONSECUTIVE TASKS — PH-1.1 to PH-1.4 — and nothing
+             detected it, because "committed and pushed" was being reported as
+             though it were verification (BR-1518).
+
+             CI cannot be observed from this environment: there is no `gh`.
+             Therefore:
+               - NEVER write "committed and pushed" in a way that reads as done.
+               - After pushing, the task STOPS and the founder checks CI.
+               - If CI is red, the task is NOT done, whatever the local gate said.
+             An unobservable check is not a check that passed. It is one nobody
+             looked at (BR-1830).
 5  RECORD    update STATUS.md — Work Log entry, progress table, current/next
              task, actual vs estimated time, AND **calendar days elapsed**.
              Update the task queue in §5 here.
@@ -248,6 +262,27 @@ and the second instance in this file.
 > once from the repository root across every workspace. The second path caught a real parser
 > defect at `PH-0.2` that the first structurally cannot see. A CI that only runs turbo goes green
 > on code the hook rejects, and the bug resurfaces in a pull request instead of locally.
+
+> **`PH-1.1` – `PH-1.4` are NOT DONE.** They were reported complete on 2026-07-30 and CI has been
+> RED for all four. The last green commit is `4097f46`, which is docs-only. The code may well be
+> correct — every local gate passed and every deliberate-failure probe caught — but **four tasks
+> were closed on evidence that never existed**, which is `BR-1761` and `BR-1518` exactly.
+>
+> **Root cause: `turbo.json` declared no `env` keys.** Turbo 2 runs tasks in strict env mode, so a
+> task receives ONLY the variables declared for it; undeclared ones are filtered out entirely,
+> not merely excluded from the cache key. `DATABASE_URL`, `REDIS_URL` and `JWT_SECRET` never
+> reached the test process.
+>
+> **Why it was invisible locally.** `apps/api/.env` exists and `vitest.setup.ts` loads
+> `dotenv/config`, so those values arrive INSIDE the vitest process from the file and never pass
+> through turbo at all. CI has no `.env`, so the same suites read the process environment — where
+> turbo had already removed them. The local gate could not have caught this at any point, which is
+> the same shape as `BR-1838`.
+>
+> Fixed in `turbo.json` (`env` declared on `test`) and in the workflow (a Redis service, job-level
+> env, and a preflight that fails naming the missing variable). Verified by reproducing CI locally:
+> `.env` moved aside, variables supplied through the process environment, `--force` to defeat the
+> cache — **947 tests, 10/10 tasks green**. They stay NOT DONE until CI itself is green.
 
 > **`PH-0.9` is EXECUTED and 🟡 PARTIAL — the limits half only, and it is not done.** Three things
 > outstanding, none of them "it mostly worked": **§6.5**, the next-day `restarts=0` / `oom=false`

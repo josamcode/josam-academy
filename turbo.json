@@ -32,8 +32,31 @@
       "dependsOn": ["^build", "db:generate"],
       "outputs": []
     },
+    // `env` is the ROOT CAUSE of CI being red for four consecutive tasks, and it is worth the
+    // length because the failure was invisible from a developer machine.
+    //
+    // Turbo 2 runs tasks in STRICT env mode: a task receives only the variables declared here.
+    // Undeclared ones are filtered out entirely — not merely excluded from the cache key.
+    //
+    // Locally that was undetectable. `apps/api/.env` exists and `vitest.setup.ts` loads
+    // `dotenv/config`, so these values arrive INSIDE the vitest process from the file and never
+    // pass through turbo at all. CI has no `.env`, so the same suites must read them from the
+    // process environment — where turbo had already removed them. Every local gate passed while
+    // CI failed, for four tasks, and nothing connected the two.
+    //
+    // Declaring them here also makes the cache honest: a changed DATABASE_URL now invalidates,
+    // where before it could not, because turbo never saw it.
     "test": {
       "dependsOn": ["^build", "db:generate"],
+      "env": [
+        "DATABASE_URL",
+        "REDIS_URL",
+        "JWT_SECRET",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "MAIL_FROM",
+        "APP_URL"
+      ],
       "outputs": []
     },
     "dev": {

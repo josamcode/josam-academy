@@ -66,6 +66,34 @@ jobs:
           --health-timeout 5s
           --health-retries 20
 
+      # `REDIS_URL` is REQUIRED by `env.ts` — `z.string().url()` with no default — so anything
+      # that calls `loadEnv()` fails without it. Same pin as `docker-compose.yml` (`BR-1591`).
+      redis:
+        image: redis:7.4.10-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    # ── Environment, at JOB level rather than per step ──────────────────────────────────────
+    #
+    # `PH-1.4` post-mortem. These were set on two individual steps, and `JWT_SECRET` on none at
+    # all, so CI went red for four consecutive tasks while every local gate passed. Per-step env
+    # is a footgun: every new step that touches the app silently starts without it.
+    #
+    # The rule now: anything `env.ts` REQUIRES (no `.default()`, no `.optional()`) belongs here.
+    # Today that is `REDIS_URL` and `JWT_SECRET`; `DATABASE_URL` is read directly by Prisma and
+    # by the suites that assert against real rows.
+    env:
+      DATABASE_URL: postgresql://josam:josam_ci_ephemeral@localhost:5432/josam?schema=public
+      REDIS_URL: redis://localhost:6379
+      # Ephemeral, CI-only, and deliberately not a secret: it signs nothing that leaves this run.
+      # A repository secret here would make the workflow unrunnable on a fork for no gain.
+      JWT_SECRET: ci-ephemeral-signing-key-not-used-outside-this-workflow-0123456789
+
     steps:
       - uses: actions/checkout@v5
 
@@ -172,17 +200,27 @@ jobs:
 
       # `BR-1838` — the schema is generated state. Verification that depends on it is not
       # verification until it has been produced from a clean checkout, which is what this is.
-      - name: Apply migrations and seed
-        env:
-          DATABASE_URL: postgresql://josam:josam_ci_ephemeral@localhost:5432/josam?schema=public
+      - name: Apply migrations, validate the environment, seed
         run: |
           pnpm --filter @josam/api exec prisma migrate deploy
           pnpm --filter @josam/api build
+
+          # Fails on a MISSING VARIABLE, naming it, before 40 spec failures bury the cause.
+          # `BR-1830` — the environment is a mechanism, and a mechanism has to be asked. It runs
+          # after `build` because it loads the COMPILED schema rather than a second copy of it.
+          node -e "
+            const { loadEnv } = require('./apps/api/dist/config/env.js');
+            loadEnv();
+            console.log('env OK — every variable env.ts requires is present');
+          " || {
+            echo '::error::The CI environment does not satisfy apps/api/src/config/env.ts.'
+            echo '::error::Anything env.ts REQUIRES belongs in the job-level env block.'
+            exit 1
+          }
+
           pnpm --filter @josam/api db:seed
 
       - name: Test
-        env:
-          DATABASE_URL: postgresql://josam:josam_ci_ephemeral@localhost:5432/josam?schema=public
         run: pnpm test
 
       - name: Build

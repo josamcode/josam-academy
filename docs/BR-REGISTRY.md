@@ -83,7 +83,8 @@ The per-document counts above sum to the same figure.
 
 | Range | Status |
 |---|---|
-| **`BR-1844` onward** | ✅ **Next free block — use this.** `BR-1843` is skipped: `10-database-design` cites it as an off-by-1000 typo for `BR-843`, and allocating it would collide with a live (if erroneous) citation. |
+| **`BR-1845` onward** | ✅ **Next free block — use this.** `BR-1843` is skipped: `10-database-design` cites it as an off-by-1000 typo for `BR-843`, and allocating it would collide with a live (if erroneous) citation. |
+| `BR-1844` | ❌ taken by `12 §19.1` — a task runner that filters the environment hides a missing variable behind a local dotenv file. Allocated 2026-07-30 (`PH-1.1`–`PH-1.4` CI post-mortem). |
 | `BR-1842` | ❌ taken by `12 §19.1` — task dependency order must match foreign-key direction. Allocated 2026-07-30 (`PH-1.1` pre-flight). |
 | `BR-1841` | ❌ taken by `12 §19.1` — a check with a wrong expected value is worse than no check; assert the relationship, not the number. Allocated 2026-07-30 (`PH-0.9` execution). |
 | `BR-1840` | ❌ taken by `12 §19.1` — a deferral names a task that has NOT started. Allocated 2026-07-30 (Phase 0 exit reconciliation). |
