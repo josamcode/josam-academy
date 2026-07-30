@@ -1,15 +1,30 @@
 // Josam Academy — Prisma schema.
 //
-// PH-0.6 establishes the connection and the migration pipeline. It defines NO models: the
-// entity design is 10 §2 onward and belongs to Phase 1. An empty schema is the honest state
-// of a database that has no domain yet, and it proves the pipeline works without pretending
-// the domain exists.
+// `PH-1.1` — module `M01` Identity, plus `TBL-007` `roles`.
 //
-// Conventions this schema will follow when Phase 1 adds to it (10 §1):
-//   - prefixed ULIDs stored as TEXT (DEC-29), never bare UUIDs
-//   - TIMESTAMPTZ, always UTC (BR-825); created_at / updated_at on every table
-//   - money as INTEGER minor units + CHAR(3) currency (BR-826)
-//   - bilingual text as JSONB {"ar": ..., "en": ...} (BR-827)
+// `roles` is here rather than in `PH-1.7` because `10 §TBL-001` declares
+// `users.role_id NOT NULL REFERENCES roles(id)`, which made the documented task order circular.
+// `roles` is a leaf — no foreign keys of its own — so it is the only table that could move.
+// Divergence recorded in `16` beside both task rows; `BR-1842`; enforced by `pnpm check:fk-order`.
+//
+// Conventions (`10 §1`):
+//   - prefixed ULIDs stored as TEXT (`DEC-29`), generated in application code, never in the database
+//   - TIMESTAMPTZ, always UTC (`BR-825`); `created_at` / `updated_at` on every table
+//   - bilingual text as JSONB `{"ar": ..., "en": ...}` (`BR-827`), Arabic mandatory (`BR-951`)
+//   - every foreign key declares an explicit `ON DELETE` (`BR-949`)
+//
+// WHAT PRISMA CANNOT EXPRESS, and therefore lives in the migration SQL by hand:
+//   - the `citext` extension
+//   - `CHECK` constraints — `users.has_identity` (`TBL-001`), the Arabic-key checks (`BR-953`)
+//   - PARTIAL indexes (`WHERE deleted_at IS NULL`, `WHERE revoked_at IS NULL`, …)
+//
+// Those are not decoration. `idx_users_email` without its `WHERE deleted_at IS NULL` also indexes
+// soft-deleted rows, and `BR-957` anonymises rather than removing them — the partial predicate is
+// what keeps a deleted user out of the live lookup path.
+//
+// This file is NOT the verification. `src/database/schema-conformance.spec.ts` asserts every
+// column, type, nullability, default, constraint and index against the LIVE database, parsed from
+// `10`'s own SQL — because a migration can apply cleanly and still produce the wrong table.
 
 generator client {
   provider = "prisma-client"
@@ -24,4 +39,242 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// Enums — PostgreSQL native types (`10 §1.2`)
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+enum UserStatus {
+  active
+  suspended
+  pending_deletion
+  deleted
+
+  @@map("user_status")
+}
+
+enum ThemeMode {
+  light
+  dark
+  system
+
+  @@map("theme_mode")
+}
+
+enum PersonaType {
+  career_switcher
+  freelancer
+  professional
+  builder
+  casual
+
+  @@map("persona_type")
+}
+
+enum AuthProvider {
+  password
+  google
+  phone
+
+  @@map("auth_provider")
+}
+
+enum ClientPlatform {
+  web
+  ios
+  android
+
+  @@map("client_platform")
+}
+
+enum TokenPurpose {
+  email_verify
+  password_reset
+  email_change
+
+  @@map("token_purpose")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// `TBL-007` roles — `M02`, created here because `users.role_id` requires it (`BR-1842`)
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/// Seeded: super_admin, instructor, content_assistant, support_agent, student.
+/// `BR-963` — system roles cannot be deleted; `super_admin` permissions are implicit (`BR-639`).
+model Role {
+  id          String   @id
+  key         String   @unique
+  name        Json
+  description Json?
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  users User[]
+
+  @@map("roles")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// `TBL-001` users — `M01`
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id     String @id
+  roleId String @map("role_id")
+
+  /// `BR-954` — CITEXT for case-insensitive uniqueness (`BR-002`).
+  email           String?   @unique @db.Citext
+  emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz(6)
+  phone           String?   @unique
+  phoneVerifiedAt DateTime? @map("phone_verified_at") @db.Timestamptz(6)
+  passwordHash    String?   @map("password_hash")
+
+  fullName    String  @map("full_name")
+  displayName String? @map("display_name")
+  avatarKey   String? @map("avatar_key")
+  bio         String?
+
+  locale          String    @default("ar")
+  timezone        String    @default("Africa/Cairo")
+  themePreference ThemeMode @default(system) @map("theme_preference")
+  countryCode     String?   @map("country_code") @db.Char(2)
+
+  /// `BR-955` — increments on any permission change affecting this user (`BR-718`).
+  permissionVersion Int          @default(1) @map("permission_version")
+  /// `BR-956` — derived from onboarding; drives recommendations, email timing, AI context.
+  persona           PersonaType?
+
+  status       UserStatus @default(active)
+  lastActiveAt DateTime?  @map("last_active_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  /// `BR-957` — deletion anonymises rather than removing the row (`BR-025`).
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  identities         UserIdentity[]
+  refreshTokens      RefreshToken[]
+  verificationTokens VerificationToken[]
+  loginActivity      LoginActivity[]
+
+  @@index([roleId], map: "idx_users_role")
+  @@index([createdAt(sort: Desc)], map: "idx_users_created")
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// `TBL-002` user_identities
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/// `BR-958` — one user may hold multiple identities; at least one must always remain (`BR-011`).
+model UserIdentity {
+  id             String       @id
+  userId         String       @map("user_id")
+  provider       AuthProvider
+  providerUserId String       @map("provider_user_id")
+  providerEmail  String?      @map("provider_email") @db.Citext
+  metadata       Json         @default("{}")
+  linkedAt       DateTime     @default(now()) @map("linked_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId], map: "idx_identities_user")
+  @@map("user_identities")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// `TBL-003` refresh_tokens
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/// `BR-959` — stored hashed, never in plaintext.
+/// `BR-960` — `family_id` enables reuse detection: a rotated token revokes the family (`BR-016`).
+model RefreshToken {
+  id        String @id
+  userId    String @map("user_id")
+  familyId  String @map("family_id")
+  tokenHash String @unique @map("token_hash")
+
+  deviceLabel String?        @map("device_label")
+  userAgent   String?        @map("user_agent")
+  ipAddress   String?        @map("ip_address") @db.Inet
+  platform    ClientPlatform
+
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz(6)
+  rotatedAt     DateTime? @map("rotated_at") @db.Timestamptz(6)
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedReason String?   @map("revoked_reason")
+  lastUsedAt    DateTime? @map("last_used_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId], map: "idx_refresh_family")
+  @@map("refresh_tokens")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// `TBL-004` verification_tokens
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+model VerificationToken {
+  id         String       @id
+  userId     String       @map("user_id")
+  purpose    TokenPurpose
+  tokenHash  String       @unique @map("token_hash")
+  target     String?
+  expiresAt  DateTime     @map("expires_at") @db.Timestamptz(6)
+  consumedAt DateTime?    @map("consumed_at") @db.Timestamptz(6)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("verification_tokens")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// `TBL-005` otp_codes
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/// `BR-961` — hashed at rest (`BR-858`). Maximum 3 attempts, 5-minute TTL (`BR-006`).
+/// No `user_id`: an OTP is requested by phone number before any user is known.
+model OtpCode {
+  id         String    @id
+  phone      String
+  codeHash   String    @map("code_hash")
+  attempts   Int       @default(0) @db.SmallInt
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([phone, createdAt(sort: Desc)], map: "idx_otp_phone")
+  @@map("otp_codes")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// `TBL-006` login_activity
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/// `BR-962` — retained 90 days, then pruned (`FEAT-012`).
+/// `user_id` is NULLABLE: a failed login against an unknown address has no user to attribute it
+/// to, and that row is exactly the one worth keeping.
+model LoginActivity {
+  id           String        @id
+  userId       String?       @map("user_id")
+  emailAttempt String?       @map("email_attempt") @db.Citext
+  success      Boolean
+  provider     AuthProvider?
+  ipAddress    String?       @map("ip_address") @db.Inet
+  countryCode  String?       @map("country_code") @db.Char(2)
+  userAgent    String?       @map("user_agent")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)], map: "idx_login_user")
+  @@map("login_activity")
 }

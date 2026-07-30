@@ -44,6 +44,28 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
+    # `PH-1.1` — the API now has a schema, and `schema-conformance.spec.ts` verifies it column by
+    # column against `10` using the LIVE catalogs. That suite FAILS rather than skips without a
+    # database (`BR-1830`): a conformance suite that reports green having checked nothing is worse
+    # than no suite, so CI has to supply one.
+    #
+    # Same image as `docker-compose.yml` and the same pin (`BR-1591`). A CI database on a
+    # different major version would verify a schema nobody deploys.
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.5-pg16
+        env:
+          POSTGRES_USER: josam
+          POSTGRES_PASSWORD: josam_ci_ephemeral
+          POSTGRES_DB: josam
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U josam"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
     steps:
       - uses: actions/checkout@v5
 
@@ -148,7 +170,19 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      # `BR-1838` — the schema is generated state. Verification that depends on it is not
+      # verification until it has been produced from a clean checkout, which is what this is.
+      - name: Apply migrations and seed
+        env:
+          DATABASE_URL: postgresql://josam:josam_ci_ephemeral@localhost:5432/josam?schema=public
+        run: |
+          pnpm --filter @josam/api exec prisma migrate deploy
+          pnpm --filter @josam/api build
+          pnpm --filter @josam/api db:seed
+
       - name: Test
+        env:
+          DATABASE_URL: postgresql://josam:josam_ci_ephemeral@localhost:5432/josam?schema=public
         run: pnpm test
 
       - name: Build

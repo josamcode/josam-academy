@@ -34,8 +34,8 @@ yesterday, and is the single largest change in this project's risk position so f
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-30                                                                                                                                                                                                                                                                                    |
 | **Updated by**     | AI (`PH-0.9` execution recorded — partial; heap-expectation defect corrected)                                                                                                                                                                                                                 |
-| **Current phase**  | Phase 0 — Foundation · **29 / 30** — the exit position. 30/30 is not reachable.                                                                                                                                                                                                               |
-| **Current task**   | _None._ **Phase 0 exit check.** `PH-0.9` ✅ done at 29/30; `PH-0.8` deferred by decision                                                                                                                                                                                                      |
+| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · 1 / 32. Phase 0 closed at 29/30.                                                                                                                                                                                                                 |
+| **Current task**   | Phase 1 — `PH-1.2` next. `PH-1.1` ✅ (schema conformance proven 5/5 by deliberate breakage)                                                                                                                                                                                                   |
 | **Next task**      | `PH-0.9` — the **last** task before the Phase 0 exit check. `PH-0.8` is deferred to after exit.                                                                                                                                                                                               |
 | **Production URL** | **`josamacademy.com` — serving over HTTPS.** Cloudflare proxied, SSL mode Full. All five route groups 200.                                                                                                                                                                                    |
 | **Blocked**        | Nothing is blocked. `PH-0.9` is next; `PH-0.8` is deferred to after exit, so `SB-22` and `BR-1702` stay open. Three items carry a **date**, not a blocker: rotate the R2 credentials today (`SB-36`), a degraded `/health` does not alert (`SB-34`), TLS mode + certificate expiry (`SB-35`). |
@@ -396,6 +396,78 @@ redeploy. All four client sites verified unchanged throughout. Recorded so the u
 §3.3 output is not later misread as damage from this task — which is exactly the right instinct,
 because §3.3 exists to prove the client stack was untouched and an unexplained restart in that
 output would undermine it.
+
+---
+
+### 2026-07-30 · PH-1.1 — Schema: roles + M01 identity · ✅
+
+**By:** AI · **Calendar:** 2026-07-30 → 2026-07-30 (1 day)
+**Time:** estimated 1.1 d → actual 0.6 d
+
+**Output:** seven tables, six enums, five system roles seeded, and a conformance suite that
+verifies the live schema against `10` column by column.
+
+### The verification is the deliverable, not the migration
+
+`PH-1.1`'s written output is _"Migration applied, seeds run"_, and that is a weak claim. **A
+migration can apply cleanly and still produce the wrong table.** Three examples, all of which pass
+`prisma migrate deploy` without complaint:
+
+- `TEXT` where `10` says `CITEXT` — email uniqueness becomes case-SENSITIVE, which is `BR-002`
+  inverted, and every test that uses lowercase addresses still passes.
+- `TIMESTAMP` where `10` says `TIMESTAMPTZ` — the offset is silently dropped (`BR-825`).
+- A partial index that lost its `WHERE deleted_at IS NULL` — it still answers every query, over
+  soft-deleted rows as well. `BR-957` anonymises rather than deletes, so those rows are still there.
+
+`schema-conformance.spec.ts` reads `10`'s own `CREATE TABLE` SQL as the expectation and the live
+`information_schema` / `pg_*` catalogs as the actual. **Neither side is transcribed by hand** — a
+hand-copied expectation is a third copy of the schema and it drifts (`BR-1841`). 28 assertions:
+every column's type, nullability and default; no EXTRA columns; every `ON DELETE` (`BR-949`); all
+six partial-index predicates; the six plain indexes; all six enums' exact values; and the seeds.
+
+**Proven by breaking the live schema five ways** (`BR-1835`) — `CITEXT`→`TEXT`, a partial index
+stripped of its predicate, an undesigned column, the `has_identity` CHECK dropped, and
+`ON DELETE RESTRICT`→`CASCADE`. All five caught, each naming its own defect. Then restored, and
+28/28 green again. **Re-run after the strict-mode refactor**, because the parser changed and the
+earlier proof did not carry.
+
+### What Prisma cannot express, and why it is not decoration
+
+The `citext` extension, three `CHECK` constraints and six PARTIAL indexes are hand-written in the
+migration. Prisma emits the `CITEXT` column type but **never the extension that defines it**, so
+the first run failed outright — found by running the migration, not by reading the generated file.
+
+**No drift.** `prisma migrate dev --create-only` afterwards produced an EMPTY migration: Prisma
+ignores what it cannot represent. My first check for that read the directory's existence rather
+than its contents and called a pass a failure — `BR-1841`, in the same session I wrote it.
+
+### Two fitness functions caught this task
+
+- **`BR-1580`** caught the seed sitting in `src/seeds/` — Prisma outside the repository layer. It
+  moved to `shared/database/seeds/`. The rule was right: a seed is persistence.
+- **`no-console`** caught the seed's success line. `seeds/` now joins `probes/` on the ignore list,
+  which is a narrow extension of an existing exemption to the same kind of file — a CLI entry point
+  whose stdout IS its interface, invoked by a human or a deploy step, with no correlation ID to
+  attach and no log pipeline running. Not a rule loosened to get green (`BR-1512`).
+
+### Decisions taken under "apply the default and log it"
+
+- **No new dependency for the seed runner.** `tsx` is absent and Node 24's native type stripping
+  cannot resolve extensionless relative imports. The seed instead lives in `src/` and runs from
+  `dist/`, exactly as the `PH-0.6` probes already do.
+- **The seed is idempotent by `key`, not by `id`.** The identifier is a fresh ULID on every call,
+  so upserting on `id` would insert five more roles on the second run. Verified by running it twice.
+- **It asserts its own outcome** (`BR-1837`) — a seed that silently inserted four of five roles
+  leaves `PH-1.7` assigning users to a role that does not exist.
+- **CI gained a Postgres service.** The conformance suite FAILS rather than skips without
+  `DATABASE_URL` (`BR-1830`), so CI has to supply one. Same image and pin as `docker-compose.yml`:
+  a CI database on a different major version verifies a schema nobody deploys.
+
+### `roles` is here, and `SB-39`'s premise has now expired
+
+`TBL-007` moved into this task — the `BR-1842` correction. And this is the first non-empty
+migration, so `josam-postgres` is no longer "sized for an empty schema". `SB-39` stands, owned by
+`PH-1.15`.
 
 ---
 

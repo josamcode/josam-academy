@@ -144,10 +144,23 @@ export const restrictedSyntax = {
  *
  * `warn` and `error` are permitted in the few places that genuinely predate the logger — a
  * bootstrap failure has nowhere else to go.
+ *
+ * `seeds/` joins `probes/` on the ignore list at `PH-1.1`. Both are CLI entry points invoked by a
+ * human or a deploy step, never by a request: there is no correlation ID to attach and no log
+ * pipeline running. Their stdout IS their interface — `seed: 5 system roles present` is the
+ * result, not a debug line. This is a narrow extension of an existing exemption to the same kind
+ * of file, not a rule loosened to get a build green (`BR-1512`).
  */
 export const noConsole = {
   files: ['**/*.ts', '**/*.tsx'],
-  ignores: ['**/*.spec.ts', '**/*.spec.tsx', '**/probes/**', '**/build-css.ts', '**/main.ts'],
+  ignores: [
+    '**/*.spec.ts',
+    '**/*.spec.tsx',
+    '**/probes/**',
+    '**/seeds/**',
+    '**/build-css.ts',
+    '**/main.ts',
+  ],
   rules: {
     'no-console': ['error', { allow: ['warn', 'error'] }],
   },

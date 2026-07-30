@@ -15,7 +15,8 @@
     "db:generate": "prisma generate",
     "probe:di": "node dist/probes/di.probe.js",
     "probe:prisma": "node -r dotenv/config dist/probes/prisma.probe.js",
-    "start": "node -r dotenv/config dist/main.js"
+    "start": "node -r dotenv/config dist/main.js",
+    "db:seed": "node -r dotenv/config dist/shared/database/seeds/system-roles.seed.js"
   },
   "devDependencies": {
     "@josam/config": "workspace:*",

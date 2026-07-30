@@ -1,6 +1,6 @@
 {
   "extends": "@josam/config/tsconfig/node.json",
-  "include": ["src/**/*.ts", "prisma.config.ts"],
+  "include": ["src/**/*.ts", "prisma.config.ts", "vitest.config.ts", "vitest.setup.ts"],
   "exclude": ["dist", "node_modules"],
   "//": [
     "The TOOLING config: includes prisma.config.ts so ESLint's project service can type-aware",
