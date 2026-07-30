@@ -444,6 +444,29 @@ solving.
 
 In Cloudflare, a **proxied `A` record** for the domain pointing at `<SERVER_IP>`.
 
+> ### ⚠️ Check for OTHER records on the same name first
+>
+> **A second `A` record does not replace the first — DNS round-robins between them.**
+>
+> Found at execution: a leftover parking record from a previous registrar sat alongside the new one,
+> so the domain served the **parking page roughly half the time** — while `curl` reported `200`. The
+> check passed and the site was broken, because a single request samples one record and every
+> individual answer was a truthful `200` about a different destination.
+>
+> ```
+> Cloudflare → DNS → filter by the exact name. Expect ONE A record. Delete any others.
+> ```
+>
+> After deleting, verify by **repetition rather than by one request** — an intermittent fault is
+> invisible to a check that runs once:
+>
+> ```bash
+> for i in $(seq 1 10); do curl -s -o /dev/null -w '%{http_code} ' https://<DOMAIN>/; done; echo
+> ```
+>
+> Ten `200`s from ten requests. Same family as `BR-1839` — a confident, truthful signal answering a
+> question nobody asked.
+
 Proxied, per the `PH-0.8` decision (§11 of that runbook): application traffic stays on the proxied
 record through `coolify-proxy` and does **not** go through a tunnel, so that an administrative
 outage and a customer-facing outage cannot be the same event.
@@ -564,6 +587,10 @@ comparison is what proves it rather than asserts it.
 
 ### Not done — deliberately
 
-**§10, attaching the domain.** Skipped by founder decision: it is the only section that reloads
-`coolify-proxy`, and not at the end of a long session. **`josamacademy.com` is not yet serving.**
-Open item, carried in `STATUS.md §5`.
+**§10, attaching the domain.** Skipped on the day, then **completed 2026-07-30** alongside
+`PH-0.28`. `josamacademy.com` serves over HTTPS behind a proxied record; all five route groups
+return 200 from the public domain and the stylesheet is byte-identical through the proxy. Client
+sites were checked immediately after the reload and were unchanged. **`SB-32` closed.**
+
+One divergence came out of it — two `A` records round-robining, with `curl` reporting 200 while the
+domain served a parking page half the time. The warning is now at the top of §10.1.

@@ -1,12 +1,12 @@
 # Runbook — `PH-0.28` Backups & Monitoring
 
-| Field         | Value                                                                                    |
-| ------------- | ---------------------------------------------------------------------------------------- |
-| **Task**      | `PH-0.28` — daily `pg_dump` → R2, weekly restore verification, UptimeRobot alerting      |
-| **Type**      | **B** — authored here, executed by the founder                                           |
-| **Authority** | `DEC-57`, `BR-1726`, `BR-892`, `SB-17`, `SB-24`, `11 §API-21`                            |
-| **Proves**    | Exit criteria **3** and **4**, and completes **9**                                       |
-| **Status**    | ⬜ Not executed. Not done until the founder pastes back verification output (`BR-1768`). |
+| Field         | Value                                                                                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Task**      | `PH-0.28` — daily `pg_dump` → R2, weekly restore verification, UptimeRobot alerting                                          |
+| **Type**      | **B** — authored here, executed by the founder                                                                               |
+| **Authority** | `DEC-57`, `BR-1726`, `BR-892`, `SB-17`, `SB-24`, `11 §API-21`                                                                |
+| **Proves**    | Exit criteria **3** and **4**, and completes **9**                                                                           |
+| **Status**    | ✅ **Executed 2026-07-30.** All gates passed. Five divergences — see §13. One row open: the alert **recovery** notification. |
 
 ---
 
@@ -436,3 +436,42 @@ is criterion 4, row 10 completes criterion 9, and row 3 is the thing all of them
 
 If any step diverges, say which and why. `PH-0.11` produced six divergences and three of them were
 defects in my design rather than in the execution.
+
+---
+
+## 13. Execution record — 2026-07-30
+
+All gates passed. Exit criteria **3** and **4** closed; **9** complete for everything Phase 0 owns.
+
+| Gate                  | Result                                                                                                |
+| --------------------- | ----------------------------------------------------------------------------------------------------- |
+| §4 backup             | `dump complete — 2478 bytes` → `uploaded and verified`                                                |
+| §4.1 refusal          | Bad database name failed at `pg_dump`, **uploaded nothing**                                           |
+| **§5 restore verify** | **`PASSED`** — clean database, no `pg_restore` errors, **ledger intact, 1 migration survived**        |
+| §5.1                  | No `restore_check_*` left behind                                                                      |
+| §5.2                  | Empty prefix → `FAILED — no backup found`. Correct.                                                   |
+| §6                    | Both tasks scheduled, staggered                                                                       |
+| §9                    | `last_backup: {status: ok, dump_age_hours: 0.1, verified_days_ago: 0}`                                |
+| §9.3                  | **`version` reads the SHA** — `PH-0.11` divergence 1 closed on a real deploy                          |
+| §8.3                  | 503 confirmed from four locations over 46 s, then push + email. Recovery notification **unconfirmed** |
+
+### Five divergences
+
+1. **The monitor is plain HTTP, not keyword** — UptimeRobot offers the type only at creation, and
+   `/health` is not publicly reachable. **A degraded `/health` will not alert.** Recorded as `SB-34`,
+   a gap with an owner rather than something covered. Criterion 4 as written is met; this is beyond
+   it. §8.1's keyword instruction is correct and could not be followed — the constraint is
+   UptimeRobot's, not the runbook's.
+2. **Certificate expiry unmonitored** (paid feature) and **4. TLS mode on Automatic.** Recorded
+   together as `SB-35`, because they are only dangerous as a pair — see the entry for why, and for
+   the single fix that removes both.
+3. **Two `A` records round-robining**, with `curl` reporting 200 while the domain served a parking
+   page half the time. Warning added to `deploy-and-rollback.md §10.1`.
+4. **A client container restarted a minute before the deploy**, `RestartCount 0` — a separate
+   redeploy, not this task. Noted so the §3.3 uptime evidence is not later misread.
+
+### Still open
+
+- The alert **recovery** notification, being confirmed separately.
+- `SB-36` — the R2 credentials were exposed in a chat transcript and should be rotated. The token can
+  read **and delete** every dump, so the backup set and its destruction are one credential.
