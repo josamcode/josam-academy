@@ -5,6 +5,7 @@ import { ObservabilityModule } from './shared/common/observability.module.js';
 import { DatabaseModule } from './shared/database/database.module.js';
 import { BackupModule } from './shared/providers/backup/backup.module.js';
 import { RedisModule } from './shared/redis/redis.module.js';
+import { SecurityModule } from './shared/security/security.module.js';
 import { SharedHealthModule } from './shared/health/health.module.js';
 
 /**
@@ -19,6 +20,7 @@ import { SharedHealthModule } from './shared/health/health.module.js';
     SharedHealthModule,
     DatabaseModule,
     RedisModule,
+    SecurityModule,
     BackupModule,
     HealthModule,
   ],

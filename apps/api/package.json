@@ -6,7 +6,7 @@
   "main": "./dist/main.js",
   "scripts": {
     "postinstall": "prisma generate",
-    "build": "prisma generate && tsc -p tsconfig.build.json",
+    "build": "prisma generate && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests",
@@ -29,6 +29,7 @@
     "@nestjs/common": "11.1.28",
     "@nestjs/core": "11.1.28",
     "@nestjs/platform-express": "11.1.28",
+    "@node-rs/argon2": "2.0.2",
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",
     "@sentry/node": "10.68.0",
