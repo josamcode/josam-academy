@@ -85,6 +85,37 @@ const envSchema = z.object({
 
   /** Base URL for the links in verification and reset emails. */
   APP_URL: z.string().url().default('http://localhost:3000'),
+
+  /**
+   * PH-1.5 — Google sign-in (`14 §2.4`).
+   *
+   * OPTIONAL, unlike `JWT_SECRET`, and the reasoning is the same as `SENTRY_DSN`'s: these are
+   * founder-held credentials for a third party, and an API that refused to boot without them
+   * would be unusable in development and would take the whole application down if a Google
+   * project were ever deleted. Sign-in with Google is one of three ways in (`TBL-002`), not the
+   * only one.
+   *
+   * `GoogleOAuthService` THROWS when asked to build an authorization URL without them, rather
+   * than returning a URL that cannot complete — the failure belongs at the point of use, where it
+   * names the missing variable, not at boot where it blocks everything else.
+   */
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+
+  /**
+   * PH-1.6 — phone OTP behind a flag (`DEC-45`).
+   *
+   * `BR-1596` / `DEC-47` — SMS logs to the console in development; no developer ever sends a real
+   * message. The flag defaults OFF so the feature cannot reach users before the founder enables
+   * it, and `SmsProvider` selects the console transport whenever the Twilio credentials are absent.
+   */
+  PHONE_OTP_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  TWILIO_ACCOUNT_SID: z.string().min(1).optional(),
+  TWILIO_AUTH_TOKEN: z.string().min(1).optional(),
+  TWILIO_VERIFY_SERVICE_SID: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

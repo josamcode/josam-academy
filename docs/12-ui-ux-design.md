@@ -1391,6 +1391,30 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   somebody who can see it looks. "Committed and pushed" is a description of an action, never of a
   result.
 
+- `BR-1845` — **A negative test needs a positive twin, or it proves only that something failed —
+  not that the right thing failed.**
+
+  An assertion that some input is rejected passes for every reason the code might reject it,
+  including reasons that have nothing to do with the property under test. Without a paired
+  assertion that a VALID input is accepted, "rejected" is indistinguishable from "the mechanism
+  was never reachable".
+
+  **Worked example — `PH-1.5`, 2026-07-30.** A spec signed an `id_token` with its own key and
+  asserted that `verifyIdToken` rejected it, against Google's live JWKS. It passed. **It would
+  have passed identically with the network down**, because an unreachable key set also yields a
+  rejection — so the test asserted nothing whatever about signature verification. The fix was to
+  make the key set injectable and add the twin: a token that SHOULD verify, and does. Only the
+  positive case proves the verifier is reachable at all; the negative cases then mean something.
+
+  This is `BR-1841`'s family — **an assertion that cannot distinguish the property from its
+  absence**. There the expectation was a wrong value; here it is a right value reachable by two
+  different routes, only one of which is the property being claimed.
+
+  The rule generalises past signatures. Any suite that only ever asserts rejection — a validator,
+  a guard, a permission check, a rate limiter — should be read with the question *what would still
+  fail if this mechanism were deleted entirely?* If the answer is "everything, identically", the
+  suite is measuring the wrong thing.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

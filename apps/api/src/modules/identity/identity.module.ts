@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { DatabaseModule } from '../../shared/database/database.module.js';
 import { EmailProvider } from '../../shared/providers/email/email.provider.js';
+import { SmsProvider } from '../../shared/providers/sms/sms.provider.js';
+import { GoogleOAuthService } from './oauth/google-oauth.service.js';
 import { RegistrationService } from './registration/registration.service.js';
 import { AccessTokenService } from './tokens/access-token.service.js';
 import { RefreshTokenService } from './tokens/refresh-token.service.js';
@@ -12,7 +14,20 @@ import { RefreshTokenService } from './tokens/refresh-token.service.js';
  */
 @Module({
   imports: [DatabaseModule],
-  providers: [AccessTokenService, RefreshTokenService, RegistrationService, EmailProvider],
-  exports: [AccessTokenService, RefreshTokenService, RegistrationService],
+  providers: [
+    AccessTokenService,
+    RefreshTokenService,
+    RegistrationService,
+    GoogleOAuthService,
+    EmailProvider,
+    SmsProvider,
+  ],
+  exports: [
+    AccessTokenService,
+    RefreshTokenService,
+    RegistrationService,
+    GoogleOAuthService,
+    SmsProvider,
+  ],
 })
 export class IdentityModule {}

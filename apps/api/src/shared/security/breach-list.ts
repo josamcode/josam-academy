@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 
 /**
  * `BR-1609` / `DEC-48` — new and changed passwords are checked against a **local** k-anonymity
@@ -63,7 +63,18 @@ export class BreachList {
   private loaded = false;
   private hashCount = 0;
 
-  constructor(corpusPath?: string) {
+  /**
+   * `@Optional()` is load-bearing, not decoration.
+   *
+   * Without it Nest sees a `String` parameter, looks for a `String` provider, finds none, and
+   * **refuses to build the module graph** — `UnknownDependenciesException`. The API could not
+   * boot at all from `PH-1.2` until `PH-1.6`, and nothing detected it: every spec constructs this
+   * class with `new BreachList(path)` and never goes through the injector, so the container was
+   * the one thing under test that was never exercised (`BR-1830`).
+   *
+   * `security.module.spec.ts` now boots the real module through Nest for exactly this reason.
+   */
+  constructor(@Optional() corpusPath?: string) {
     this.load(corpusPath ?? join(__dirname, 'breach-corpus.txt'));
   }
 

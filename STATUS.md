@@ -34,8 +34,8 @@ yesterday, and is the single largest change in this project's risk position so f
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-30                                                                                                                                                                                                                                                                                    |
 | **Updated by**     | AI (`PH-0.9` execution recorded — partial; heap-expectation defect corrected)                                                                                                                                                                                                                 |
-| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · **4 / 32**, all CI-verified. Phase 0 closed at 29/30.                                                                                                                                                                                            |
-| **Current task**   | Phase 1 — `PH-1.5` next. `PH-1.1`–`PH-1.4` ✅ verified by **CI run #28** (`cbbe6ef`).                                                                                                                                                                                                         |
+| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · **4 / 32 verified** · `PH-1.5`/`PH-1.6` 🟡 awaiting credentials. Phase 0 closed at 29/30.                                                                                                                                                        |
+| **Current task**   | Phase 1 — `PH-1.7` next. `PH-1.5`/`PH-1.6` 🟡 built to the credential boundary.                                                                                                                                                                                                               |
 | **Next task**      | `PH-0.9` — the **last** task before the Phase 0 exit check. `PH-0.8` is deferred to after exit.                                                                                                                                                                                               |
 | **Production URL** | **`josamacademy.com` — serving over HTTPS.** Cloudflare proxied, SSL mode Full. All five route groups 200.                                                                                                                                                                                    |
 | **Blocked**        | Nothing is blocked. `PH-0.9` is next; `PH-0.8` is deferred to after exit, so `SB-22` and `BR-1702` stay open. Three items carry a **date**, not a blocker: rotate the R2 credentials today (`SB-36`), a degraded `/health` does not alert (`SB-34`), TLS mode + certificate expiry (`SB-35`). |
@@ -396,6 +396,84 @@ redeploy. All four client sites verified unchanged throughout. Recorded so the u
 §3.3 output is not later misread as damage from this task — which is exactly the right instinct,
 because §3.3 exists to prove the client stack was untouched and an unexplained restart in that
 output would undermine it.
+
+---
+
+### 2026-07-30 · PH-1.5 + PH-1.6 — 🟡 built to the credential boundary
+
+**By:** AI · **Calendar:** 2026-07-30 (same day) · **Time:** 0.5 d + 1.0 d estimated → 0.8 d actual
+
+**🟡 NOT DONE, and marked the same way `PH-0.9` was.** Both outputs — _auto-link on verified
+email_ and _OTP flow works_ — need founder credentials to be exercised. **Phase 1 stays at 4 / 32
+verified** until Google OAuth completes a real round trip.
+
+### The defect that mattered more than either task
+
+**The API could not boot from `PH-1.2` until now**, through four green CI runs and one production
+deploy of `PH-1.1`–`PH-1.4`.
+
+`BreachList`'s constructor took an optional `string`. Nest cannot inject that: it looks for a
+`String` provider, finds none, and **refuses to build the module graph** —
+`UnknownDependenciesException`. Every spec constructed the class with `new BreachList()`, so the
+injector — the one component that decides whether the application starts — was never exercised.
+`BR-1830`, at the container.
+
+**It was found by starting the process**, because the founder asked for confirmation that the API
+boots with `PHONE_OTP_ENABLED=false` and no Twilio credentials. The answer was that it did not
+boot at all, for an unrelated reason, three tasks old.
+
+`security.module.spec.ts` now compiles `SecurityModule` **and the whole `AppModule` graph** through
+Nest. It caught a second instance within minutes of existing: `GoogleOAuthService`, whose
+injectable JWKS parameter I had added an hour earlier, had exactly the same problem.
+
+> **A green test suite says the units work. Only the container says the application starts.**
+
+### `PH-1.5` — Google OAuth (`14 §2.4`)
+
+PKCE with S256, `state` compared in constant time, `id_token` verified for signature, issuer,
+audience **and** expiry — all four `BR-1620` lists, because checking three is the common bug — and
+`BR-1621` auto-linking gated on Google's boolean `email_verified`.
+
+**A non-boolean `email_verified` counts as unverified.** Google has historically sent the string
+`"true"`; a truthy check would satisfy `BR-1621` with a value that never passed Google's
+verification.
+
+**My first `id_token` spec asserted nothing** — see `BR-1845`. It signed a token with its own key
+and asserted rejection against Google's live JWKS; it would have passed identically with the
+network down. The key set is now injectable, there is a **positive twin**, and the four rejection
+cases are deterministic and offline.
+
+### `PH-1.6` — `SmsProvider` (`DEC-45`, `BR-1596`)
+
+**Transport is selected on CREDENTIAL PRESENCE, never on `NODE_ENV`.** `NODE_ENV` is a variable
+anything can set; credential presence is what actually determines whether a message can physically
+be sent. The failure mode of the obvious implementation is specific and expensive: a staging box or
+a copied container quietly starts sending real SMS and charging per message — it looks like a
+config typo from the inside and reads as fraud on the invoice, and nothing in the application
+reports a problem, because from its point of view every send succeeded. The reasoning is in the
+code, not only here.
+
+The flag and the transport are **independent**: `PHONE_OTP_ENABLED` gates the feature, the
+credentials gate how it sends. The flag ON with no credentials degrades to console logging rather
+than throwing, or enabling it in development breaks the login page and nobody dares turn it on.
+
+Also: `Promise.reject` rather than `async` + `throw`. The method has nothing to await yet, so
+`async` would be a lie the linter correctly objects to — and I reached for an `eslint-disable`
+first, which is `BR-1512`.
+
+### Founder's independence check — verified, not asserted
+
+Booted with `PHONE_OTP_ENABLED=false`, no `TWILIO_*`, no `GOOGLE_*`:
+
+```
+Nest application successfully started
+GET /health → {"status":"ok","checks":{"database":"ok","redis":"ok","last_backup":"not-configured"}}
+sms.enabled() = false · sms.transport() = console
+google without credentials → refuses at point of use, naming GOOGLE_CLIENT_ID
+google WITH a client id, Twilio still absent → authorization URL built, response_type=code
+```
+
+The two are genuinely independent, not nominally.
 
 ---
 
