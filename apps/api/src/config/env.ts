@@ -25,6 +25,24 @@ const envSchema = z.object({
    */
   REDIS_URL: z.string().url(),
 
+  /**
+   * PH-0.28 — the backup bucket, read by `last_backup` in `GET /health`.
+   *
+   * All optional, unlike `DATABASE_URL` and `REDIS_URL`. There is no bucket in development, and an
+   * API that refused to boot without one would be unusable locally. The indicator reports
+   * `not-configured` rather than `ok` when they are absent, which is the honest answer — see the
+   * note in `backup-health.indicator.ts` for why that is not the same as healthy (`BR-892`).
+   *
+   * The credentials are founder-held and never committed. `.env.example` documents the shape.
+   */
+  R2_ENDPOINT: z.string().url().optional(),
+  R2_BUCKET: z.string().min(1).optional(),
+  R2_ACCESS_KEY_ID: z.string().min(1).optional(),
+  R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+
+  /** Must match `BACKUP_PREFIX` in `scripts/backup.sh`, or the indicator reads an empty prefix. */
+  BACKUP_PREFIX: z.string().min(1).default('daily'),
+
   // PH-0.19 — observability. FEAT-217: production defaults to info.
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 

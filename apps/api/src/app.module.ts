@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { HealthModule } from './modules/health/health.module.js';
 import { ObservabilityModule } from './shared/common/observability.module.js';
 import { DatabaseModule } from './shared/database/database.module.js';
+import { BackupModule } from './shared/providers/backup/backup.module.js';
 import { RedisModule } from './shared/redis/redis.module.js';
 import { SharedHealthModule } from './shared/health/health.module.js';
 
@@ -13,6 +14,13 @@ import { SharedHealthModule } from './shared/health/health.module.js';
  * imported here as each is built. Phase 0 has infrastructure only; it has no domain.
  */
 @Module({
-  imports: [ObservabilityModule, SharedHealthModule, DatabaseModule, RedisModule, HealthModule],
+  imports: [
+    ObservabilityModule,
+    SharedHealthModule,
+    DatabaseModule,
+    RedisModule,
+    BackupModule,
+    HealthModule,
+  ],
 })
 export class AppModule {}

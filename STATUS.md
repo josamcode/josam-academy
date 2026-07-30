@@ -268,6 +268,101 @@ that consumes it is not a config file that works. If a tool ships a validator, i
 
 ---
 
+### 2026-07-30 · PH-0.28 — Backups & monitoring (authored; not executed)
+
+**By:** AI authored · **founder executes**
+**Time:** estimated 0.65 d authoring → actual 0.7 d. Execution estimated 0.35 d, not yet run.
+**Status:** 🟡 **Authored, not done** (`BR-1768`). Closes exit criteria **3** and **4** and completes
+**9** when executed.
+
+**Output:** `docs/runbooks/backups-and-monitoring.md` · `scripts/backup.sh` ·
+`scripts/restore-verify.sh` · `infra/backup/Dockerfile` · `apps/api/src/shared/providers/backup/`
+(provider, indicator, module, 31 specs). Placeholders only in the runbook.
+
+### The scheduling decision, stated with the alternatives it beat
+
+**A dedicated backup container in the `josam-academy` project, scheduled by Coolify's existing
+scheduler.** The founder's constraint was one scheduling mechanism.
+
+No container already on the box has both halves of the job — the Postgres container has `pg_dump` and
+no S3 client; the API image has Node and neither. **Host cron** was rejected as a second scheduler
+plus host-level tool installs outside Coolify's visibility. **The API container** was rejected
+because it couples backup capability to the API deploying successfully, and a broken API deploy
+silently stopping backups is the one failure this task exists to prevent. **Coolify's built-in S3
+backup** was rejected as the primary because it does not restore-verify, which is the criterion —
+but it is recorded as worth enabling on a separate prefix as a second copy.
+
+### A defect found by making the image assert itself
+
+`infra/backup/Dockerfile` ran `apt-get autoremove` after purging the packages used to add the PGDG
+repository. **The build succeeded and `aws` was silently gone** — autoremove took it along with the
+Python packages it judged unneeded. `pg_dump` was present, so the image looked correct.
+
+Without a check the failure would have surfaced at 02:17 UTC inside a scheduled task nobody was
+watching, as a backup that dumped and never uploaded. The image now **asserts both binaries at build
+time** and fails the build otherwise. `autoremove` is gone: it saved a few megabytes and removed the
+tool the container exists to run. `BR-1830` — an image is a mechanism, and a mechanism has to be
+asked.
+
+### What was exercised locally
+
+- `pg_dump` **16.14** against the PG16 server — the version that matters, since bookworm's default
+  client 15 refuses to dump a 16 server.
+- `backup.sh` dumped the real database (2,644 bytes), passed the size floor and the **`PGDMP` magic
+  string** check, and failed non-zero at the upload against an unreachable endpoint.
+- Both scripts refuse to run with a missing variable **and name it**.
+- Runs as `nobody` (`BR-1703`).
+
+The upload, the R2 round trip and the restore into a clean database need the founder's credentials
+and are the execution gates in §4, §5 and §8.
+
+### Two things the scripts do that "it exited 0" would not
+
+`backup.sh` **re-reads the uploaded object's size from R2** and fails on a mismatch, because
+`aws s3 cp` exiting 0 is not evidence the object exists. And it validates the `PGDMP` magic string
+before uploading — a truncated dump that uploads successfully is worse than no backup, because
+`last_backup` would report it as fresh.
+
+`restore-verify.sh` uses `pg_restore --exit-on-error`. Without it `pg_restore` continues past
+failures and exits 0 with warnings, which is a verification that passes while verifying nothing. It
+also asserts `_prisma_migrations` survived with at least one applied row — Phase 0's only migration
+is empty, so the table count is small, and **the ledger assertion is the one that grows teeth from
+the first real schema change**. The throwaway database is dropped on every exit path including
+failure, because a weekly check that leaks a database fills a shared box one week at a time.
+
+### `last_backup` — the latching lesson applied, not restated
+
+31 specs. It reports `ok` with both ages, and **throws** when the dump is over 26 h old, when the
+bucket is empty, when the restore check has stalled past 8 days, or when R2 is unreachable.
+`not-configured` is a **third value, deliberately not `ok`** — reporting a healthy backup that does
+not exist is `BR-892`'s exact prohibition.
+
+`PH-0.30` found `ioredis` latching into error for the process's lifetime, and the note now on
+`HealthIndicator.check` says a new indicator is not done until both transitions are observed. Two
+structural properties prevent it here: **no failure is ever cached** (only successes are), and **no
+connection is held** — a fresh request per call on a stateless client.
+
+**Both were proven by deliberate breakage, and the first attempt exposed a gap in my own test.**
+Removing the stale-verify gate failed one spec correctly. Re-introducing failure caching on the
+_empty bucket_ path failed **nothing** — because the caching test only exercised the _unreachable_
+path. The test was real and its coverage was not. Every failure path is now asserted to be retried,
+and re-breaking the same line is caught.
+
+### It reads R2 rather than a marker file
+
+The obvious implementation writes a timestamp locally when the backup finishes. That reports **what a
+script believed**, and the failure this indicator exists to catch is a backup that ran, reported
+success, and did not land. Listing the bucket answers the only question worth asking.
+
+### Scope, stated in the script and not only in a document
+
+`SB-24` — **the client database is not backed up and is not this project's to back up**, written into
+`scripts/backup.sh` itself, because a backup job on a machine with two databases is exactly where
+somebody later assumes both are covered. `SB-17` — the provider's VM snapshots are not backup
+coverage and are never counted.
+
+---
+
 ### 2026-07-30 · PH-0.11 — ✅ EXECUTED. Deploy and rollback proven.
 
 **By:** Founder executed; AI authored and fixed the divergences
@@ -2435,6 +2530,7 @@ functioning in TypeScript 7.0`, exit 2.
 
 | ID          | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Reason deferred                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Revisit at                                                                                                                   |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `SB-33`     | **The Josam database and Redis credentials are Coolify-generated and were shared into a chat transcript.** Created 2026-07-30 for a database with no data and no published port, so the present exposure is nil.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | **Rotate both before Phase 1 writes anything real.** Founder decision, 2026-07-30: not rotating now, because the credentials protect an empty database that is unreachable from outside the project network — and rotating them today would mean doing it again when real data arrives. The trigger is the first migration that creates a table, not a date. Rotate in Coolify, update the API and backup resources' environments, redeploy, and confirm `/health` still reports `database: ok` and `redis: ok`.                                                                                                                                                                                                                                                                                                                 | **Before the first Phase 1 migration**                                                                                       |
 | `SB-31`     | **Two accepted security advisories.** `pnpm audit --prod` runs in CI (`BR-1468`). Three of the five it first found were resolved by overriding `postcss` to 8.5.23, which was already in the tree for another consumer while Next pulled 8.4.31 transitively. Two remain with no safe fix.                                                                                                                                                                                                                                                                                                                                                                                                             | **GHSA-f88m-g3jw-g9cj** (`sharp` < 0.35, libvips CVE) is genuinely shipped, and Next 16.2.12 does not accept sharp 0.35 — forcing it overrides a native image pipeline Next controls, which is the larger risk. **Retires when a Next release accepts sharp 0.35**; Renovate opens that PR under manual review. **GHSA-mh99-v99m-4gvg** (`brace-expansion` DoS) is reached only through `eslint-plugin-jsx-a11y > minimatch` — lint-time only, never shipped, never given untrusted input. It appears under `--prod` because pnpm treats each workspace project's own `dependencies` as production. **Retires when jsx-a11y ships a patched minimatch.** Both are recorded in `pnpm-workspace.yaml` with the same reasoning, so the file and this row cannot drift apart. A gate that is permanently red is a gate nobody reads. | **Phase 0 exit**, then per Renovate PR                                                                                       |
 | `SB-29`     | **`pnpm/action-setup@v4` runs on Node 20, which GitHub is deprecating.** The warning appears on every CI run and is not blocking.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Renovate manages GitHub Actions majors under manual review (`13 §16.1`, `BR-1828` neighbours), so the bump will arrive as a PR rather than needing to be remembered. Until then the action works; the deprecation removes the Node 20 runtime from runners at a date GitHub has not fixed. Do not pre-emptively pin to a fork or a SHA — the Renovate PR is the intended path, and this row exists so the warning is not mistaken for noise when it appears.                                                                                                                                                                                                                                                                                                                                                                     | **When Renovate opens the PR**, or Phase 0 exit, whichever is first                                                          |
 | ~~`SB-30`~~ | ~~Turborepo telemetry is enabled by default and nobody opted in.~~ **Closed 2026-07-29.**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | ✅ `TURBO_TELEMETRY_DISABLED=1` is set for the whole CI workflow, alongside `NEXT_TELEMETRY_DISABLED`. The variable is the only repository-scoped switch — `turbo telemetry disable` writes to a per-user config outside the repository — so the **local** opt-out is a one-time command per machine and is documented in `docs/runbooks/ci-pipeline.md` rather than assumed.                                                                                                                                                                                                                                                                                                                                                                                                                                                    | ✅ **Done**                                                                                                                  |
