@@ -11,15 +11,23 @@
 set -u
 cd "$(dirname "$0")/.." || exit 1
 
-# `--reporter=basic` on every vitest invocation below is not cosmetic.
+# ── Annotations off, OUTPUT untouched ────────────────────────────────────────────────────────
 #
-# Vitest enables its `github-actions` reporter automatically when `GITHUB_ACTIONS` is set, so a
-# case that deliberately FAILS a spec publishes those failures into the job summary of a green
-# build. Run #33 showed "2 failures / 2 total" and "1 failure / 71 passes" in a SUCCESS run, which
-# is correct behaviour presented in a form indistinguishable from a broken gate.
+# Vitest adds its `github-actions` reporter automatically when `GITHUB_ACTIONS` is set, so a case
+# that deliberately FAILS a spec publishes those failures into the job summary of a green build.
+# Run #33 showed "2 failures / 2 total" in a SUCCESS run — correct behaviour, presented in a form
+# indistinguishable from a broken gate.
 #
-# The hazard is the next real failure, which gets waved off as "just the probes". A summary that
-# cries wolf is worse than a silent one, because it trains people to ignore the panel.
+# Unsetting the variable for this script removes the ANNOTATION path and changes nothing about
+# what the specs print. That distinction is the whole fix: `check` below reads the failure TEXT to
+# confirm a violation failed for the RIGHT reason, so anything that alters the output alters what
+# the mechanism can observe.
+#
+# The first attempt used `--reporter=basic`, which does not exist in Vitest 4. The specs never ran,
+# the commands still exited non-zero, and the suite reported violations it had not actually
+# observed. Runs #34 and #35 went red. `BR-1830` inside the fix for `BR-1830`.
+unset GITHUB_ACTIONS
+
 pass=0; fail=0
 hr() { printf '\n────────────────────────────────────────────────────────────────────\n'; }
 
@@ -603,7 +611,11 @@ node -e '
   const s = fs.readFileSync("packages/ui/src/index.ts", "utf8").replace(/^\s*Skeleton,$/m, "");
   fs.writeFileSync("packages/ui/src/index.ts", s);
 '
-check "component missing from the roster" "pnpm --filter @josam/ui exec vitest run --reporter=basic src/roster.spec.ts" "Skeleton|roster"
+# The pattern must match text ONLY the real assertion produces. `Skeleton|roster` matched
+# `src/roster.spec.ts` in a pnpm error line when the spec failed to start at all — a false
+# green inside the fitness suite, hidden by exactly the permissive matching `BR-1849`
+# describes. `to include 'Skeleton'` is emitted by the assertion and by nothing else.
+check "component missing from the roster" "pnpm --filter @josam/ui exec vitest run src/roster.spec.ts" "to include .Skeleton."
 mv -f packages/ui/src/index.ts.bak packages/ui/src/index.ts
 
 # ── 41. A summary figure that disagrees with its own table ──────────────────────────────
@@ -669,7 +681,7 @@ node -e '
   // a graph Nest cannot build — which nothing but a container test can see.
   fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace("providers: [PasswordHasher, BreachList],", "providers: [BreachList],"));
 '
-check "provider missing from the module graph" "pnpm --filter @josam/api exec vitest run --reporter=basic src/shared/security/security.module.spec.ts" "Nest can.t resolve|UnknownDependencies|PasswordHasher"
+check "provider missing from the module graph" "pnpm --filter @josam/api exec vitest run src/shared/security/security.module.spec.ts" "Nest can.t resolve|UnknownDependencies|PasswordHasher"
 mv -f apps/api/src/shared/security/security.module.ts.bak apps/api/src/shared/security/security.module.ts
 
 hr

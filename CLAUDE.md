@@ -63,6 +63,15 @@ For every task, in this exact order. **Do not batch tasks.** One task, one verif
              An unobservable check is not a check that passed. It is one nobody
              looked at (BR-1830).
 
+             IF THE CHANGE TOUCHES THE VERIFICATION MECHANISM ITSELF, RUN IT.
+             `pnpm verify:fitness` is not part of the standard gate because it
+             is slow — which is exactly why a change to `verify-fitness.sh` is
+             the one change most likely to ship unverified. PH-1.7 edited that
+             script and ran lint/typecheck/test/build/format/ledgers/fk-order
+             and NOT the script it had just edited. CI went red for two runs.
+             The rule is narrow and absolute: touch the mechanism, run the
+             mechanism.
+
              WHEN A CHECK PASSES LOCALLY AND FAILS IN CI, THE FIRST QUESTION IS
              "what does my machine supply that CI does not" — before reading the
              code, before suspecting the test, before touching the workflow.
