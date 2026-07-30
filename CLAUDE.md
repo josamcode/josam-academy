@@ -150,7 +150,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.5`  | Docker Compose: Postgres 16 + pgvector, Redis 7, MailHog                                                                                                                                                                |  A   | `0.1`          | 0.5 |   ✅   |    0.2 | Stack healthy; 127.0.0.1-only proven                   |
 | `PH-0.6`  | Prisma init, connection, first empty migration                                                                                                                                                                          |  A   | `0.5`          | 0.5 |   ✅   |   0.45 | `pnpm db:migrate` succeeds — empty migration applied   |
 | `PH-0.7`  | **VPS hardening**: SSH keys, disable root, fail2ban, ufw, unattended-upgrades                                                                                                                                           |  B   | —              |   1 |   ✅   |    0.3 | Executed; output pasted back; port 8000 open           |
-| `PH-0.9`  | **Coolify already installed** — verify, rotate admin credential, unbind from 0.0.0.0, firewall it, apply `08 §11.1` memory limits                                                                                       |  B   | `0.7`          | 0.5 |   🟡   |      — | Runbook authored; founder executes. Partial by design  |
+| `PH-0.9`  | **Coolify already installed** — verify, rotate admin credential, unbind from 0.0.0.0, firewall it, apply `08 §11.1` memory limits                                                                                       |  B   | `0.7`          | 0.5 |   🟡   |    0.5 | Limits applied + diff-proven; §6.5, §7, §8 outstanding |
 | `PH-0.10` | GitHub Actions: lint → typecheck → test → build → push to ghcr.io                                                                                                                                                       |  B   | `0.2`          |   1 |   ✅   |   1.15 | Run #3 green; both images pullable by SHA tag          |
 | `PH-0.11` | Coolify deploy from registry + rollback by tag verification                                                                                                                                                             |  B   | `0.9`, `0.10`  | 0.5 |   ✅   |    0.6 | Deploy 5s; rollback both ways; 6 divergences (2h exec) |
 | `PH-0.12` | `packages/tokens`: both themes → CSS vars + RN constants                                                                                                                                                                |  A   | `0.1`          |   1 |   ✅   |    0.4 | Tokens in web bundle; 40 specs incl. contrast          |
@@ -206,7 +206,32 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 > defect at `PH-0.2` that the first structurally cannot see. A CI that only runs turbo goes green
 > on code the hook rejects, and the bug resurfaces in a pull request instead of locally.
 
-> **`PH-0.9` is authored with a DELIBERATELY SPLIT scope, and completes at 🟡 partial — never ✅.**
+> **`PH-0.9` is EXECUTED and 🟡 PARTIAL — the limits half only, and it is not done.** Three things
+> outstanding, none of them "it mostly worked": **§6.5**, the next-day `restarts=0` / `oom=false`
+> check, which is what actually blocks completion; **§7**, the admin credential rotation and the
+> other-admin/token/2FA sweep, deferred by founder decision into `PH-0.8`'s session because that is
+> when the dashboard stops being internet-reachable anyway; and **§8**, never run. Open registration
+> was confirmed **OFF** — a real finding, and the only §7 control currently standing.
+>
+> **The limits are applied and unvalidated, which is not the same as verified.** Josam was using
+> ~198 MiB against 3,008 M allocated — fifteen times headroom — so nothing approached a ceiling. The
+> client + Coolify total measured **1,650 MiB**, below the assumed 1,800, so the recalculated table was
+> applied with no adjustment. The sizing is first genuinely exercised when Phase 1 puts real data
+> behind it; `josam-postgres` at 1 G with `shared_buffers` 256 MB is sized for an empty schema and is
+> the one to re-examine then (`SB-39`).
+>
+> **The runbook's expected heap value was wrong in the dangerous direction and is corrected.** It said
+> expect ≈ 512; the process reports **560**, because `--max-old-space-size` sizes the old generation
+> while `heap_size_limit` adds the young generation on top. A runbook expecting the flag value **reads
+> a pass as a failure**, and the repair a person then reaches for — raising the flag until the numbers
+> match — pushes the heap ceiling above the container limit and breaks `BR-879` outright. The
+> assertion is the **inequality** `flag < heap_size_limit < container limit`, never an equality.
+>
+> Two smaller corrections from execution: the field is under **Resource Limits → Maximum Memory
+> Limit**, not Advanced; and every `docker` command needs `sudo`, because `josam` is in `sudo` but
+> deliberately not in the root-equivalent `docker` group (`PH-0.7`).
+
+> **`PH-0.9`'s original scope was DELIBERATELY SPLIT, and it completes at 🟡 partial — never ✅.**
 > Memory limits (`SB-23`, recalculated against measured client usage rather than `08 §11.1`'s
 > whole-box table) and the admin credential rotation are actionable now. **Unbinding the dashboard
 > from `0.0.0.0` and closing port 8000 are recorded against `PH-0.8`, not against `PH-0.9`** — doing

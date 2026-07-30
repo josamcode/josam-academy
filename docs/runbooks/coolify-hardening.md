@@ -1,14 +1,14 @@
 # Runbook — `PH-0.9` · Coolify hardening on a shared box
 
-| Field       | Value                                                                                                  |
-| ----------- | ------------------------------------------------------------------------------------------------------ |
-| **Task**    | `PH-0.9` — verify Coolify, rotate the admin credential, apply recalculated memory limits               |
-| **Type**    | **B** — authored here, executed by the founder                                                         |
-| **Depends** | `PH-0.7`                                                                                               |
-| **Refs**    | `08 §11.1` memory budget · `14 §12` · `SB-23` shared-box recalculation · `BR-878`, `BR-879`, `BR-1830` |
-| **Est**     | 0.25 d authoring + 0.35 d execution                                                                    |
-| **Status**  | ⬜ Not executed. Not done until the founder pastes back verification output (`BR-1768`).               |
-| **Scope**   | **Split.** Two halves actionable now; two halves deferred with `PH-0.8` and recorded as NOT DONE.      |
+| Field       | Value                                                                                                            |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Task**    | `PH-0.9` — verify Coolify, rotate the admin credential, apply recalculated memory limits                         |
+| **Type**    | **B** — authored here, executed by the founder                                                                   |
+| **Depends** | `PH-0.7`                                                                                                         |
+| **Refs**    | `08 §11.1` memory budget · `14 §12` · `SB-23` shared-box recalculation · `BR-878`, `BR-879`, `BR-1830`           |
+| **Est**     | 0.25 d authoring + 0.35 d execution                                                                              |
+| **Status**  | 🟡 **PARTIAL — executed 2026-07-30, limits half only.** §7 half-deferred, §8 not run, §6.5 outstanding. See §11. |
+| **Scope**   | **Split.** Two halves actionable now; two halves deferred with `PH-0.8` and recorded as NOT DONE.                |
 
 ---
 
@@ -41,7 +41,16 @@ that quietly widens:
 open, `BR-1702` stays unmet. That is a founder decision recorded as a decision, not a task that
 quietly finished.
 
-### 0.3 Placeholders
+### 0.3 Every `docker` command below needs `sudo`
+
+The `josam` user is in `sudo` but **not** in the `docker` group — `PH-0.7`'s open divergence, and it
+stays that way deliberately: `docker` group membership is root-equivalent, so on a box carrying five
+clients' applications the extra keystroke is the cheaper side of the trade.
+
+**Prefix every `docker` invocation in this runbook with `sudo`.** They are written bare for
+readability. Confirmed at execution 2026-07-30.
+
+### 0.4 Placeholders
 
 `<SERVER_IP>` · `<COOLIFY_URL>` · `<ADMIN_EMAIL>` · `<DOMAIN>` · `<CLIENT_URL_n>` · `<PROJECT>` —
 substitute at the terminal. **Never paste a real value back into a transcript, an issue, or a commit
@@ -211,9 +220,13 @@ table as printed if the measurement disagrees with it — that is the whole poin
 
 ## 4. Apply the limits — Josam containers only
 
-> In Coolify: **`<PROJECT>` → each resource → Advanced → Memory Limit**, then redeploy that resource.
-> Coolify recreates the container with the limit. **Do not use `docker update` on the host** — Coolify
-> overwrites it on the next deploy, which is a change that appears to work and silently reverts.
+> In Coolify: **`<PROJECT>` → each resource → "Resource Limits" → "Maximum Memory Limit"**, then
+> redeploy that resource. Coolify recreates the container with the limit. **Do not use `docker update`
+> on the host** — Coolify overwrites it on the next deploy, which is a change that appears to work and
+> silently reverts.
+>
+> **Corrected 2026-07-30.** This runbook originally said _Advanced → Memory Limit_. The field is under
+> its own **Resource Limits** heading, not under Advanced.
 
 Apply **one at a time**, lowest risk first, confirming each comes back before moving on:
 
@@ -260,11 +273,37 @@ docker exec josam-api node -e \
   'console.log("heap cap MB:", Math.round(require("v8").getHeapStatistics().heap_size_limit/1048576))'
 ```
 
-**Expected:** ≈ `512`.
+**Expected:** ≈ **`560`**, not `512`.
 
-**If it reports the default (~2048 or ~4096), `NODE_OPTIONS` never reached the process** — usually
+> ### ⚠️ The reported cap sits ~10% ABOVE the flag value. This is correct.
+>
+> **Corrected 2026-07-30 — the original expectation was wrong in the dangerous direction.** This
+> section used to say "expect ≈ 512", and execution returned `560`. `560` is the **right answer**:
+> `--max-old-space-size` sizes the **old** generation, and `heap_size_limit` reports the total heap,
+> which adds the young generation (semi-spaces) on top. Observed: `512 → 560` and `640 → 688`.
+>
+> A runbook expecting exactly the flag value **reads a pass as a failure**. That is worse than a check
+> that is merely absent: it manufactures a defect where none exists, and the fix a person then applies
+> — raising the flag until the numbers match — breaks `BR-879` by pushing the heap ceiling **above**
+> the container limit, which is the precise condition this check exists to prevent. A wrong expected
+> value turns a passing safety check into an instruction to disable the safety.
+>
+> **What is actually being asserted is the inequality, not a number:**
+>
+> ```
+> max-old-space-size  <  heap_size_limit  <  container limit
+>         512         <        560        <       640   ✅
+>         640         <        688        <       768   ✅
+> ```
+>
+> Check the ordering. Do not check for equality with the flag.
+
+**If it reports a default (~2048 or ~4096), `NODE_OPTIONS` never reached the process** — usually
 because the start command sets its own, or the entrypoint drops the variable. Fix it in the start
 command rather than adding a second copy of the variable somewhere else.
+
+**If it reports a value ABOVE the container limit, stop** — that is `BR-879` inverted, and the process
+will be kernel-killed with no stack trace rather than throwing a heap error.
 
 `josam-web` spawns children, so check the server process rather than PID 1:
 
@@ -482,3 +521,66 @@ decision, and becomes ✅ only when `PH-0.8` runs after Phase 0 exit.
 **It is not proven until §6.5 runs the following day.** Every check above runs within minutes of
 applying the limits, and memory limits fail under load. A limits task that passes at minute five and
 OOMs at hour six was never verified — it was observed early (`BR-1761`).
+
+---
+
+## 11. Execution record — 2026-07-30 · 🟡 PARTIAL
+
+**Not done. Not marked done.** Three separate reasons, and none of them is "it mostly worked."
+
+### The measurement `SB-23` was missing
+
+| Figure                   | Value                                                              |
+| ------------------------ | ------------------------------------------------------------------ |
+| `free -m`                | total **7,940** · used 2,187 · available **5,753**                 |
+| Client + Coolify at rest | **1,650 MiB** — below the runbook's assumed ~1,800                 |
+| Josam actual, pre-limits | **~198 MiB** across five containers                                |
+| §3.3 table               | **applied as printed.** The measurement agreed; no adjustment made |
+
+### Limits applied — §4
+
+All five, one at a time, each confirmed running:
+
+```
+backup    268435456  (256M)      redis     335544320  (320M)
+postgres 1073741824  (1G)        api       671088640  (640M)
+web       805306368  (768M)
+```
+
+### Heap ceilings — §5
+
+`api` **560 MB** under a 640M limit · `web` **688 MB** under a 768M limit. Both read from the running
+process. **Both correct** — see the ~10% note now in §5, which this execution is the reason for.
+
+### Clients untouched — §6
+
+The limits diff shows **five lines, all `/josam-*`**. No client container appears. Client sites
+identical before and after; ten consecutive `200`s from ours.
+
+### What is NOT done
+
+| Item                                    | State                                         | Owner        |
+| --------------------------------------- | --------------------------------------------- | ------------ |
+| §6.5 next-day `restarts=0`, `oom=false` | ⬜ **outstanding — this is what blocks done** | Founder      |
+| §7 admin password rotation              | ⬜ deferred                                   | **`PH-0.8`** |
+| §7.2 other-admin sweep, API tokens, 2FA | ⬜ deferred                                   | **`PH-0.8`** |
+| §7.2 open registration                  | ✅ **confirmed OFF** — a real finding         | —            |
+| §8 unbind + firewall port 8000          | ⬜ **not run, as written**                    | **`PH-0.8`** |
+
+**§7's deferral is a founder decision with a reason:** the dashboard stops being internet-reachable in
+`PH-0.8`'s session anyway, so the rotation lands in the same session as the exposure it mitigates.
+Recorded as deferred with an owner, never as done. `PH-0.8` has not started (`BR-1840`).
+
+### Two things this execution proved about the limits, and one it did not
+
+It proved the limits **apply**, the containers **start**, the heap ceilings are **read by the
+processes**, and the client set is **untouched by diff, not by assertion**.
+
+**It did not prove the limits are right.** Josam was using ~198 MiB against 3,008M allocated — roughly
+**fifteen times headroom** — so nothing came close to a ceiling. That is the correct posture for an
+empty database with no traffic, and it means the sizing is **untested rather than validated**. Even
+§6.5 tomorrow will only show that idle containers stay idle.
+
+**The limits are genuinely exercised for the first time when Phase 1 puts real data and real traffic
+behind them.** `josam-postgres` at 1G with `shared_buffers` 256MB is the one to re-examine then — it
+is sized for an empty schema. Re-check at the first Phase 1 task that writes production data.

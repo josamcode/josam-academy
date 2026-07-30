@@ -33,9 +33,9 @@ yesterday, and is the single largest change in this project's risk position so f
 | Field              | Value                                                                                                                                                                                                                                                                                         |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-30                                                                                                                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.9` runbook authored; criteria 11 and 12 amended; `SB-36` closed)                                                                                                                                                                                                                    |
-| **Current phase**  | Phase 0 — Foundation · **28 / 30**                                                                                                                                                                                                                                                            |
-| **Current task**   | `PH-0.9` — **runbook authored, founder executing.** Split: limits + credential now, port 8000 deferred with `PH-0.8`                                                                                                                                                                          |
+| **Updated by**     | AI (`PH-0.9` execution recorded — partial; heap-expectation defect corrected)                                                                                                                                                                                                                 |
+| **Current phase**  | Phase 0 — Foundation · **28 / 30** · `PH-0.9` 🟡 partial                                                                                                                                                                                                                                      |
+| **Current task**   | `PH-0.9` — 🟡 **PARTIAL.** Limits applied and diff-proven. §6.5 next-day check outstanding; §7 and §8 deferred to `PH-0.8`                                                                                                                                                                    |
 | **Next task**      | `PH-0.9` — the **last** task before the Phase 0 exit check. `PH-0.8` is deferred to after exit.                                                                                                                                                                                               |
 | **Production URL** | **`josamacademy.com` — serving over HTTPS.** Cloudflare proxied, SSL mode Full. All five route groups 200.                                                                                                                                                                                    |
 | **Blocked**        | Nothing is blocked. `PH-0.9` is next; `PH-0.8` is deferred to after exit, so `SB-22` and `BR-1702` stay open. Three items carry a **date**, not a blocker: rotate the R2 credentials today (`SB-36`), a degraded `/health` does not alert (`SB-34`), TLS mode + certificate expiry (`SB-35`). |
@@ -396,6 +396,75 @@ redeploy. All four client sites verified unchanged throughout. Recorded so the u
 §3.3 output is not later misread as damage from this task — which is exactly the right instinct,
 because §3.3 exists to prove the client stack was untouched and an unexplained restart in that
 output would undermine it.
+
+---
+
+### 2026-07-30 · PH-0.9 — Coolify hardening · 🟡 PARTIAL
+
+**By:** Founder executed · AI authored
+**Time:** 0.25 d authoring + 0.25 d execution (limits half) against 0.25 + 0.35 estimated.
+**Status:** 🟡 **PARTIAL, and deliberately not marked done.** Three items outstanding.
+
+**Output:** `docs/runbooks/coolify-hardening.md`, now carrying its own execution record at §11.
+
+### The measurement `SB-23` existed to get
+
+`free -m` total **7,940** · available **5,753**. **Client + Coolify at rest: 1,650 MiB** — below the
+runbook's assumed ~1,800, so the recalculated §3.3 table was applied exactly as printed. Josam's own
+usage before limits: **~198 MiB across five containers.**
+
+All five limits applied one at a time, each confirmed running. Heap ceilings read from the running
+process rather than from `NODE_OPTIONS`: api **560 MB** under 640 M, web **688 MB** under 768 M.
+
+**The client set was proven untouched by diff, not by assertion** — five changed lines, all
+`/josam-*`. Client sites identical before and after; ten consecutive `200`s from ours.
+
+### The defect this execution found in my own runbook
+
+**§5 said "expect ≈ 512". The process reports 560, and 560 is correct.**
+`--max-old-space-size` sizes the **old** generation; `heap_size_limit` reports the total heap, adding
+the young generation on top — about 10%. Observed 512 → 560 and 640 → 688.
+
+**The wrong expected value fails in the more dangerous direction: it reads a pass as a failure.** An
+absent check tells you nothing; this one manufactures a defect that is not there. And the repair a
+person naturally reaches for — raising `--max-old-space-size` until the reported number matches —
+pushes the heap ceiling **above the container limit**, which is `BR-879` exactly inverted and the one
+condition the check exists to prevent. **A wrong expectation turns a passing safety check into an
+instruction to disable the safety.**
+
+Corrected to assert the **inequality** — `flag < heap_size_limit < container limit` — because that is
+what `BR-879` actually requires. The equality was never the rule; it was my shorthand for it, and
+shorthand in a verification step is a defect.
+
+Two smaller corrections: the Coolify field is under **Resource Limits → Maximum Memory Limit**, not
+Advanced; and every `docker` command needs `sudo` — `josam` is in `sudo` but deliberately not in the
+root-equivalent `docker` group (`PH-0.7`).
+
+### Applied is not validated
+
+Josam used **~198 MiB against 3,008 M allocated** — fifteen times headroom. Nothing came close to a
+ceiling, so this execution proved the limits **apply, start, and are read**; it did not prove they are
+**right**. Even §6.5 tomorrow only shows that idle containers stay idle.
+
+The limits are first genuinely exercised when Phase 1 puts real data and traffic behind them.
+**`josam-postgres` at 1 G with `shared_buffers` 256 MB is sized for an empty schema** and is the one
+to re-examine at the first Phase 1 task that writes production data. Recorded as `SB-39`.
+
+### What is outstanding
+
+| Item                                    | State                                 | Owner        |
+| --------------------------------------- | ------------------------------------- | ------------ |
+| §6.5 next-day `restarts=0`, `oom=false` | ⬜ **blocks completion**              | Founder      |
+| §7 password rotation + admin/token/2FA  | ⬜ deferred                           | **`PH-0.8`** |
+| §7.2 open registration                  | ✅ **confirmed OFF** — a real finding | —            |
+| §8 unbind + close port 8000             | ⬜ not run, as written                | **`PH-0.8`** |
+
+§7's deferral is a founder decision with a reason: the dashboard stops being internet-reachable in
+`PH-0.8`'s session, so the rotation lands beside the exposure it mitigates. Recorded as deferred with
+an owner. `PH-0.8` has not started (`BR-1840`).
+
+**Open registration being OFF is the finding that matters most today** — with `SB-22` open, it is the
+only §7 control currently standing between the internet and an account on that dashboard.
 
 ---
 
@@ -2672,6 +2741,7 @@ functioning in TypeScript 7.0`, exit 2.
 
 | ID          | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Reason deferred                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Revisit at                                                                                                                   |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `SB-39`     | **The container memory limits are applied but unvalidated.** `PH-0.9` measured Josam using **~198 MiB against 3,008 M allocated** — roughly fifteen times headroom — so no limit was approached, let alone reached.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | The execution proved the limits **apply, start, and are read by the processes**. It could not prove they are **correctly sized**, and no next-day idle check can either. They are first exercised when Phase 1 puts real data and traffic behind them. **`josam-postgres` at 1 G with `shared_buffers` 256 MB is the specific one to re-examine** — it is sized for a schema containing one empty migration. Re-check `docker stats` against the limits at the first Phase 1 task that writes production data, and raise the single container that approaches its ceiling rather than all five.                                                                                                                                                                                                                                                                                | **First Phase 1 task writing real data**                                                                                     |
 | `SB-38`     | **One R2 token both writes and deletes every database dump, and the API holds a copy of it.** The API only ever **lists** the bucket, for `last_backup`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Split it: a **read-only** token for the API, and the write-and-delete credential only in the backup container. Two reasons, and the second is the one `SB-36`'s failed rotation exposed. (1) The backup set and its destruction are currently the same secret, in three places. (2) While the reader and the writer are the same token, a permission mistake on the writer is **masked by the reader** — `last_backup` goes on reporting `ok` against the previous dump for up to 26 hours. Split, and a broken writer can no longer be covered for by a working reader.                                                                                                                                                                                                                                                                                                       | **Before Phase 1 data**                                                                                                      |
 | ~~`SB-37`~~ | ~~**`12 §19` row 15 — Core Web Vitals — is orphaned.**~~ **Closed 2026-07-30 by founder decision.** Re-owned to **`PH-1.24`**, the first task that ships a real page.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Reasoning recorded: the site renders five **empty** route groups, so a Core Web Vitals score would measure nothing. It was never a Phase 0 capability — it was recorded against `PH-0.11` only because that task happened to produce a URL, which is proximity mistaken for ownership. The failure is now a **worked example beside `BR-1833`** in `12 §19.1`, and the rule is tightened by **`BR-1840`**: every deferral names a task that has **not started**, and a check whose owner closes without it is re-owned in that task's closing commit.                                                                                                                                                                                                                                                                                                                          | ✅ Closed                                                                                                                    |
 | ~~`SB-36`~~ | ~~**R2 backup credentials exposed.**~~ **Closed 2026-07-30.** Rotated — old token deleted, replacement created with the same scope, all three locations updated (`.env`, `josam-backup` `AWS_*`, `josam-api` `R2_*`), both containers redeployed, and the rotation **exercised end to end**.                                                                                                                                                                                                                                                                                                                                                                                                           | **The rotation failed on the first attempt and looked like a success.** The replacement was created Object **READ ONLY**: `pg_dump` succeeded, the upload returned `AccessDenied`, and every surface check — key present, secret length, bucket, endpoint — was correct. Fixed by correcting that token's permission rather than issuing a third one, so nothing downstream changed. Two rules came out of it, both now in `backups-and-monitoring.md` rather than only in a log: **§2.4** — after any credential rotation, run `backup.sh` by hand immediately, because a credential that has never been exercised is untested rather than rotated; and the reason this failure shape is worse than a total one — a read-only token still lets `last_backup` read the bucket and report `ok` against the **previous** dump. **The remaining structural item is now `SB-38`.** | ✅ Closed                                                                                                                    |
