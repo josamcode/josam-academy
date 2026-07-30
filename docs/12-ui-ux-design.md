@@ -1289,6 +1289,27 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   exit count must reconcile against the full table rather than against whatever happens to be
   switched on.
 
+  **Worked example — this ledger failed its own rule.** Row 15, Core Web Vitals, was recorded
+  against `PH-0.11`, because Lighthouse CI needs a deployed URL and `PH-0.11` was the task that
+  produced one. `PH-0.11` completed on 2026-07-30 **without adding it**. The row was then pointing
+  at a task that had already closed, and it survived that way until the Phase 0 exit reconciliation
+  read the table row by row instead of trusting its own summary line.
+
+  This is worse than an unowned row, and the reason is the failure mode rather than the arithmetic:
+  a row naming a completed task **reads as scheduled**. An empty owner column invites the question
+  "who does this?"; `PH-0.11` answers it, wrongly, and the reader moves on. The check would never
+  have been done by anyone, and nothing would ever have said so.
+
+- `BR-1840` — A deferral names a task that **has not started**. Recording a check against a task
+  that is in progress, or already complete, produces an owner that cannot act, and `BR-1833`'s
+  requirement is then satisfied on paper while nothing is scheduled. When the task a check was
+  waiting on closes without it, the check is **re-owned in that task's closing commit** — not left
+  to be discovered later.
+
+  The corollary is that reconciliation reads the **rows**, never the score line. The score line that
+  hid row 15 also claimed three rows were deferred that had been active since `PH-0.30`; it had been
+  written once and never recomputed. Same family as `BR-1832` — re-run, do not re-read.
+
 - `BR-1522` — A failing check blocks merge. It is never downgraded to a warning to unblock work.
 - `BR-1523` — When a defect escapes to production, the first question is which automated check would have caught it — and that check is added.
 

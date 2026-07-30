@@ -11,7 +11,7 @@
 | **Current phase**   | Phase 0 — Foundation                      |
 | **Scope authority** | `docs/16-task-breakdown.md`, Phase 0 only |
 | **Last updated**    | 2026-07-29                                |
-| **Updated after**   | `PH-0.24` — the ten choice fields         |
+| **Updated after**   | `PH-0.9` — runbook authored (split scope) |
 
 ---
 
@@ -150,7 +150,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.5`  | Docker Compose: Postgres 16 + pgvector, Redis 7, MailHog                                                                                                                                                                |  A   | `0.1`          | 0.5 |   ✅   |    0.2 | Stack healthy; 127.0.0.1-only proven                   |
 | `PH-0.6`  | Prisma init, connection, first empty migration                                                                                                                                                                          |  A   | `0.5`          | 0.5 |   ✅   |   0.45 | `pnpm db:migrate` succeeds — empty migration applied   |
 | `PH-0.7`  | **VPS hardening**: SSH keys, disable root, fail2ban, ufw, unattended-upgrades                                                                                                                                           |  B   | —              |   1 |   ✅   |    0.3 | Executed; output pasted back; port 8000 open           |
-| `PH-0.9`  | **Coolify already installed** — verify, rotate admin credential, unbind from 0.0.0.0, firewall it, apply `08 §11.1` memory limits                                                                                       |  B   | `0.7`          | 0.5 |   ⬜   |      — | Limits RECALCULATED for a shared box (SB-23)           |
+| `PH-0.9`  | **Coolify already installed** — verify, rotate admin credential, unbind from 0.0.0.0, firewall it, apply `08 §11.1` memory limits                                                                                       |  B   | `0.7`          | 0.5 |   🟡   |      — | Runbook authored; founder executes. Partial by design  |
 | `PH-0.10` | GitHub Actions: lint → typecheck → test → build → push to ghcr.io                                                                                                                                                       |  B   | `0.2`          |   1 |   ✅   |   1.15 | Run #3 green; both images pullable by SHA tag          |
 | `PH-0.11` | Coolify deploy from registry + rollback by tag verification                                                                                                                                                             |  B   | `0.9`, `0.10`  | 0.5 |   ✅   |    0.6 | Deploy 5s; rollback both ways; 6 divergences (2h exec) |
 | `PH-0.12` | `packages/tokens`: both themes → CSS vars + RN constants                                                                                                                                                                |  A   | `0.1`          |   1 |   ✅   |    0.4 | Tokens in web bundle; 40 specs incl. contrast          |
@@ -205,6 +205,20 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 > once from the repository root across every workspace. The second path caught a real parser
 > defect at `PH-0.2` that the first structurally cannot see. A CI that only runs turbo goes green
 > on code the hook rejects, and the bug resurfaces in a pull request instead of locally.
+
+> **`PH-0.9` is authored with a DELIBERATELY SPLIT scope, and completes at 🟡 partial — never ✅.**
+> Memory limits (`SB-23`, recalculated against measured client usage rather than `08 §11.1`'s
+> whole-box table) and the admin credential rotation are actionable now. **Unbinding the dashboard
+> from `0.0.0.0` and closing port 8000 are recorded against `PH-0.8`, not against `PH-0.9`** — doing
+> them without the tunnel removes the founder's clients' path to their own control panel with nothing
+> replacing it. `PH-0.9` is about to close, and a closed task cannot own an outstanding check
+> (`BR-1833`, `BR-1840`).
+>
+> The seed runbook's OOM reasoning was **wrong and is corrected in place**: declaring a limit does not
+> raise a container's global `oom_badness`. We are still the ones killed, but because a limited
+> container has a **second, private kill path** — its own cgroup ceiling — that unlimited neighbours
+> do not. The conclusion survived; the mechanism did not. It matters because under the old reasoning
+> generous sizing would not have helped, and under the real one it is the entire mitigation.
 
 > **`PH-0.28` is authored and locally exercised as far as it can be without the founder's R2
 > credentials.** `scripts/backup.sh` dumps the real database and passes its size and `PGDMP` format
@@ -318,8 +332,26 @@ Phase 0 is not done until **all** of these are true and evidenced.
 ☐ All 20 checks in `12 §19` reconciled: active, or recorded against the task that
     activates them (`BR-1833`). The count is 20, not "the ones switched on".
 ☐ A raw hex color in a component fails the build (verified by deliberate violation)
-☐ Health endpoint reports database, Redis, queue, storage, last backup
-☐ STATUS.md shows 28/28 with honest actual-vs-estimate times per task
+☐ Health endpoint reports database, Redis, last backup — the three dependencies that EXIST.
+    AMENDED 2026-07-30. The original read "database, Redis, queue, storage, last backup".
+    Phase 0 has no queue and no object storage, and a health check reporting on a service that
+    does not exist is `BR-892`'s exact prohibition — it is the failure the check is for.
+    `queue` is recorded against `PH-1.23`, the first task that enqueues.
+    `storage` is recorded against `PH-1.25`, the first task that stores an object on R2.
+    Both named by task ID, and both NOT STARTED (`BR-1840`).
+☐ STATUS.md shows 29 / 30 with honest actual-vs-estimate times per task.
+    AMENDED 2026-07-30. The original read "28/28", which `PH-0.29` and `PH-0.30` made
+    arithmetically impossible — there are 30 tasks.
+    **29 / 30 is the exit position, and 30 / 30 is not reachable.** `PH-0.8` is DEFERRED by
+    founder decision to after Phase 0 exit. Consequently, and stated here so it can never be
+    read as finished:
+      · `BR-1702` is NOT MET — the origin IP is exposed, no origin firewall restricts HTTP
+        to Cloudflare ranges.
+      · `SB-22` is OPEN — the Coolify dashboard is reachable from the internet on port 8000.
+      · `PH-0.9`'s unbind-and-firewall half is recorded against `PH-0.8`, NOT against `PH-0.9`.
+    Phase 0 exits with a known live gap that a person decided to accept for now.
+    It does NOT exit complete. Any summary that reads "Phase 0 done, everything green"
+    is wrong, and this line exists to make that wrongness visible.
 ```
 
 When all boxes are true, produce the **Phase 0 closing report**: actual vs estimated days per

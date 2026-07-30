@@ -83,7 +83,8 @@ The per-document counts above sum to the same figure.
 
 | Range | Status |
 |---|---|
-| **`BR-1840` onward** | ✅ **Next free block — use this.** Contiguous and unused. |
+| **`BR-1841` onward** | ✅ **Next free block — use this.** Contiguous and unused. |
+| `BR-1840` | ❌ taken by `12 §19.1` — a deferral names a task that has NOT started. Allocated 2026-07-30 (Phase 0 exit reconciliation). |
 | `BR-1839` | ❌ taken by `12 §19.1` — a tool's error names its own failure, not the system's. Allocated 2026-07-30 (`PH-0.11` execution). |
 | `BR-1838` | ❌ taken by `12 §19.1` — verification depending on generated state is not verification until it has run against a clean tree. Allocated 2026-07-29 (`PH-0.10`, CI run #2). |
 | `BR-1837` | ❌ taken by `12 §19.1` — assert the effect, not the marker. Allocated 2026-07-29 (`PH-0.27` close-out). |

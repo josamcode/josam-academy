@@ -1,12 +1,12 @@
 # Runbook — `PH-0.28` Backups & Monitoring
 
-| Field         | Value                                                                                                                        |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Task**      | `PH-0.28` — daily `pg_dump` → R2, weekly restore verification, UptimeRobot alerting                                          |
-| **Type**      | **B** — authored here, executed by the founder                                                                               |
-| **Authority** | `DEC-57`, `BR-1726`, `BR-892`, `SB-17`, `SB-24`, `11 §API-21`                                                                |
-| **Proves**    | Exit criteria **3** and **4**, and completes **9**                                                                           |
-| **Status**    | ✅ **Executed 2026-07-30.** All gates passed. Five divergences — see §13. One row open: the alert **recovery** notification. |
+| Field         | Value                                                                                                                                                     |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Task**      | `PH-0.28` — daily `pg_dump` → R2, weekly restore verification, UptimeRobot alerting                                                                       |
+| **Type**      | **B** — authored here, executed by the founder                                                                                                            |
+| **Authority** | `DEC-57`, `BR-1726`, `BR-892`, `SB-17`, `SB-24`, `11 §API-21`                                                                                             |
+| **Proves**    | Exit criteria **3** and **4**, and completes **9**                                                                                                        |
+| **Status**    | ✅ **Executed 2026-07-30.** All gates passed. Five divergences — see §13. **All rows closed** — the alert recovery notification was confirmed 2026-07-30. |
 
 ---
 
@@ -108,6 +108,52 @@ R2 → the bucket → Settings → **S3 API**. It has the shape
 - **Broader than that** → create a new one scoped correctly and stop using the old one. A backup
   credential that can reach other buckets is a credential whose blast radius exceeds its job.
 
+### Step 2.4 — 🔁 STANDING RULE: after ANY credential rotation, run §4 by hand immediately
+
+> **A rotated credential that has never been exercised is not a rotated credential. It is an untested
+> one.** Do not wait for the 02:17 schedule to find out.
+
+**Found the hard way, 2026-07-30.** A replacement R2 token was created with Object **READ ONLY**
+instead of Read & Write. Everything downstream looked correct — the container held the new key, the
+secret was the right length, the bucket and endpoint were right, and **`pg_dump` succeeded**. Only the
+upload failed, with `AccessDenied`. Every check a person would think to run passed.
+
+This is `BR-1830` at the credential layer: the rotation was a mechanism, and it was never asked
+whether it worked. The correct question is never "is the new credential in place" — it is **"has the
+new credential completed the job it exists for, end to end."**
+
+```bash
+# The whole rule, after every rotation. Not a subset.
+docker exec <BACKUP_CONTAINER> /usr/local/bin/backup.sh
+```
+
+Expect `dump complete` **and** `uploaded and verified`. The second line is the one under test — the
+first would have passed in the failure above.
+
+Applies to every credential this task touches: the R2 token, `DATABASE_URL`, and the API's `R2_*`.
+
+#### ⚠️ Why this failure mode is worse than a total failure
+
+**A read-only token still lets `last_backup` READ the bucket.** It lists objects, finds the
+**previous** dump, and reports `ok` against it — so the health check keeps saying the backup is fine
+while **no new backup is being written**. A broken credential that broke everything would have been
+found in minutes; one that broke only the write half is invisible to the check built to watch it.
+
+**Be exact about how long that lasts, because it is bounded and the bound is the only thing saving
+you:** `last_backup` throws once the newest dump passes `DUMP_MAX_AGE_HOURS = 26`. So the indicator
+does catch it — **the next morning, not immediately** — and when it does, it reports
+`dump is 27.4 hours old`. That names the **symptom**. The cause was `AccessDenied` on a token
+permission, and nothing in the health output points at it. `BR-1839` — a tool's error names its own
+failure, not the system's.
+
+> **A green `last_backup` does not prove the backup job still works. It proves an object exists.**
+> Those are the same statement only while the job is writing, which is the thing in question.
+
+The structural fix is the split already recorded in `SB-36`: the API holds a **read-only** token,
+because listing is all it does, and the write-and-delete credential lives only in the backup
+container. Then a permission mistake on the backup credential cannot be masked by the reader, because
+they are no longer the same token.
+
 ---
 
 ## 3. The backup container
@@ -155,6 +201,9 @@ project restarts nothing else, and this is where that is confirmed rather than a
 ---
 
 ## 4. ✅ **GATE — run the backup by hand before scheduling it**
+
+> Also run this section, in full, **after any credential rotation** — §2.4. It is a gate at install
+> time and a standing rule thereafter.
 
 A scheduled job that has never been run by hand is a job whose first execution is unobserved.
 
@@ -470,8 +519,21 @@ All gates passed. Exit criteria **3** and **4** closed; **9** complete for every
 4. **A client container restarted a minute before the deploy**, `RestartCount 0` — a separate
    redeploy, not this task. Noted so the §3.3 uptime evidence is not later misread.
 
+### Sixth finding — the rotation, 2026-07-30
+
+`SB-36`'s rotation **failed on the first attempt** and looked like a success. The replacement token
+was created Object **READ ONLY**. `pg_dump` succeeded, the upload returned `AccessDenied`, and every
+surface-level check — key present, secret length, bucket, endpoint — was correct.
+
+Fixed by **correcting the existing token's permission rather than issuing another one**, so no values
+changed downstream and no third rotation was needed. Re-run confirmed `uploaded and verified`.
+**`SB-36` closes.**
+
+Two things came out of it and are now in this runbook rather than only in a log: the standing rule at
+**§2.4**, and the reason a partial credential failure is worse than a total one — a read-only token
+still lets `last_backup` report `ok` against the previous dump, for up to 26 hours.
+
 ### Still open
 
-- The alert **recovery** notification, being confirmed separately.
 - `SB-36` — the R2 credentials were exposed in a chat transcript and should be rotated. The token can
   read **and delete** every dump, so the backup set and its destruction are one credential.
