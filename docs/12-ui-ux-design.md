@@ -1277,6 +1277,47 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   - The check is: delete every gitignored build artifact, then run the full verification. Anything
     that fails was never being verified.
 
+- `BR-1841` — **A check with a WRONG expected value is worse than no check at all.**
+
+  An absent check reports nothing, and everybody knows it reports nothing. A check with a wrong
+  expectation **manufactures a defect that does not exist**, and it does so with all the authority of
+  a verification step — so the failure is not merely uninformative, it is actively misleading, and it
+  arrives attached to an instruction to go and fix something that is already correct.
+
+  **Worked example — `PH-0.9`, 2026-07-30.** The runbook verified `BR-879` (the Node heap ceiling sits
+  below the container limit) by reading `heap_size_limit` from the running process and expecting
+  `≈ 512`, matching `--max-old-space-size=512`. The process reported **560**, which is the **correct**
+  value: the flag sizes the **old generation**, while `heap_size_limit` reports the total heap and adds
+  the young generation on top — roughly 10%.
+
+  **Follow what the wrong expectation would have caused.** A reader sees 560 against an expected 512,
+  concludes the setting did not take, and applies the obvious repair: raise `--max-old-space-size`
+  until the reported number matches. To make `heap_size_limit` read 512 the flag must drop; to make
+  the two agree upward, the flag rises past 640 — **above the container limit**. That is `BR-879`
+  exactly inverted, and it re-creates the precise condition the check exists to prevent: the process
+  is now kernel-killed with no stack trace instead of throwing a heap error.
+
+  > **A wrong expected value can turn a passing safety check into an instruction to disable the
+  > safety.** That is the failure mode, and it is why this is worse than the check being absent.
+
+  **The rule: assert the RELATIONSHIP, not the number.** What `BR-879` requires is an ordering, so the
+  assertion is the ordering:
+
+  ```
+  max-old-space-size  <  heap_size_limit  <  container limit
+  ```
+
+  A number in an expectation is a claim about the implementation, and implementations add young
+  generations, round to page sizes, and reserve overhead. An invariant is a claim about the property
+  actually being protected, and it survives all of that. Where a check can assert either, assert the
+  invariant — the same instinct as `BR-1837`, one layer further out: there, assert the effect rather
+  than the marker; here, assert the property rather than the reading.
+
+  **Corollary.** A verification step whose expected value was written from the configuration rather
+  than observed from a correct run has never been validated. `BR-1835` requires seeing a test fail for
+  the right reason; this requires seeing it **pass** for the right reason, which is the same demand
+  from the other side and is the one usually skipped.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

@@ -16,7 +16,8 @@
 
 ### 0.1 What this runbook does NOT touch
 
-This box carries **five live client applications** and their own `postgres:18-alpine` and `redis:7.2`.
+This box carries **four live client applications** — plus a fifth client container that is an inactive
+clone serving no traffic — and their own `postgres:18-alpine` and `redis:7.2`.
 Nothing below touches any of them. Named explicitly, because a memory-limits task is exactly the kind
 that quietly widens:
 
@@ -338,19 +339,38 @@ on `/josam-*` lines.
 > **Any client container appearing in either diff is a failure of this task.** Restore it before doing
 > anything else — §9.2 — and report that it happened.
 
+> **There are FOUR client URLs, not five.** Corrected 2026-07-30. The box runs **four live client
+> applications**; the fifth client container is an **inactive clone of one of them and serves no
+> traffic**, so it has no URL to check and its absence from this loop is correct.
+>
+> This is recorded because the alternative reading is dangerous: four results against a list of five
+> looks like **one site that was never checked**. A missing result and a site that does not exist are
+> indistinguishable at a glance, and only one of them is fine.
+
 ```bash
-# 6.3 — the client sites still answer
-for u in <CLIENT_URL_1> <CLIENT_URL_2> <CLIENT_URL_3> <CLIENT_URL_4> <CLIENT_URL_5>; do
+# 6.3 — the client sites still answer. FOUR live applications.
+for u in <CLIENT_URL_1> <CLIENT_URL_2> <CLIENT_URL_3> <CLIENT_URL_4>; do
   printf '%s → ' "$u"; curl -s -o /dev/null -w '%{http_code}\n' --max-time 10 "$u"
 done
+
+# The fifth client container is an inactive clone. Confirm it is still there and still not
+# serving, rather than skipping it silently.
+sudo docker ps --format '{{.Names}}\t{{.Status}}' | grep -v '^josam'
 
 # 6.4 — and ours. TEN requests, not one — see deploy-and-rollback.md §10.1
 for i in $(seq 1 10); do curl -s -o /dev/null -w '%{http_code} ' https://<DOMAIN>/; done; echo
 docker exec josam-api wget -qO- localhost:3000/health
 ```
 
-**Expected:** five client `200`s; ten consecutive `200`s from ours; health reporting `database: ok`,
-`redis: ok`, `last_backup: ok`.
+**Expected:** four client responses **identical to the pre-change baseline** — not necessarily `200`;
+see the note below. Ten consecutive `200`s from ours. Health reporting `database: ok`, `redis: ok`,
+`last_backup: ok`.
+
+> **Compare against the baseline, not against `200`.** At execution the four returned `404 / 404 /
+200 / 404`, identical before and after — which is the assertion that matters. Three of the four are
+> APIs with no route at `/`, so `404` is their correct answer. A check demanding `200` would have
+> reported three failures and sent somebody investigating client applications this task never touched.
+> The question is **did we change anything**, and only a before/after diff answers it.
 
 ### 6.5 Let it sit before believing it
 
@@ -507,7 +527,7 @@ An empty diff means the box is exactly as it started.
 [ ] §5.2   web heap cap ≈ 640
 [ ] §6.1   container diff — Josam only
 [ ] §6.2   limits diff   — /josam-* only
-[ ] §6.3   five client sites → 200
+[ ] §6.3   four client sites — IDENTICAL to baseline (not necessarily 200)
 [ ] §6.4   ten consecutive 200s + health three ok
 [ ] §7.1   admin password rotated, new login proven in a private window
 [ ] §7.2   registration OFF · other admins · API tokens · 2FA — all four, with findings
