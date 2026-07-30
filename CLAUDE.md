@@ -150,7 +150,7 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.5`  | Docker Compose: Postgres 16 + pgvector, Redis 7, MailHog                                                                                                                                                                |  A   | `0.1`          | 0.5 |   ✅   |    0.2 | Stack healthy; 127.0.0.1-only proven                   |
 | `PH-0.6`  | Prisma init, connection, first empty migration                                                                                                                                                                          |  A   | `0.5`          | 0.5 |   ✅   |   0.45 | `pnpm db:migrate` succeeds — empty migration applied   |
 | `PH-0.7`  | **VPS hardening**: SSH keys, disable root, fail2ban, ufw, unattended-upgrades                                                                                                                                           |  B   | —              |   1 |   ✅   |    0.3 | Executed; output pasted back; port 8000 open           |
-| `PH-0.9`  | **Coolify already installed** — verify, rotate admin credential, unbind from 0.0.0.0, firewall it, apply `08 §11.1` memory limits                                                                                       |  B   | `0.7`          | 0.5 |   🟡   |    0.5 | Limits applied + diff-proven; §6.5, §7, §8 outstanding |
+| `PH-0.9`  | **Coolify already installed** — verify, rotate admin credential, unbind from 0.0.0.0, firewall it, apply `08 §11.1` memory limits                                                                                       |  B   | `0.7`          | 0.5 |   ✅   |    0.5 | 5/5 restarts=0 oom=false; §7/§8 → `PH-0.8`             |
 | `PH-0.10` | GitHub Actions: lint → typecheck → test → build → push to ghcr.io                                                                                                                                                       |  B   | `0.2`          |   1 |   ✅   |   1.15 | Run #3 green; both images pullable by SHA tag          |
 | `PH-0.11` | Coolify deploy from registry + rollback by tag verification                                                                                                                                                             |  B   | `0.9`, `0.10`  | 0.5 |   ✅   |    0.6 | Deploy 5s; rollback both ways; 6 divergences (2h exec) |
 | `PH-0.12` | `packages/tokens`: both themes → CSS vars + RN constants                                                                                                                                                                |  A   | `0.1`          |   1 |   ✅   |    0.4 | Tokens in web bundle; 40 specs incl. contrast          |
@@ -174,7 +174,13 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 | `PH-0.30` | **Phase 0 conformance closure** — criterion 6 in a real browser, roster gate, the four unowned checks, Redis health indicator                                                                                           |  A   | `0.27`, `0.10` |   1 |   ✅   |    1.1 | 40/40 fitness; 49 stories × 4 combos green             |
 | `PH-0.8`  | **DEFERRED to after Phase 0 exit** — Cloudflare Tunnel, origin firewall rules. Runbook already authored: `docs/runbooks/cloudflare-tunnel.md`                                                                           |  B   | `0.7`          | 0.5 |   ⏸️   |    0.3 | Deferred by founder decision. `SB-22` stays OPEN       |
 
-**Progress: 28 / 30 · 93.3%** · Estimated total 20.5 d · Actual to date 16.65 d authored + founder execution
+**Progress: 29 / 30 · 96.7%** — the exit position. `PH-0.8` is deferred by founder decision and 30/30
+is not reachable.
+
+**Estimated total 27.5 d · actual 16.90 d · ratio 0.615.** Both header figures were wrong until
+2026-07-30: the estimate read 20.5 d (the Est column sums to 27.5) and the actual read 16.65 d. A
+summary that is not recomputed from its own table drifts — the same defect as `12 §19`'s score line,
+and the second instance in this file.
 
 > **The Redis health indicator is registered in the same task that installs `ioredis` — never
 > "later" (`SB-16`).** `11 §API-21` lists `redis` among the `GET /health` checks. `PH-0.6` built

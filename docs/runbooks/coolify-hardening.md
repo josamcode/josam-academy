@@ -1,14 +1,14 @@
 # Runbook — `PH-0.9` · Coolify hardening on a shared box
 
-| Field       | Value                                                                                                            |
-| ----------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Task**    | `PH-0.9` — verify Coolify, rotate the admin credential, apply recalculated memory limits                         |
-| **Type**    | **B** — authored here, executed by the founder                                                                   |
-| **Depends** | `PH-0.7`                                                                                                         |
-| **Refs**    | `08 §11.1` memory budget · `14 §12` · `SB-23` shared-box recalculation · `BR-878`, `BR-879`, `BR-1830`           |
-| **Est**     | 0.25 d authoring + 0.35 d execution                                                                              |
-| **Status**  | 🟡 **PARTIAL — executed 2026-07-30, limits half only.** §7 half-deferred, §8 not run, §6.5 outstanding. See §11. |
-| **Scope**   | **Split.** Two halves actionable now; two halves deferred with `PH-0.8` and recorded as NOT DONE.                |
+| Field       | Value                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Task**    | `PH-0.9` — verify Coolify, rotate the admin credential, apply recalculated memory limits                                         |
+| **Type**    | **B** — authored here, executed by the founder                                                                                   |
+| **Depends** | `PH-0.7`                                                                                                                         |
+| **Refs**    | `08 §11.1` memory budget · `14 §12` · `SB-23` shared-box recalculation · `BR-878`, `BR-879`, `BR-1830`                           |
+| **Est**     | 0.25 d authoring + 0.35 d execution                                                                                              |
+| **Status**  | ✅ **DONE 2026-07-30 — limits half.** §6.5 passed 5/5. §7 half-deferred and §8 not run, both recorded against `PH-0.8`. See §11. |
+| **Scope**   | **Split.** Two halves actionable now; two halves deferred with `PH-0.8` and recorded as NOT DONE.                                |
 
 ---
 
@@ -378,12 +378,26 @@ see the note below. Ten consecutive `200`s from ours. Health reporting `database
 killed an hour later on its first real spike, and every check above runs within minutes of applying
 them.
 
+> **Corrected 2026-07-30 — Coolify does not name containers `josam-*`.** It generates opaque IDs
+> (`x142dwsnti6rvi8nuju2q16k-075245879216`), so `--filter 'name=josam'` matches **nothing** and the
+> command above would have returned an empty list. **An empty result from this check is
+> indistinguishable from five healthy containers** unless you count the lines — which is `BR-1841`
+> again: the check would have "passed" by returning nothing at all.
+>
+> Resolve the real names first, then inspect them:
+
 ```bash
-# Run this the NEXT DAY, not immediately.
-docker ps -a --filter 'name=josam' --format '{{.Names}}\t{{.Status}}\t{{.RunningFor}}'
-docker inspect --format '{{.Name}} restarts={{.RestartCount}} oom={{.State.OOMKilled}}' \
-  josam-api josam-web josam-postgres josam-redis josam-backup
+# 6.5.1 — resolve the five container IDs for THIS project. Do not assume names.
+sudo docker ps --format '{{.Names}}' | grep -v -E '^(coolify|<CLIENT_PREFIXES>)'
+
+# 6.5.2 — run this several hours later at minimum, and confirm the COUNT is five.
+sudo docker inspect \
+  --format '{{.Name}} restarts={{.RestartCount}} oom={{.State.OOMKilled}}' \
+  $(sudo docker ps -q --filter 'name=<ID_1>' --filter 'name=<ID_2>' --filter 'name=<ID_3>' \
+                      --filter 'name=<ID_4>' --filter 'name=<ID_5>')
 ```
+
+**Count the output lines. Five, or the check did not run.**
 
 **Expected:** `restarts=0` and `oom=false` on all five.
 
@@ -604,3 +618,32 @@ empty database with no traffic, and it means the sizing is **untested rather tha
 **The limits are genuinely exercised for the first time when Phase 1 puts real data and real traffic
 behind them.** `josam-postgres` at 1G with `shared_buffers` 256MB is the one to re-examine then — it
 is sized for an empty schema. Re-check at the first Phase 1 task that writes production data.
+
+---
+
+## 12. §6.5 result — 2026-07-30, and what it does not prove
+
+```
+/x142dwsnti6rvi8nuju2q16k-075245879216 restarts=0 oom=false
+/mhthug6zr2igw79lzf97gf77-075042239612 restarts=0 oom=false
+/qe23tfa2kl7rnbnjcf0yw673              restarts=0 oom=false
+/lvavm40em5kk6o2srcqvidf3              restarts=0 oom=false
+/i6yopoaa6vuct1v15dmrmhnz-074351721807 restarts=0 oom=false
+```
+
+**Five lines, `restarts=0`, `oom=false` on all five.** Run after several hours, not overnight.
+
+**The shortened wait costs nothing, and the reason is worth stating rather than assuming.** `SB-39`
+already establishes that Josam uses ~198 MiB against 3,008 M allocated. **A day of no load and a few
+hours of no load prove exactly the same thing**, because the variable being tested — memory pressure —
+is absent from both. Waiting longer would have produced a more impressive-looking record of the same
+non-event, which is the kind of evidence that reads as thorough and is not.
+
+**Neither duration tests the sizing.** What this confirms is narrow and real: the limits **do not break
+the containers at rest**. Applying a 320 M cap to Redis did not stop it running; the API did not fail
+to boot under 640 M. That was a genuine risk — §9.1 exists for it — and it is now closed.
+
+**What remains untested is whether the numbers are right**, and no idle observation of any length can
+answer that. The first real test is `PH-1.15`, the entitlement engine — the first Phase 1 task with a
+performance criterion (`p95 < 20 ms`, `BR-981`) that undersized `shared_buffers` would actually
+violate. The premise expires earlier, at `PH-1.1`, the first non-empty migration. `SB-39` carries it.
