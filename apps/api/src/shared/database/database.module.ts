@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 
 import { DatabaseHealthIndicator } from './database-health.indicator.js';
 import { PrismaService } from './prisma.service.js';
+import { RefreshTokenRepository } from './repositories/refresh-token.repository.js';
 
 /**
  * Global so repositories can inject PrismaService without every module re-importing this one.
@@ -13,7 +14,7 @@ import { PrismaService } from './prisma.service.js';
  */
 @Global()
 @Module({
-  providers: [PrismaService, DatabaseHealthIndicator],
-  exports: [PrismaService],
+  providers: [PrismaService, DatabaseHealthIndicator, RefreshTokenRepository],
+  exports: [PrismaService, RefreshTokenRepository],
 })
 export class DatabaseModule {}

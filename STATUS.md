@@ -34,8 +34,8 @@ yesterday, and is the single largest change in this project's risk position so f
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-30                                                                                                                                                                                                                                                                                    |
 | **Updated by**     | AI (`PH-0.9` execution recorded — partial; heap-expectation defect corrected)                                                                                                                                                                                                                 |
-| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · 2 / 32. Phase 0 closed at 29/30.                                                                                                                                                                                                                 |
-| **Current task**   | Phase 1 — `PH-1.3` next. `PH-1.2` ✅ (argon2id measured at 161 ms on the dev box — `SB-41`)                                                                                                                                                                                                   |
+| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · 3 / 32. Phase 0 closed at 29/30.                                                                                                                                                                                                                 |
+| **Current task**   | Phase 1 — `PH-1.4` next. `PH-1.3` ✅ (reuse revokes the family, proven against real rows)                                                                                                                                                                                                     |
 | **Next task**      | `PH-0.9` — the **last** task before the Phase 0 exit check. `PH-0.8` is deferred to after exit.                                                                                                                                                                                               |
 | **Production URL** | **`josamacademy.com` — serving over HTTPS.** Cloudflare proxied, SSL mode Full. All five route groups 200.                                                                                                                                                                                    |
 | **Blocked**        | Nothing is blocked. `PH-0.9` is next; `PH-0.8` is deferred to after exit, so `SB-22` and `BR-1702` stay open. Three items carry a **date**, not a blocker: rotate the R2 credentials today (`SB-36`), a degraded `/health` does not alert (`SB-34`), TLS mode + certificate expiry (`SB-35`). |
@@ -396,6 +396,78 @@ redeploy. All four client sites verified unchanged throughout. Recorded so the u
 §3.3 output is not later misread as damage from this task — which is exactly the right instinct,
 because §3.3 exists to prove the client stack was untouched and an unexplained restart in that
 output would undermine it.
+
+---
+
+### 2026-07-30 · PH-1.3 — JWT access + refresh rotation with family reuse detection · ✅
+
+**By:** AI · **Calendar:** 2026-07-30 → 2026-07-30 (same day)
+**Time:** estimated 1.0 d → actual 0.6 d
+
+**Output:** `AccessTokenService`, `RefreshTokenService`, `RefreshTokenRepository`,
+`IdentityModule`, `JWT_SECRET` in the env schema. **20 specs against a real database**, 6 proven
+by deliberate failure.
+
+### The stated output, asserted against rows rather than calls
+
+_"Reuse revokes the family (tested)."_ A mocked repository would prove the service **calls**
+`revokeFamily`; it would not prove any row changed. The spec replays a rotated token and then
+reads every row in the family back, asserting `revokedAt` and `revokedReason` on each
+(`BR-1837`).
+
+It also exercises **`BR-1819` item 3**, which named this exact operation: rotation is a
+transaction whose atomicity now runs through Prisma 7's driver adapter. Two concurrent refreshes
+with the same token resolve to **exactly one** success — the `rotatedAt: null` guard in the
+`updateMany` is the concurrency control, and the loser surfaces as reuse, which is the correct
+reading.
+
+### Two of my own tests were green for the wrong reason
+
+**This is the finding worth keeping.** Six probes were written; four failed the suite as intended
+and **two did not** — and in both cases the defect was in the test, not the code.
+
+1. **`rejects the alg:none attack` did not test the algorithm pin.** Removing
+   `algorithms: [ALGORITHM]` left it passing, because `jose` refuses `alg: none` unconditionally —
+   there is no key type for it. The pin actually defends against **algorithm confusion**, and
+   unpinned, `jose` verifies an **HS512** token against the same secret quite happily. Checked
+   against the library rather than reasoned about. A real test now signs HS512 with our own secret
+   and expects rejection; it fails when the pin is removed.
+2. **`rejects a payload missing a claim` did not test the shape check.** It spliced a forged
+   payload onto an existing signature, which fails _signature_ verification and never reaches
+   `toClaims`. It was green because of `jwtVerify`. Rewritten to sign a **valid** token that
+   simply lacks `role` — which is exactly what a token minted by an earlier version of this
+   service looks like.
+
+Both are `BR-1841`'s shape one level up: not a wrong expected _value_, but a test whose **name
+claims one property while its mechanism exercises another**. Only the probe distinguished them.
+**A green test proves nothing until you know which line makes it green.**
+
+### `BR-1580` caught the spec, and the tempting fix was wrong
+
+The fitness rule flagged `tokens.spec.ts` importing the Prisma client to build fixtures. The easy
+fix was exempting `*.spec.ts` from the rule — and that would have been wrong: **a spec is exactly
+where data access drifts out of the repository layer unnoticed**, because nobody reviews a test's
+queries as carefully as a service's. The raw access moved to
+`shared/database/testing/identity-fixtures.ts`, inside the allowed layer. The rule stays intact and
+the specs still reach real rows.
+
+### Decisions taken under "apply the default and log it"
+
+- **SHA-256 for refresh tokens, not Argon2id.** A refresh token is 32 bytes of CSPRNG output, not
+  a human-chosen secret: no dictionary to attack, no offline guessing advantage to remove. A slow
+  KDF would buy nothing and would put ~160 ms in front of every refresh. Password hashing is slow
+  because passwords are weak.
+- **`rotatedAt` is checked before `revokedAt` and before expiry.** A replayed token that has also
+  expired is still a replay; reporting `expired` would hide an attack behind a routine outcome.
+  Proven by probe.
+- **`revokeFamily` revokes already-rotated links too.** The family is the unit of compromise — a
+  spent link in a replayed chain is still suspect. Proven by probe.
+- **`JWT_SECRET` is required with no default** (`BR-943`). A default would mean every deployment
+  that forgot to set it shares one publicly-known key, and tokens minted anywhere would verify
+  everywhere — silent and total. Minimum 32 characters, because HS256's security is bounded by key
+  length.
+- **`jose` 6.2.4** — already pinned for `PH-1.3` in `13 §18.1`, so installing it followed the
+  specification rather than deciding anything.
 
 ---
 

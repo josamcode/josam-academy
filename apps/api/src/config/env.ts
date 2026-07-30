@@ -55,6 +55,21 @@ const envSchema = z.object({
 
   /** Release tag for log lines and Sentry grouping. Set from the image tag at PH-0.10. */
   APP_VERSION: z.string().min(1).default('0.0.0-dev'),
+
+  /**
+   * PH-1.3 — the HS256 signing key for access tokens (`14 §3.1`).
+   *
+   * REQUIRED with no default, and that is the point. A default would mean every deployment that
+   * forgot to set it shares one publicly-known key, and tokens minted anywhere would verify
+   * everywhere — the failure would be silent and total. `BR-943`: the application refuses to boot
+   * rather than run on a secret nobody chose.
+   *
+   * 32 bytes minimum. HS256's security is bounded by key length, and a short key makes the
+   * signature brute-forceable offline from a single captured token.
+   */
+  JWT_SECRET: z
+    .string()
+    .min(32, 'must be at least 32 characters — HS256 security is bounded by key length'),
 });
 
 export type Env = z.infer<typeof envSchema>;

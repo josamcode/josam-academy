@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { HealthModule } from './modules/health/health.module.js';
+import { IdentityModule } from './modules/identity/identity.module.js';
 import { ObservabilityModule } from './shared/common/observability.module.js';
 import { DatabaseModule } from './shared/database/database.module.js';
 import { BackupModule } from './shared/providers/backup/backup.module.js';
@@ -23,6 +24,7 @@ import { SharedHealthModule } from './shared/health/health.module.js';
     SecurityModule,
     BackupModule,
     HealthModule,
+    IdentityModule,
   ],
 })
 export class AppModule {}

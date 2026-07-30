@@ -122,6 +122,9 @@ importers:
       ioredis:
         specifier: 5.11.1
         version: 5.11.1(supports-color@10.2.2)
+      jose:
+        specifier: 6.2.4
+        version: 6.2.4
       pg:
         specifier: 8.22.0
         version: 8.22.0
@@ -6279,6 +6282,9 @@ packages:
   joi@18.2.3:
     resolution: {integrity: sha512-N5A3KTWQpPWT4ExxxPlUx7WmykGXRzhNidWhV41d6Abu9YfI2NyWCJuxdPnslJCPWtbRpSVOWSnSS6GakLM/Rg==}
     engines: {node: '>= 20'}
+
+  jose@6.2.4:
+    resolution: {integrity: sha512-N8acGzVsQy6M/fjFcxtysNc4Q379TcM5dM/qKkNtsHFji88yANnXTr7BLeP75iPnFwBfQzM/jg2BZ9+HZrHCZA==}
 
   js-md4@0.3.2:
     resolution: {integrity: sha512-/GDnfQYsltsjRswQhN9fhv3EMw2sCpUdrdxyWDOUK7eyD++r3gRhzgiQgc/x4MAv2i1iuQ4lxO5mvqM3vj4bwA==}
@@ -15561,6 +15567,8 @@ snapshots:
       '@hapi/tlds': 1.1.7
       '@hapi/topo': 6.0.2
       '@standard-schema/spec': 1.1.0
+
+  jose@6.2.4: {}
 
   js-md4@0.3.2: {}
 
