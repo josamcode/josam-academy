@@ -1368,9 +1368,22 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   without moving the file you test dotenv, and without forcing the cache you may replay a green
   result computed under different conditions.
 
-  Same family as `BR-1838` — verification that depends on state a clean environment does not
-  produce. There, generated files; here, environment variables. The tell is identical: *the local
-  gate could not have caught it at any point*, so its passing was never evidence.
+  **This is `BR-1838`'s THIRD FORM.** The first was *generated* state — a build artifact a clean
+  checkout does not produce. The second was *unexercised* state — a mechanism that loads and is
+  never asked to act. This is state **supplied by a path that only exists locally**: the value is
+  real, the code reads it correctly, and the route it arrives by exists on exactly one machine.
+
+  The tell is identical across all three: *the local gate could not have caught it at any point*,
+  so its passing was never evidence.
+
+  **Corollary — the diagnostic tool is not exempt.** A tool written to investigate a verification
+  failure is subject to the same class of failure, and must be proven the same way. Both instances
+  happened while diagnosing this one: the first reproduction returned `FULL TURBO` and proved
+  nothing (a cached green — the very defect under investigation), and a script written to derive
+  the required variables from the schema mis-classified `REDIS_URL` as optional (`BR-1841` — a
+  wrong expected value, in the tool built to find wrong expected values). **Ask a diagnostic
+  whether it can produce the answer you already know to be true before trusting the answer you
+  do not.**
 
   **Corollary, and it is the expensive half.** Four tasks were reported done on a green local gate
   while the authoritative check was red. `BR-1761` says a task is done when its Output exists and

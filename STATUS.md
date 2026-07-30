@@ -34,8 +34,8 @@ yesterday, and is the single largest change in this project's risk position so f
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-30                                                                                                                                                                                                                                                                                    |
 | **Updated by**     | AI (`PH-0.9` execution recorded — partial; heap-expectation defect corrected)                                                                                                                                                                                                                 |
-| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · **0 / 32 verified** (4 authored, none CI-green). Phase 0 closed at 29/30.                                                                                                                                                                        |
-| **Current task**   | ⛔ **`PH-1.1`–`PH-1.4` NOT DONE — CI red since `4097f46`.** Fixed and awaiting a green run.                                                                                                                                                                                                   |
+| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · **4 / 32**, all CI-verified. Phase 0 closed at 29/30.                                                                                                                                                                                            |
+| **Current task**   | Phase 1 — `PH-1.5` next. `PH-1.1`–`PH-1.4` ✅ verified by **CI run #28** (`cbbe6ef`).                                                                                                                                                                                                         |
 | **Next task**      | `PH-0.9` — the **last** task before the Phase 0 exit check. `PH-0.8` is deferred to after exit.                                                                                                                                                                                               |
 | **Production URL** | **`josamacademy.com` — serving over HTTPS.** Cloudflare proxied, SSL mode Full. All five route groups 200.                                                                                                                                                                                    |
 | **Blocked**        | Nothing is blocked. `PH-0.9` is next; `PH-0.8` is deferred to after exit, so `SB-22` and `BR-1702` stay open. Three items carry a **date**, not a blocker: rotate the R2 credentials today (`SB-36`), a degraded `/health` does not alert (`SB-34`), TLS mode + certificate expiry (`SB-35`). |
@@ -396,6 +396,29 @@ redeploy. All four client sites verified unchanged throughout. Recorded so the u
 §3.3 output is not later misread as damage from this task — which is exactly the right instinct,
 because §3.3 exists to prove the client stack was untouched and an unexplained restart in that
 output would undermine it.
+
+---
+
+### 2026-07-30 · ✅ CI GREEN — run #28, `cbbe6ef`
+
+**Founder-confirmed by reading the run.** 10m 15s · **947 tests across 10 tasks** · both images
+published by SHA tag.
+
+`PH-1.1` – `PH-1.4` are **DONE**. Phase 1 is **4 / 32**.
+
+**The code was correct the whole time. That is luck, not process** — it is exactly what would have
+made this hardest to learn from if CI had gone green by accident later.
+
+Two things carried forward at the founder's direction:
+
+1. **`CLAUDE.md §2` VERIFY** now asks, whenever a check passes locally and fails in CI: _what does
+   my machine supply that CI does not?_ — before reading the code, suspecting the test, or
+   touching the workflow. The answer here was `apps/api/.env`.
+2. **`BR-1844` records this as `BR-1838`'s third form.** First: _generated_ state a clean checkout
+   does not produce. Second: _unexercised_ state — a mechanism that loads and is never asked.
+   Third: state **supplied by a path that only exists locally**. And the corollary — _the tool
+   written to diagnose a verification failure is subject to the same failure and is not exempt
+   from being proven_, which both of my diagnostic steps demonstrated inside this one session.
 
 ---
 

@@ -62,6 +62,16 @@ For every task, in this exact order. **Do not batch tasks.** One task, one verif
                - If CI is red, the task is NOT done, whatever the local gate said.
              An unobservable check is not a check that passed. It is one nobody
              looked at (BR-1830).
+
+             WHEN A CHECK PASSES LOCALLY AND FAILS IN CI, THE FIRST QUESTION IS
+             "what does my machine supply that CI does not" — before reading the
+             code, before suspecting the test, before touching the workflow.
+             At PH-1.1-1.4 the answer was `apps/api/.env`: dotenv loads INSIDE
+             vitest, so those variables never travelled through turbo, which was
+             stripping them. The local gate was not lax. It was STRUCTURALLY
+             INCAPABLE of observing the failure, and that distinction is the
+             finding — a lax gate can be tightened, an incapable one has to be
+             changed (BR-1844).
 5  RECORD    update STATUS.md — Work Log entry, progress table, current/next
              task, actual vs estimated time, AND **calendar days elapsed**.
              Update the task queue in §5 here.
@@ -263,10 +273,13 @@ and the second instance in this file.
 > defect at `PH-0.2` that the first structurally cannot see. A CI that only runs turbo goes green
 > on code the hook rejects, and the bug resurfaces in a pull request instead of locally.
 
-> **`PH-1.1` – `PH-1.4` are NOT DONE.** They were reported complete on 2026-07-30 and CI has been
-> RED for all four. The last green commit is `4097f46`, which is docs-only. The code may well be
-> correct — every local gate passed and every deliberate-failure probe caught — but **four tasks
-> were closed on evidence that never existed**, which is `BR-1761` and `BR-1518` exactly.
+> **`PH-1.1` – `PH-1.4` are DONE — CI run #28, `cbbe6ef`, green in 10m 15s, 947 tests across 10
+> tasks, both images published by SHA tag.** Confirmed by the founder reading the run, not asserted
+> here (`BR-1761`).
+>
+> They were reported complete four tasks earlier, while CI was RED for all four. The last green
+> before the fix was `4097f46`, docs-only. **Four tasks were closed on evidence that never
+> existed** — `BR-1761` and `BR-1518`. The code was in fact correct; that is luck, not process.
 >
 > **Root cause: `turbo.json` declared no `env` keys.** Turbo 2 runs tasks in strict env mode, so a
 > task receives ONLY the variables declared for it; undeclared ones are filtered out entirely,
