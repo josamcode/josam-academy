@@ -1318,6 +1318,36 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   the right reason; this requires seeing it **pass** for the right reason, which is the same demand
   from the other side and is the one usually skipped.
 
+- `BR-1842` — **A task's dependency order must be consistent with its tables' foreign-key
+  direction.** A dependency graph derived from **feature grouping** rather than from **data
+  structure** will contain cycles, and the symptom surfaces at seed time in a task that looks
+  unrelated to the one that is actually wrong.
+
+  **Worked example — `PH-1.1` / `PH-1.7`, 2026-07-30.** `16` grouped tasks by feature: identity
+  first, permissions second. That is the right order for a human reading the plan. But
+  `10 §TBL-001` declares `users.role_id NOT NULL REFERENCES roles(id)`, and `roles` lived in the
+  permissions task — which depended on the identity task. The graph was circular, and `PH-1.1`'s own
+  output (_seeds run_) was unachievable inside its own scope.
+
+  **The failure mode is what makes this worth a rule.** The migration would have **succeeded** — an
+  ORM orders `CREATE TABLE` correctly within a single migration, so nothing complains while the
+  tables are empty. The failure appears only when the first row is inserted, as a foreign-key
+  violation during seeding, **three tasks after the ordering decision that caused it**, and it reads
+  as a bad seed script. The distance between the defect and its symptom is the cost.
+
+  **The check is mechanical and belongs before the phase, not inside each task:** for every table a
+  task creates, every `REFERENCES` target must be created by that same task or an earlier one.
+  Running it once across a phase is cheap; discovering it per-task is not, because by then the
+  earlier tasks are committed and the fix is a re-ordering rather than an edit.
+
+  In this repository it is `scripts/check-fk-order.mjs` (`pnpm check:fk-order`), which derives the
+  task→table map from `16`'s own `Schema:` rows and the foreign keys from `10`, so it compares two
+  documents rather than a document against a hand-written list. Proven by fitness case 43.
+
+  **Corollary.** A table with no foreign keys is the only kind that can be moved freely between
+  tasks. When a cycle is found, look for the leaf — it is usually the only legal fix, and it is
+  usually obvious once the graph is drawn from the data rather than from the feature names.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

@@ -138,6 +138,13 @@ jobs:
         # reassuring. Proven by fitness cases 41 and 42.
         run: pnpm check:ledgers
 
+      - name: Check foreign-key order against task order
+        # `BR-1842` — a dependency graph derived from feature grouping rather than data structure
+        # will be circular, and the migration still APPLIES. The failure surfaces at the first
+        # INSERT, as a seed error, tasks after the ordering decision that caused it. Compares 16's
+        # own `Schema:` rows against 10's CREATE TABLE bodies. Proven by fitness case 43.
+        run: pnpm check:fk-order
+
       - name: Typecheck
         run: pnpm typecheck
 

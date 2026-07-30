@@ -186,18 +186,46 @@ Two things this split assumes, stated so they can be checked rather than discove
 
 | ID | Task | Depends | Est | Output | Refs |
 |---|---|---|---:|---|---|
-| `PH-1.1` | Schema: `users` `user_identities` `refresh_tokens` `verification_tokens` `otp_codes` `login_activity` | `0.6` | 1 | Migration applied, seeds run | `TBL-001`–`006` |
+| `PH-1.1` | Schema: **`roles`** `users` `user_identities` `refresh_tokens` `verification_tokens` `otp_codes` `login_activity` | `0.6` | 1.1 | Migration applied, seeds run | `TBL-001`–`007` |
 | `PH-1.2` | Argon2id hashing, breach-list check, password policy | `1.1` | 0.5 | ~100 ms hash time verified | `DEC-48` |
 | `PH-1.3` | JWT access + refresh rotation with family reuse detection | `1.1` | 1 | Reuse revokes the family (tested) | `BR-1623` |
 | `PH-1.4` | Email registration + verification + password reset | `1.2`, `1.3` | 1 | Enumeration-resistant responses | `BR-1611` |
 | `PH-1.5` | Google OAuth with PKCE and `id_token` verification | `1.3` | 0.5 | Auto-link on verified email | `BR-1620` |
 | `PH-1.6` | `SmsProvider` abstraction + Twilio Verify + phone OTP behind a flag | `1.3` | 1 | OTP flow works; flag disables cleanly | `DEC-45` |
 
+> ### Divergence — `roles` moved from `PH-1.7` to `PH-1.1` (2026-07-30, founder-approved)
+>
+> **`10 §TBL-001` declares `users.role_id TEXT NOT NULL REFERENCES roles(id) ON DELETE RESTRICT`.**
+> `roles` was `TBL-007`, assigned to `PH-1.7`, and `PH-1.7` depends on `PH-1.1`. **The documented
+> order was therefore circular**, and `PH-1.1`'s own stated output — _Migration applied, **seeds
+> run**_ — was unachievable inside its own scope, because a user cannot be seeded without a role to
+> point at.
+>
+> **`roles` is the only table that can move.** It is a leaf: `TBL-007` declares no foreign keys at
+> all. `PH-1.7`'s other three tables all reference `users` (`role_permissions.granted_by`,
+> `user_permission_overrides.user_id` and `.created_by`), so they cannot precede it. The forced
+> creation order is `roles → users → permissions → role_permissions → user_permission_overrides`.
+>
+> **Both alternatives were considered and are worse:**
+>
+> | Alternative                                            | Why it is worse                                                                                                                                        |
+> | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+> | Create `users.role_id` **without** the FK; add it in `PH-1.7` | Violates `BR-949` (every FK declares an explicit `ON DELETE`) for the duration, leaves a window in which `role_id` accepts any string, and **still** cannot seed — the column is `NOT NULL` with no valid value to give it. |
+> | **Swap** `PH-1.1` and `PH-1.7`                         | Impossible. `PH-1.7`'s other three tables reference `users`, so the cycle simply reverses.                                                              |
+>
+> **`PH-1.1` estimate 1 → 1.1 d. `PH-1.7` stays at 0.5 d** for three tables instead of four.
+>
+> **How it was found matters more than the fix.** It was found by **reading the schema before
+> starting**, not by the migration failing. It would not have failed at migration time — Prisma
+> orders `CREATE TABLE` correctly within one migration. **It would have failed at seed time**, in a
+> task that had already been marked as applying cleanly, looking like a seed bug rather than a
+> task-ordering defect. Now `BR-1842` in `12 §19.1`, and enforced by `pnpm check:fk-order`.
+
 ## Week 2 — Permissions
 
 | ID | Task | Depends | Est | Output | Refs |
 |---|---|---|---:|---|---|
-| `PH-1.7` | Schema: `roles` `permissions` `role_permissions` `user_permission_overrides` | `1.1` | 0.5 | Migration applied | `TBL-007`–`010` |
+| `PH-1.7` | Schema: `permissions` `role_permissions` `user_permission_overrides` | `1.1` | 0.5 | Migration applied | `TBL-008`–`010` |
 | `PH-1.8` | Permission registry in code + startup sync + orphan flagging | `1.7` | 1 | 174 permissions synced | `FEAT-014` |
 | `PH-1.9` | `packages/abilities` (CASL) shared across API and clients | `1.8` | 1 | Same rules on both sides | `BR-708` |
 | `PH-1.10` | Permission guard + scope decorator at the data layer | `1.9` | 1 | Forgotten `where` cannot leak | `BR-1632` |

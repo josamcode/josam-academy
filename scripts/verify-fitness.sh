@@ -626,6 +626,24 @@ node -e '
 check "deferral owned by a done task" "pnpm check:ledgers" "which is DONE|BR-1840"
 mv -f STATUS.md.bak STATUS.md
 
+# ── 43. BR-1842 — task order inconsistent with foreign-key direction ────────────────────
+# Found before `PH-1.1` started, by reading the schema rather than by running the migration.
+# `users.role_id` referenced `roles`, which lived in `PH-1.7`, which depended on `PH-1.1`. The
+# migration would have APPLIED — an ORM orders CREATE TABLE correctly within one migration — and
+# failed at seed time, three tasks later, looking like a bad seed script.
+hr; echo "43. BR-1842 — a table referencing one created in a LATER task fails the build"
+cp docs/16-task-breakdown.md docs/16-task-breakdown.md.bak
+node -e '
+  const fs = require("fs");
+  const p = "docs/16-task-breakdown.md";
+  let s = fs.readFileSync(p, "utf8");
+  s = s.replace("| `PH-1.1` | Schema: **`roles`** `users`", "| `PH-1.1` | Schema: `users`");
+  s = s.replace("| `PH-1.7` | Schema: `permissions`", "| `PH-1.7` | Schema: `roles` `permissions`");
+  fs.writeFileSync(p, s);
+'
+check "fk order vs task order" "pnpm check:fk-order" "not created until|BR-1842"
+mv -f docs/16-task-breakdown.md.bak docs/16-task-breakdown.md
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1
