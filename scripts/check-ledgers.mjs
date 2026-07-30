@@ -29,6 +29,30 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(root, f), 'utf8');
 
+/**
+ * `BR-1848` — status is matched against a CLOSED SET, never by substring.
+ *
+ * The first version used `status.includes('✅')`. A cell reading `🟡 partial, ✅ proven locally`
+ * counted as done, and this figure decides the progress numerator and which deferrals are
+ * considered closed. A permissive match that silently accepts a superset and reports full
+ * coverage is the defect this whole check exists to prevent, and it was inside the check.
+ *
+ * Ambiguity throws rather than picking one. Two glyphs in a status cell means the table is
+ * saying two things, and guessing which is the same error one layer down.
+ */
+const STATUS_GLYPHS = ['✅', '🟡', '⬜', '🔴', '⏸️'];
+
+const statusOf = (cell, where) => {
+  const present = STATUS_GLYPHS.filter((g) => cell.includes(g));
+  if (present.length === 0) return null;
+  if (present.length > 1) {
+    throw new Error(
+      `${where}: status cell carries ${String(present.length)} status glyphs — ${present.join(' ')}`,
+    );
+  }
+  return present[0];
+};
+
 const failures = [];
 const fail = (where, msg) => failures.push(`${where}: ${msg}`);
 const near = (a, b) => Math.abs(a - b) < 0.005;
@@ -46,9 +70,12 @@ if (taskRows.length === 0) {
   fail('CLAUDE.md §5', 'no task rows parsed — the table shape changed and this check went blind');
 } else {
   const total = taskRows.length;
-  const done = taskRows.filter((r) => r.status.includes('✅')).length;
+  const done = taskRows.filter((r) => statusOf(r.status, `CLAUDE.md ${r.id}`) === '✅').length;
   const estSum = taskRows.reduce((n, r) => n + r.est, 0);
-  const actSum = taskRows.reduce((n, r) => n + (/^[\d.]+$/.test(r.act) ? Number(r.act) : 0), 0);
+  const actSum = taskRows.reduce(
+    (n, r) => n + (/^\d+(?:\.\d+)?$/.test(r.act) ? Number(r.act) : 0),
+    0,
+  );
 
   const prog = claude.match(/\*\*Progress:\s*(\d+)\s*\/\s*(\d+)/);
   if (!prog) fail('CLAUDE.md §5', 'no "Progress: N / M" line found');
@@ -93,7 +120,9 @@ if (ledgerStart === -1) {
 
   if (rows.length !== 20) fail('STATUS.md `12 §19`', `expected 20 rows, found ${rows.length}`);
 
-  const active = rows.filter((r) => r.status.includes('✅')).length;
+  const active = rows.filter(
+    (r) => statusOf(r.status, `12 §19 row ${String(r.n)}`) === '✅',
+  ).length;
   const deferred = rows.length - active;
 
   const score = block.match(
@@ -109,10 +138,12 @@ if (ledgerStart === -1) {
   }
 
   // ── 3. BR-1833 + BR-1840 — every deferral names a task that has NOT started ──────────────
-  const phase0Done = new Set(taskRows.filter((r) => r.status.includes('✅')).map((r) => r.id));
+  const phase0Done = new Set(
+    taskRows.filter((r) => statusOf(r.status, `CLAUDE.md ${r.id}`) === '✅').map((r) => r.id),
+  );
   const breakdown = read('docs/16-task-breakdown.md');
 
-  for (const row of rows.filter((r) => !r.status.includes('✅'))) {
+  for (const row of rows.filter((r) => statusOf(r.status, `12 §19 row ${String(r.n)}`) !== '✅')) {
     // The owner is the task named in the STATUS column — not the first ID appearing in prose,
     // which is usually the task the row was moved AWAY from.
     const owner = row.status.match(/`(PH-\d+\.\d+)`/);

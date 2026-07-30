@@ -34,7 +34,7 @@ yesterday, and is the single largest change in this project's risk position so f
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-30                                                                                                                                                                                                                                                                                    |
 | **Updated by**     | AI (`PH-0.9` execution recorded — partial; heap-expectation defect corrected)                                                                                                                                                                                                                 |
-| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · **4 / 32 CI-verified** · `PH-1.7` awaiting CI · `PH-1.5`/`PH-1.6` 🟡. Phase 0 closed at 29/30.                                                                                                                                                   |
+| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · **5 / 32 CI-verified** (run #33) · `PH-1.5`/`PH-1.6` 🟡. Phase 0 closed at 29/30.                                                                                                                                                                |
 | **Current task**   | Phase 1 — `PH-1.8` next. `PH-1.7` ✅ locally; `PH-1.5`/`PH-1.6` 🟡 awaiting credentials.                                                                                                                                                                                                      |
 | **Next task**      | `PH-0.9` — the **last** task before the Phase 0 exit check. `PH-0.8` is deferred to after exit.                                                                                                                                                                                               |
 | **Production URL** | **`josamacademy.com` — serving over HTTPS.** Cloudflare proxied, SSL mode Full. All five route groups 200.                                                                                                                                                                                    |
@@ -396,6 +396,61 @@ redeploy. All four client sites verified unchanged throughout. Recorded so the u
 §3.3 output is not later misread as damage from this task — which is exactly the right instinct,
 because §3.3 exists to prove the client stack was untouched and an unexplained restart in that
 output would undermine it.
+
+---
+
+### 2026-07-30 · Green CI with failures in its own summary — explained, and the summary fixed
+
+**Founder question, answered before anything else.** Run #33 was SUCCESS while its job summary
+showed two Vitest reports with failures. **They are the deliberate-violation probes**, and the
+counts match exactly:
+
+| Summary line          | Source              | Why                                                                                                                  |
+| --------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 2 failures / 2 total  | fitness **case 44** | `security.module.spec.ts` has exactly 2 tests; the case removes `PasswordHasher` from `SecurityModule`, so both fail |
+| 1 failure / 71 passes | fitness **case 40** | `roster.spec.ts` has exactly 72 tests; the case unexports `Skeleton`, so 1 fails and 71 pass                         |
+
+Both files pass fully untouched — 72/72 and 2/2, re-confirmed. The gate reads `verify:fitness`'s
+**exit code**, which is 0 only when all 44 violations are caught, so those failures are the
+_required_ outcome. **The gate is not lying.**
+
+**The summary was, and that is fixed.** Vitest enables its `github-actions` reporter automatically
+under CI, so a deliberately-failed spec publishes annotations into a green build. The hazard is not
+today's confusion but the next real failure, which gets waved off as "just the probes" — a summary
+that cries wolf trains people to ignore the panel. Those two invocations now run
+`--reporter=basic`.
+
+### `BR-1848` — and the audit found two more, both latent
+
+The `SET NULL`-read-as-`SET` defect is the sharpest `BR-1844` instance yet: the conformance suite
+**asserted a weaker property than it claimed, across six tables, and passed**, unnoticed only
+because every earlier `ON DELETE` happened to be one word. **The coverage was accidental, not
+designed.**
+
+The audit the founder ordered swept every pattern in the conformance and fitness tooling — 20
+flagged, most structural (delimiters, identifiers, bodies-to-terminator), which the rule explicitly
+does not cover. **Three were genuine, and two of those were latent:**
+
+| Where                     | Defect                                                   | Status                                                                                                                         |
+| ------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| conformance — column type | `(?:\(\d+\))?` truncates `NUMERIC(10,4)` → `NUMERIC`     | **Latent.** No such column in `TBL-001`–`010`. Would have **passed**, because `NUMERIC` lowercased equals the real `udt_name`. |
+| conformance — column type | no array suffix, so `TEXT[]` → `TEXT`                    | **Latent.** `TEXT[]` exists in `10` for later tasks.                                                                           |
+| `check-ledgers.mjs`       | `status.includes('✅')` counts `🟡 …, ✅ proven` as done | **Live.** Decides the progress numerator.                                                                                      |
+
+All three fixed. An unrecognised base type is now a **parse failure** rather than a lowercased
+guess — proven by removing `TEXT` from the closed set, which produced 10 explicit rejections, then
+restoring to 38/38.
+
+**No multi-word base types exist in `10`**, so there was no second live twin of the `SET NULL` bug.
+That is the "including none if that is the answer" part.
+
+### Runbook — the three-step migration recovery
+
+`deploy-and-rollback.md §15`. A probe row blocking its own constraint, `_prisma_migrations`
+latching the failure and refusing to retry, and `migrate resolve --rolled-back` being the way out.
+Each looks like a different problem, and the second is where the time goes because the obvious
+reaction — fix the data, re-run — changes nothing. Includes what differs on production, where the
+violating rows are real data and a failed migration is a container that will not start.
 
 ---
 

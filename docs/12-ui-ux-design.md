@@ -1468,6 +1468,39 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   Compounding factor: `BR-1846`. A stale deployed image hides every queued variable gap for exactly
   as long as it lags, then surfaces them all at once on the next deploy.
 
+- `BR-1848` — **A parser inside a verification tool matches against a CLOSED SET of legal values,
+  never a permissive pattern.** A permissive pattern silently accepts a subset and reports full
+  coverage.
+
+  This is the sharpest form of `BR-1844`: **the tool built to catch divergence WAS the
+  divergence.**
+
+  **Worked example — `PH-1.1` to `PH-1.7`, 2026-07-30.** The schema conformance suite matched
+  `ON DELETE` actions with a lazy `([A-Z ]+?)`, which stops at the first space. It read `SET NULL`
+  as `SET`. Across six tables and seven months of `BR-949` assertions it **asserted a weaker
+  property than it claimed, and passed** — unnoticed only because every earlier action happened to
+  be a single word. **The coverage was accidental, not designed**, which is the part worth fearing:
+  nothing about the suite changed when it started being wrong, because it had never been right.
+
+  **The audit this rule demands found two more of the same, both latent.** The column-type token
+  was `([A-Za-z_]+(?:\(\d+\))?)`, which truncates `NUMERIC(10,4)` to `NUMERIC` and `TEXT[]` to
+  `TEXT`. Neither type exists in `TBL-001`–`TBL-010`, so both were queued for whichever task first
+  creates such a column — and `NUMERIC` lowercased happens to equal the real `udt_name` of
+  `NUMERIC(10,4)`, so the truncation would have **passed**, not failed. A third instance sat in the
+  ledger checker: `status.includes('✅')` counted `🟡 partial, ✅ proven locally` as done, and that
+  figure decides the progress numerator.
+
+  **Two obligations follow:**
+
+  1. **Enumerate the legal values.** `CASCADE|RESTRICT|SET NULL|SET DEFAULT|NO ACTION` is five
+     alternatives and closed; `[A-Z ]+?` is infinite and lazy. Where the set is genuinely open —
+     identifiers, table names — bound the match by its delimiter instead.
+  2. **An unrecognised value is a PARSE FAILURE, never a comparison to attempt.** Falling through
+     to a lowercased guess is what let the truncation pass. Throw, naming the value and the file.
+
+  Structural matching — a delimiter, a body up to its terminator — is not covered by this rule. The
+  test is whether the captured text is a **value being verified**. If it is, it comes from a list.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

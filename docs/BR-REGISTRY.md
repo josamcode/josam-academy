@@ -83,7 +83,8 @@ The per-document counts above sum to the same figure.
 
 | Range | Status |
 |---|---|
-| **`BR-1848` onward** | ✅ **Next free block — use this.** `BR-1843` is skipped: `10-database-design` cites it as an off-by-1000 typo for `BR-843`, and allocating it would collide with a live (if erroneous) citation. |
+| **`BR-1849` onward** | ✅ **Next free block — use this.** `BR-1843` is skipped: `10-database-design` cites it as an off-by-1000 typo for `BR-843`, and allocating it would collide with a live (if erroneous) citation. |
+| `BR-1848` | ❌ taken by `12 §19.1` — a parser in a verification tool matches a closed set, never a permissive pattern. Allocated 2026-07-30 (`PH-1.7`). |
 | `BR-1847` | ❌ taken by `12 §19.1` — a task that makes a variable required must name it as a founder action. Allocated 2026-07-30 (`PH-1.6` deploy). |
 | `BR-1846` | ❌ taken by `12 §19.1` — an environment lagging behind the code hides defects at the rate it lags. Allocated 2026-07-30 (`PH-1.6` post-mortem). |
 | `BR-1845` | ❌ taken by `12 §19.1` — a negative test needs a positive twin. Allocated 2026-07-30 (`PH-1.5`). |

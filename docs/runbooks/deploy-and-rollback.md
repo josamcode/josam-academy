@@ -594,3 +594,62 @@ sites were checked immediately after the reload and were unchanged. **`SB-32` cl
 
 One divergence came out of it — two `A` records round-robining, with `curl` reporting 200 while the
 domain served a parking page half the time. The warning is now at the top of §10.1.
+
+---
+
+## 15. Migration recovery — the three steps nobody remembers
+
+**Migrations are APPEND-ONLY once applied.** Editing a migration that has already run leaves the
+file carrying changes the local database does not have, while a fresh database built from the files
+gets them — `BR-1844`'s divergence, usually introduced while fixing something else. If an applied
+migration is wrong, **add a new one**.
+
+Recorded because all three of these were hit in sequence at `PH-1.7`, and each one looks like a
+different problem:
+
+### 1. The new migration fails because existing data violates it
+
+Adding a `CHECK` to a populated table fails if any row breaks it:
+
+```
+check constraint "..." of relation "..." is violated by some row
+```
+
+At `PH-1.7` the offending row was **a probe inserted by the diagnostic that was testing the
+constraint**. A test that writes rows must clean up after itself, or it blocks the very thing it
+verifies.
+
+```bash
+# Find the violators BEFORE re-running, or you will loop.
+psql "$DATABASE_URL" -c "SELECT id FROM <table> WHERE NOT (<the check expression>)"
+```
+
+### 2. `_prisma_migrations` latches the failure and will not retry
+
+Prisma records the attempt as failed and every later `migrate deploy` refuses:
+
+```
+The `<name>` migration started at ... failed
+```
+
+**It does not re-run on its own, and it does not say so plainly.** This is the step that costs the
+time, because the obvious reaction — fix the data and re-run — changes nothing.
+
+### 3. `migrate resolve --rolled-back`, then deploy
+
+```bash
+pnpm --filter @josam/api exec prisma migrate resolve --rolled-back <migration_name>
+pnpm --filter @josam/api exec prisma migrate deploy
+```
+
+`--rolled-back` tells Prisma the failed migration left nothing behind, so it may be attempted
+again. Use it only when that is TRUE — a partially-applied migration needs its remnants removed
+first, or the retry fails on the half it already created.
+
+> ### On production
+>
+> Migrations run from the API image's start command (`PH-0.11`), so a failed migration is a
+> **container that will not start**, not a silent skip. The symptom is a restart loop and the boot
+> log names the migration. Recovery is the same three steps, run against the production
+> `DATABASE_URL` from a shell — and step 1 matters far more there, because the violating rows are
+> real data rather than a probe.

@@ -61,6 +61,13 @@ const UDT: Record<string, string> = {
 interface SpecColumn {
   name: string;
   type: string;
+  /**
+   * The token exactly as `10` writes it. `10` distinguishes base types (UPPERCASE) from enum
+   * types (lower_snake_case) by case alone, and `type` is normalised to uppercase for the `UDT`
+   * lookup — which destroys that signal. Keeping the raw form is what lets an unrecognised BASE
+   * type fail loudly while a legitimate enum passes.
+   */
+  rawType: string;
   notNull: boolean;
   hasDefault: boolean;
   references?: { table: string; onDelete: string };
@@ -104,7 +111,12 @@ function parseSpec(): Map<string, SpecTable> {
 
       if (/^PRIMARY KEY\s*\(/i.test(line)) continue;
 
-      const col = /^(\w+)\s+([A-Za-z_]+(?:\(\d+\))?)\s*(.*)$/.exec(line);
+      // The type token accepts a precision PAIR and an array suffix. The first version was
+      // `([A-Za-z_]+(?:\(\d+\))?)`, which truncates `NUMERIC(10,4)` to `NUMERIC` and `TEXT[]` to
+      // `TEXT` — the same truncation that read `SET NULL` as `SET`, found by the audit before it
+      // could bite. Neither type appears in `TBL-001`–`TBL-010`, so both were LATENT: queued for
+      // whichever task first creates such a column, and passing until then.
+      const col = /^(\w+)\s+([A-Za-z_]+(?:\(\d+(?:,\d+)?\))?(?:\[\])?)\s*(.*)$/.exec(line);
       const name = col?.[1];
       const type = col?.[2];
       const rest = col?.[3] ?? '';
@@ -126,6 +138,7 @@ function parseSpec(): Map<string, SpecTable> {
       parsed.columns.push({
         name,
         type: type.toUpperCase(),
+        rawType: type,
         // PRIMARY KEY implies NOT NULL without saying so.
         notNull: /NOT NULL/i.test(rest) || /PRIMARY KEY/i.test(rest),
         hasDefault: /DEFAULT/i.test(rest),
@@ -211,6 +224,17 @@ describe('PH-1.1 — schema conformance against 10, column by column', () => {
           throw new Error(`${table}.${col.name} is in 10 but missing from the database`);
         }
 
+        // An unknown base type is a PARSE failure, not a comparison to attempt. Falling through
+        // to `toLowerCase()` silently compares a guess, which is how a truncated type would have
+        // slipped past: `NUMERIC` lowercased happens to equal the real `udt_name` for
+        // `NUMERIC(10,4)`, so the truncation would have PASSED (`BR-1848`).
+        const isEnum = /^[a-z][a-z0-9_]*$/.test(col.rawType);
+        if (UDT[col.type] === undefined && !isEnum) {
+          throw new Error(
+            `${table}.${col.name}: 10 declares type \`${col.type}\`, which this parser does not ` +
+              'recognise. Add it to UDT rather than letting the comparison guess.',
+          );
+        }
         const wantUdt = UDT[col.type] ?? col.type.toLowerCase();
         expect(got.udt_name, `${table}.${col.name} type (10 says ${col.type})`).toBe(wantUdt);
 
