@@ -1415,6 +1415,34 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   fail if this mechanism were deleted entirely?* If the answer is "everything, identically", the
   suite is measuring the wrong thing.
 
+- `BR-1846` — **An environment lagging behind the code hides defects at exactly the rate it lags.**
+  Staleness is not merely a nuisance; it is a *concealment mechanism*, and the two are easy to
+  confuse because they feel the same from the outside.
+
+  **Worked example — `PH-1.2` to `PH-1.6`, 2026-07-30.** `BreachList` took a constructor parameter
+  Nest could not inject, so the API could not build its module graph and **could not start at
+  all**. It survived four green CI runs. It also survived a running production deployment — because
+  that deployment was serving an image built **before** `PH-1.2`.
+
+  Had any newer image been deployed during that window, the container would have failed to boot and
+  the founder would have been debugging *a deploy*, three tasks downstream of the cause, with the
+  symptom pointing at whatever had changed most recently. The staleness that was an inconvenience
+  was also the only reason nobody saw it — and would have been the reason it was misdiagnosed when
+  they did.
+
+  Two consequences worth stating separately:
+
+  - **A deployed environment is evidence only about the commit it was built from.** "Production is
+    healthy" says nothing about `main`. The gap between them is unverified territory, and it grows
+    silently.
+  - **Deploy after every task that changes application composition**, not only when a feature needs
+    shipping. Modules, providers, environment variables and entrypoints all fail at *start*, which
+    is the one thing no unit test performs (`BR-1830` at the composition layer).
+
+  Related: `BR-1838`'s family, from the other direction. There, verification depended on state a
+  clean environment does not produce. Here, a **stale** environment fails to reproduce a defect the
+  clean one would have shown immediately.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

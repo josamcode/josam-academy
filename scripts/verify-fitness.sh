@@ -644,6 +644,25 @@ node -e '
 check "fk order vs task order" "pnpm check:fk-order" "not created until|BR-1842"
 mv -f docs/16-task-breakdown.md.bak docs/16-task-breakdown.md
 
+# ── 44. The module graph resolves — the container, not the units ────────────────────────
+# The widest blind spot this project has produced. `BreachList` took an optional `string`, which
+# Nest cannot inject, so the API could not START from PH-1.2 to PH-1.6 — through four green CI
+# runs and a production deploy. Every spec used `new`, so the injector was the one component never
+# exercised. A green suite says the units work; only the container says the application starts.
+#
+# Removing a provider that something injects must fail the build. Not "when someone suspects DI".
+hr; echo "44. BR-1830 — a provider missing from the graph fails the build (the container check)"
+cp apps/api/src/shared/security/security.module.ts apps/api/src/shared/security/security.module.ts.bak
+node -e '
+  const fs = require("fs");
+  const p = "apps/api/src/shared/security/security.module.ts";
+  // PasswordHasher is injected by RegistrationService. Removing it from the providers list leaves
+  // a graph Nest cannot build — which nothing but a container test can see.
+  fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace("providers: [PasswordHasher, BreachList],", "providers: [BreachList],"));
+'
+check "provider missing from the module graph" "pnpm --filter @josam/api exec vitest run src/shared/security/security.module.spec.ts" "Nest can.t resolve|UnknownDependencies|PasswordHasher"
+mv -f apps/api/src/shared/security/security.module.ts.bak apps/api/src/shared/security/security.module.ts
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

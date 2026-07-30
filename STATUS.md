@@ -399,6 +399,53 @@ output would undermine it.
 
 ---
 
+### 2026-07-30 · ✅ CI GREEN run #29 (`905a7ad`) — and what the boot defect actually cost
+
+**Founder-confirmed.** Both images published.
+
+The `BreachList` defect is the widest blind spot this project has produced, and the missing
+`String` provider is the least interesting part of it. **The API could not start for three tasks,
+through four green CI runs and a live production deployment, and nothing anywhere could see it.**
+
+Every spec used `new`. So the injector — the single component that decides whether the application
+exists — was the one thing never exercised. `BR-1830`'s family at the **composition layer**.
+
+### The staleness was not a nuisance. It was the concealment. — `BR-1846`
+
+The API running on the server is built from an image predating `PH-1.2`. **Had any newer image been
+deployed during `PH-1.2`–`PH-1.5`, it would have failed to boot** — and the founder would have been
+debugging _a deploy_, three tasks downstream of the cause, with the symptom pointing at whatever
+changed most recently.
+
+Recorded as `BR-1846`: an environment lagging behind the code hides defects at exactly the rate it
+lags. Two consequences:
+
+- **A deployed environment is evidence only about the commit it was built from.** "Production is
+  healthy" says nothing about `main`, and the gap between them is unverified territory that grows
+  silently.
+- **Deploy after every task that changes application composition** — modules, providers,
+  environment variables, entrypoints — not only when a feature needs shipping. All of those fail at
+  _start_, which is the one thing no unit test performs.
+
+### The container check is now permanent and proven — fitness case 44
+
+`security.module.spec.ts` compiles the **full `AppModule` graph**, not one module, and runs inside
+`pnpm test` on every task rather than when somebody suspects DI. **Fitness case 44** removes
+`PasswordHasher` from `SecurityModule`'s providers — a provider `RegistrationService` injects — and
+requires the failure. Proven: with it removed, both specs fail naming the resolution error;
+restored, both pass. `pnpm verify:fitness` is now **44 cases**.
+
+The argument for making it a gate rather than a one-off is that it caught a **second** instance
+within minutes of existing — `GoogleOAuthService`, written the same hour.
+
+### Outstanding — founder action
+
+**The API on the server must be redeployed to the current image.** Three tasks of code have never
+run there. I cannot deploy (`CLAUDE.md §3` — nothing that touches production), so the steps and the
+proof are in the report.
+
+---
+
 ### 2026-07-30 · PH-1.5 + PH-1.6 — 🟡 built to the credential boundary
 
 **By:** AI · **Calendar:** 2026-07-30 (same day) · **Time:** 0.5 d + 1.0 d estimated → 0.8 d actual

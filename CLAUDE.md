@@ -442,7 +442,7 @@ Phase 0 is not done until **all** of these are true and evidenced.
 ☐ Every story passes axe in both themes and both directions
 ☐ Fitness functions active: boundaries · tokens · logical properties
     · hardcoded strings · prohibited copy terms
-☐ `pnpm verify:fitness` (43 cases) RE-RUN at exit — not re-read — and every case still caught
+☐ `pnpm verify:fitness` (44 cases) RE-RUN at exit — not re-read — and every case still caught
     (`BR-1832`). The recorded table in STATUS.md §4 is evidence of a past run, never
     a substitute for a present one (`BR-1768`).
 ☐ All 20 checks in `12 §19` reconciled: active, or recorded against the task that
