@@ -399,6 +399,33 @@ output would undermine it.
 
 ---
 
+### 2026-07-30 · PH-0.8, SB-34, SB-35 — REPEATED deferral, not inherited
+
+**Founder decision, 2026-07-30.** Second deferral of the same three items, recorded as a **repeat**
+because that is the fact and because the two read differently.
+
+| Item     | First deferred | Deferred again | Live?                                     |
+| -------- | -------------- | -------------- | ----------------------------------------- |
+| `PH-0.8` | 2026-07-29     | **2026-07-30** | **Yes — port 8000 open to the internet**  |
+| `SB-34`  | 2026-07-30     | **2026-07-30** | Latent — no alert on a degraded `/health` |
+| `SB-35`  | 2026-07-30     | **2026-07-30** | Latent — cert expiry + Automatic TLS      |
+
+**Why the distinction is worth a row.** An inherited deferral is a decision someone made once that
+nothing has revisited. A **repeated** deferral is a decision made again, with the item's cost known,
+by someone who has now read it twice. The second is legitimate and the first is drift — and they are
+indistinguishable in a status file that only records "deferred".
+
+`PH-0.8` is the one that matters: `SB-34` and `SB-35` are latent risks that need traffic to bite, and
+Phase 1 has no users until its exit. **`SB-22` is a live exposure today** — an internet-reachable
+admin panel on a box carrying five clients' applications. It was deferred with a reason both times
+(closing port 8000 without the tunnel removes the clients' own path to their control panel), and the
+reason has not changed.
+
+**Recorded so the third deferral is visibly a third.** If these appear again at the Phase 1 exit,
+this table shows a pattern rather than a fresh decision.
+
+---
+
 ### 2026-07-30 · Phase 0 accepted — three carryovers into Phase 1
 
 **By:** AI · **Founder decision** on all three.
