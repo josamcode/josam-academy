@@ -1443,6 +1443,31 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   clean environment does not produce. Here, a **stale** environment fails to reproduce a defect the
   clean one would have shown immediately.
 
+- `BR-1847` — **A task that makes an environment variable REQUIRED has created a deploy that will
+  fail.** It must name the variable in its report as an explicit founder action, at the moment the
+  code lands — not when somebody eventually deploys.
+
+  The failure is *queued*, which is what makes it different from an ordinary bug. Nothing is broken
+  in the repository, CI is green, every test passes, and the defect sits dormant until the next
+  deployment — by which time the task that caused it is several tasks back and the person deploying
+  is looking at whatever changed most recently.
+
+  **Worked example — `PH-1.3` / `PH-1.6`, 2026-07-30.** `PH-1.3` added `JWT_SECRET` as required with
+  no default. Correct, and deliberate: a default would mean every deployment that forgot it shares
+  one publicly-known signing key. But nothing connected that code change to the deployment
+  environment, so the first deploy after it — three tasks later — **restart-looped**.
+
+  It cost five minutes rather than an investigation for one reason: `BR-943` makes the application
+  fail at startup naming the missing variable, instead of failing at first use in production. That
+  is the rule earning its place, and it is the reason this is a note rather than an incident.
+
+  **The obligation is on the task that adds the variable**, in its report, in the same words the
+  founder will need: which variable, where it goes, and what generates a valid value. A `.env.example`
+  entry is necessary and is not sufficient — nobody reads it during a deploy.
+
+  Compounding factor: `BR-1846`. A stale deployed image hides every queued variable gap for exactly
+  as long as it lags, then surfaces them all at once on the next deploy.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

@@ -90,6 +90,15 @@ For every task, in this exact order. **Do not batch tasks.** One task, one verif
              Format: <type>(PH-0.x): <what>
 7  REPORT    a short block: what exists now, what was verified, what diverged,
              what the founder must do manually before the next task.
+
+             IF THE TASK MADE AN ENVIRONMENT VARIABLE REQUIRED, NAME IT HERE
+             AS A FOUNDER ACTION (BR-1847). That task has created a deploy that
+             WILL fail — queued, dormant, and invisible until somebody deploys,
+             by which point the cause is several tasks back. Say which variable,
+             where it goes, and what generates a valid value. `.env.example` is
+             necessary and never sufficient: nobody reads it during a deploy.
+             PH-1.3 added JWT_SECRET and did not say so; the next deploy —
+             three tasks later — restart-looped.
 ```
 
 **Completion rules:**
