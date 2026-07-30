@@ -399,6 +399,59 @@ output would undermine it.
 
 ---
 
+### 2026-07-30 · Phase 0 accepted — three carryovers into Phase 1
+
+**By:** AI · **Founder decision** on all three.
+**Calendar:** 2026-07-30 (same day) · **Time:** 0.2 d
+
+Phase 0 accepted at **29 / 30**, correctly not "complete" — `PH-0.8` outstanding, `BR-1702`
+unimplemented, `SB-22` a live gap with an owner.
+
+#### 1. The 0.58 / 1.08 split is a planning input, not a footnote
+
+Now in `CLAUDE.md §4` as a rule with three obligations. **Every Phase 1 task that touches the server,
+a vendor, or founder execution is estimated against 1.08.** Type is not the test — a Type-A task that
+calls a vendor API is operational work and gets the operational ratio.
+
+And: **when a phase is mostly operational, that is stated at the start of the phase, with the count.**
+Discovering the mix in a closing report is discovering it too late to act on.
+
+#### 2. Calendar days are now recorded per task
+
+`CLAUDE.md §2` step 5 requires `Calendar: <start> → <end> (N days)` in every Work Log entry.
+
+**Phase 0 spent 16.9 estimate-days across 3 calendar days.** Nothing captured that, and it is the
+ratio the 34-week question actually turns on — "day" in the task table is a unit of estimated effort,
+not a day of the founder's life, and the two differed by 5.6×. The estimate ratio predicts AI
+throughput. The calendar ratio is what a delivery date is a claim about. Re-derive both at Phase 1
+exit.
+
+#### 3. Stale summaries are now a build failure — `pnpm check:ledgers`
+
+Three ledger defects and two stale header totals in one phase is a pattern, not three incidents.
+`scripts/check-ledgers.mjs` asserts two properties:
+
+- **Every summary figure is recomputed from its own table** — `CLAUDE.md`'s progress line and its
+  estimated/actual totals against the task table; `12 §19`'s score line against its 20 rows.
+- **Every deferral names a task ID that has not started** — a row owned by a **completed** task fails
+  (`BR-1840`), and so does a row naming a phase instead of a task (`BR-1833`).
+
+Wired into `pnpm fitness` and into CI as its own step. **Proven by six deliberate violations before
+being trusted** (`BR-1835`) — stale numerator, stale estimate total, stale actual total, stale score
+line, a deferral pointed at a completed task, and a deferral with no task at all. All six caught,
+each with the message naming its own defect rather than a generic failure (`BR-1839`).
+
+Committed as fitness cases **41 and 42**, so the proof re-runs rather than being described.
+`pnpm verify:fitness` is now **42 cases**. The Phase 0 exit check ran at 40/40 — that record stands
+as what was executed, and is not retroactively renumbered.
+
+> **Why this is worth a build failure.** A number written once and never recomputed is the same class
+> of defect as a fitness function that loads and enforces nothing: it occupies the place where a check
+> should be, and it reports something reassuring. `BR-1830` said that about mechanisms. It is equally
+> true of figures.
+
+---
+
 ### 2026-07-30 · PH-0.9 — Coolify hardening · 🟡 PARTIAL
 
 **By:** Founder executed · AI authored

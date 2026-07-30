@@ -597,6 +597,35 @@ node -e '
 check "component missing from the roster" "pnpm --filter @josam/ui exec vitest run src/roster.spec.ts" "Skeleton|roster"
 mv -f packages/ui/src/index.ts.bak packages/ui/src/index.ts
 
+# ── 41. A summary figure that disagrees with its own table ──────────────────────────────
+# Phase 0 shipped FIVE of these — `12 §19`'s score line, and two totals in CLAUDE.md's own
+# header. Each was written once and never recomputed, and each was invisible to reading the
+# summary. A number nobody recomputes is the same class of defect as a check that loads and
+# enforces nothing: it occupies the place where a check should be, and reports something
+# reassuring. Founder decision, 2026-07-30.
+hr; echo "41. A progress total that disagrees with its own table fails the build"
+cp CLAUDE.md CLAUDE.md.bak
+node -e '
+  const fs = require("fs");
+  fs.writeFileSync("CLAUDE.md",
+    fs.readFileSync("CLAUDE.md","utf8").replace(/Estimated total [\d.]+ d/, "Estimated total 20.5 d"));
+'
+check "stale summary total" "pnpm check:ledgers" "estimated total says|sums to"
+mv -f CLAUDE.md.bak CLAUDE.md
+
+# ── 42. BR-1833 / BR-1840 — a deferral owned by a task that has already closed ──────────
+# `12 §19` row 15 sat on `PH-0.11` after `PH-0.11` closed without it, and row 20 named a
+# PHASE rather than a task. Both survived because the summary was read instead of the rows.
+hr; echo "42. BR-1840 — a deferred check owned by a COMPLETED task fails the build"
+cp STATUS.md STATUS.md.bak
+node -e '
+  const fs = require("fs");
+  const s = fs.readFileSync("STATUS.md","utf8").replace("⬜ **`PH-1.10`**", "⬜ **`PH-0.11`**");
+  fs.writeFileSync("STATUS.md", s);
+'
+check "deferral owned by a done task" "pnpm check:ledgers" "which is DONE|BR-1840"
+mv -f STATUS.md.bak STATUS.md
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

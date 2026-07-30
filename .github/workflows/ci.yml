@@ -129,6 +129,15 @@ jobs:
         # an English key with no Arabic counterpart is a catalog that lies about its coverage.
         run: pnpm check:catalogs
 
+      - name: Check the ledgers
+        # Every summary figure is recomputed from its own table, and every deferral names a task
+        # ID that has NOT started. Phase 0 shipped five stale figures and two mis-owned rows,
+        # each invisible to reading the summary and visible only row by row. A number written
+        # once and never recomputed is the same class of defect as a check that loads and
+        # enforces nothing (`BR-1830`) — it sits where a check should be and reports something
+        # reassuring. Proven by fitness cases 41 and 42.
+        run: pnpm check:ledgers
+
       - name: Typecheck
         run: pnpm typecheck
 

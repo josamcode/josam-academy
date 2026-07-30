@@ -23,8 +23,9 @@
     "check:renovate": "renovate-config-validator --strict renovate.json",
     "check:size": "size-limit",
     "check:deps": "depcruise apps packages --config .dependency-cruiser.mjs",
-    "fitness": "pnpm lint && pnpm lint:css && pnpm check:deps && pnpm check:catalogs && pnpm check:renovate",
-    "verify:fitness": "bash scripts/verify-fitness.sh"
+    "fitness": "pnpm lint && pnpm lint:css && pnpm check:deps && pnpm check:catalogs && pnpm check:renovate && pnpm check:ledgers",
+    "verify:fitness": "bash scripts/verify-fitness.sh",
+    "check:ledgers": "node scripts/check-ledgers.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.1",

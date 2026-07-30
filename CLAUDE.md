@@ -49,7 +49,19 @@ For every task, in this exact order. **Do not batch tasks.** One task, one verif
              Every new assertion is made to FAIL once before it is trusted
              (BR-1835) — a green test you have never seen red proves nothing.
 5  RECORD    update STATUS.md — Work Log entry, progress table, current/next
-             task, actual vs estimated time. Update the task queue in §5 here.
+             task, actual vs estimated time, AND **calendar days elapsed**.
+             Update the task queue in §5 here.
+
+             CALENDAR DAYS ARE A SEPARATE MEASUREMENT FROM ESTIMATE-DAYS, and
+             recording only the second is what made the 34-week question
+             unanswerable at Phase 0 exit. Phase 0 spent 16.9 estimate-days
+             across 3 CALENDAR days — a 5.6x difference that no estimate ratio
+             captures, because "day" in the task table is a unit of estimated
+             effort and not a day of the founder's life.
+             Every Work Log entry states: `Calendar: <start> -> <end> (N days)`.
+             The estimate ratio predicts AI throughput; the calendar ratio is
+             what a delivery date is actually a claim about (founder decision,
+             2026-07-30).
 6  COMMIT    one commit containing code + STATUS.md + CLAUDE.md together (BR-1799).
              Format: <type>(PH-0.x): <what>
 7  REPORT    a short block: what exists now, what was verified, what diverged,
@@ -125,6 +137,31 @@ For these, produce in the repo:
 | `BR-1524`           | Feature code imports from `@josam/ui` only. A native form control in a feature file fails the build.                                                                                                                                         |
 | `BR-1591`           | Dependencies pinned to exact versions. No ranges (`DEC-46`).                                                                                                                                                                                 |
 | `BR-1599`           | No vendor SDK imported outside `shared/providers`.                                                                                                                                                                                           |
+
+### Estimating a task — the 0.58 / 1.08 split (`BR-1802`, `DEC-56`)
+
+**Phase 0 measured two different ratios, and using the wrong one is a planning error, not a
+rounding error.**
+
+| Work                                                                     | Ratio    | Estimate against |
+| ------------------------------------------------------------------------ | -------- | ---------------- |
+| Code written against a `/docs` specification                             | **0.58** | 0.58             |
+| Runbooks, server work, vendor integration, anything the founder executes | **1.08** | **1.08**         |
+
+**The cause is structural, not incidental.** Component work had `12 §20` — 69 named components with
+states enumerated before a line was written. A runbook has no specification: it has a machine whose
+real state must be discovered, a branch for every configuration that might already exist, a recovery
+path per step, and a blast radius on other people's applications. **`/docs` is what makes 0.58
+possible, and `/docs` stops at the edge of this repository.**
+
+Binding, from Phase 1 onward:
+
+1. **Every task that touches the server, an external vendor, or founder execution is estimated at
+   1.08**, not 0.58. Type is not the test — a Type-A task calling a vendor API is operational work.
+2. **When a phase is mostly operational, say so at the START of the phase**, in the phase plan, with
+   the count. Discovering the mix in a closing report is discovering it too late to act on.
+3. **Founder execution time is asked for at execution and recorded.** It was forgotten twice in Phase
+   0 (`PH-0.7`, `PH-0.28`), which is why that population has one usable data point instead of four.
 
 ### Prohibited fixes (`BR-1512`)
 
@@ -357,7 +394,7 @@ Phase 0 is not done until **all** of these are true and evidenced.
 ☐ Every story passes axe in both themes and both directions
 ☐ Fitness functions active: boundaries · tokens · logical properties
     · hardcoded strings · prohibited copy terms
-☐ `pnpm verify:fitness` (40 cases) RE-RUN at exit — not re-read — and every case still caught
+☐ `pnpm verify:fitness` (42 cases) RE-RUN at exit — not re-read — and every case still caught
     (`BR-1832`). The recorded table in STATUS.md §4 is evidence of a past run, never
     a substitute for a present one (`BR-1768`).
 ☐ All 20 checks in `12 §19` reconciled: active, or recorded against the task that
