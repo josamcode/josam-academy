@@ -123,6 +123,47 @@ The split is a judgement, and the reasoning matters more than the numbers:
 | `PH-0.28` Backups + monitoring | 1.0 | **0.65** | **0.35** | Authoring-heavy: `scripts/backup.sh`, `scripts/restore-verify.sh`, the R2 wiring and the alert configuration are all code, and `DEC-57` requires the restore to be *verified from a clean database*, which is the script that takes the time. Execution is running them and confirming an alert arrives. |
 | **Total** | **2.5** | **1.5** | **1.0** | |
 
+### What the first real execution number says — 2026-07-30
+
+`PH-0.11` executed. **Authoring 0.35 d against 0.35 estimated. Execution ≈2 hours (0.25 d) against
+0.2 d estimated.**
+
+Read naively that is a 1.25 ratio on execution and a validated split. **Both readings are wrong, and
+the distinction is the only useful thing this number carries.**
+
+**Authoring behaves like Type-A work.** It came in on estimate, as `PH-0.10` did at 1.15 against 1.0.
+It is writing, against documents, verifiable locally, and it can be estimated for the same reason the
+component tasks could.
+
+**Execution does not behave like anything estimable, and the matching number is a coincidence.** The
+0.2 d estimate was for *running the steps*. Roughly twenty minutes of the two hours were steps. The
+rest went into **six divergences, three of which were defects in the authoring** — a migration hook
+that ran in the wrong container, a health field that reported a constant, and a runbook that assumed
+a group membership the server did not have. Had the runbook been correct, execution would have been
+under half an hour. Had there been ten divergences it would have been four hours.
+
+So:
+
+> **Type-B execution time is dominated by the defect count in the runbook, not by the number of
+> steps in it.** Estimating it is estimating how wrong the authoring was, which cannot be known while
+> authoring it.
+
+Three consequences, recorded rather than averaged away:
+
+1. **The execution figures below are not forecasts.** They are the cost *if the runbook is right*.
+   Treat them as a floor.
+2. **The two halves must never be averaged into one Type-B ratio.** 0.6 d against 0.5 d looks like a
+   1.2 ratio on a task that was really on-estimate for the predictable half and unbounded on the
+   other. An averaged number hides exactly the thing worth knowing.
+3. **The lever on execution time is authoring quality, not scheduling.** Every hour spent proving a
+   runbook's steps before handing it over — running the migration inside the image, building the
+   backup container and checking its tooling — is an hour removed from a session where the founder is
+   the only person who can act.
+
+`PH-0.28`'s authoring was done that way deliberately: the scripts were run, the image was built, and
+its toolchain assertion caught a missing binary before the runbook shipped. Whether that shows up as
+a lower divergence count is the measurement to watch next.
+
 Two things this split assumes, stated so they can be checked rather than discovered:
 
 - **Authoring is measured the way Type-A work is** — written, reviewed against the Refs, and

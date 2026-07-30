@@ -4,15 +4,36 @@
 > It is read at the start of every session and updated at the end of every task.
 > The documents in `/docs` describe the plan. This file describes reality.
 
-| Field              | Value                                                                                                                                                                                         |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Last updated**   | 2026-07-29                                                                                                                                                                                    |
-| **Updated by**     | AI (`PH-0.7` execution recorded)                                                                                                                                                              |
-| **Current phase**  | Phase 0 — Foundation                                                                                                                                                                          |
-| **Current task**   | _None in progress_ — `PH-0.7` ✅ executed                                                                                                                                                     |
-| **Next task**      | `PH-0.8` — **awaiting founder review of the port-8000 approach** (dynamic IP rules out an allow-list)                                                                                         |
-| **Production URL** | _Not deployed_                                                                                                                                                                                |
-| **Blocked**        | No — `SB-07` resolved by founder pre-authorisation: `PH-0.4` adopts Next 16, gated on the four-part probe (`BR-1809`). `SB-05` no longer blocks: `PH-0.7` is authored from `14 §12` directly. |
+## Right now, in one paragraph
+
+**Josam Academy is a deployable skeleton with an enforced design system, running on the server and
+not yet on a domain.** The API and web app are deployed to the shared VPS from SHA-tagged images
+built by CI; both serve, `GET /health` reports `database: ok` and `redis: ok`, and a deploy takes
+about five seconds with rollback proven by image tag. All 69 Wave 1 components exist in Storybook and
+pass axe in four theme/direction combinations. There is **no product yet** — no accounts, no courses,
+no payments, no data model beyond an empty migration.
+
+**What is not true yet:** `josamacademy.com` does not serve — the last step, attaching the domain,
+was deliberately skipped because it is the only one that reloads the proxy shared with five client
+applications. **Nothing is backed up and nothing is monitored** — `PH-0.28` is being executed today.
+The Coolify dashboard is still reachable from the internet on port 8000 (`SB-22`, `PH-0.8` deferred),
+so `BR-1702` is **not met**.
+
+**If the server were lost this morning, the database would be lost with it.** No real data exists, so
+the cost is an afternoon — which is exactly why `DEC-57` puts backups before the data rather than
+after.
+
+---
+
+| Field              | Value                                                                                                                         |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Last updated**   | 2026-07-30                                                                                                                    |
+| **Updated by**     | AI (`PH-0.28` authored; `PH-0.11` execution time recorded)                                                                    |
+| **Current phase**  | Phase 0 — Foundation · **27 / 30**                                                                                            |
+| **Current task**   | `PH-0.28` — **founder executing today** from `docs/runbooks/backups-and-monitoring.md`                                        |
+| **Next task**      | `PH-0.9` Coolify hardening, then the Phase 0 exit check. `PH-0.8` is deferred to after exit.                                  |
+| **Production URL** | **Not serving.** Deployed and verified through temporary host ports; `josamacademy.com` awaits `PH-0.11 §10` (`SB-32`).       |
+| **Blocked**        | Nothing is blocked. Four items are **deferred or in progress**: `PH-0.28` today, `PH-0.9` next, `PH-0.8` after exit, `SB-32`. |
 
 ---
 
@@ -47,11 +68,35 @@
 
 ## 2. What Actually Works Right Now
 
-> Only list what is **deployed and verified in production**. Not what is written.
+> Only what is **deployed and verified**, with how it was verified. Not what is written.
+>
+> "Verified" means observed output, not a passing intention (`BR-1768`).
 
-| Capability | Status               | Verified |
-| ---------- | -------------------- | -------- |
-| —          | Nothing deployed yet | —        |
+| Capability                                 | Status                                | Verified                                                                       |
+| ------------------------------------------ | ------------------------------------- | ------------------------------------------------------------------------------ |
+| CI: lint → typecheck → test → build → push | ✅ Green on every push                | Run #7, three jobs `success`; both images pulled from `ghcr.io` by manifest    |
+| Two SHA-tagged images in `ghcr.io`         | ✅                                    | `HTTP 200` on each manifest, requested directly rather than trusting the push  |
+| API deployed and serving                   | ✅ **not on a domain**                | `/health` → `{"status":"ok","checks":{"database":"ok","redis":"ok"}}`          |
+| Web app deployed and serving               | ✅ **not on a domain**                | All five route groups `200`; stylesheet **27,205 bytes** from the container    |
+| Deploy from a pushed image                 | ✅ **≈5 s**, no build on the server   | Timed at `PH-0.11` execution: 5 s, 4 s, 5 s                                    |
+| Rollback by image tag                      | ✅ Both directions                    | `a4c3d43 → 9ae3d28 → a4c3d43`, confirmed by `docker ps` showing an older image |
+| Postgres 16 + pgvector                     | ✅ Unpublished, project network only  | `docker ps` shows `pgvector/pgvector:0.8.5-pg16`, `5432/tcp`, no host mapping  |
+| Redis 7.4.10                               | ✅ Unpublished                        | Indicator proven `ok → degraded → ok` against the real container               |
+| 69 Wave 1 components                       | ✅ In Storybook, every state          | Roster **gate**, not a count — it found 68 and the missing one was fixed       |
+| axe, 4 theme × direction combos            | ✅ 49 stories                         | Real Chromium with real CSS; first run found 40 failures, four of them defects |
+| 40 fitness functions                       | ✅ All proven by deliberate violation | `pnpm verify:fitness` → `40 caught, 0 NOT caught`, re-run on a clean tree      |
+| 863 tests                                  | ✅                                    | tokens 84 · i18n 67 · ui 660 · web 21 · api 31                                 |
+
+### Not working, and worth naming as such
+
+| Gap                                    | Owner                                                      |
+| -------------------------------------- | ---------------------------------------------------------- |
+| `josamacademy.com` does not serve      | `PH-0.11 §10` — one step, deliberately deferred (`SB-32`)  |
+| **No backups. No monitoring.**         | `PH-0.28` — authored, being executed today                 |
+| Port 8000 open to the internet         | `SB-22` — `PH-0.8` deferred; `BR-1702` **not met**         |
+| No memory limits on our containers     | `PH-0.9` (`SB-23`)                                         |
+| `last_backup` reports `not-configured` | Completes with `PH-0.28`                                   |
+| `queue` and `storage` health checks    | Phase 1 — deliberately absent rather than faked (`BR-892`) |
 
 ---
 
@@ -366,7 +411,15 @@ coverage and are never counted.
 ### 2026-07-30 · PH-0.11 — ✅ EXECUTED. Deploy and rollback proven.
 
 **By:** Founder executed; AI authored and fixed the divergences
-**Time:** 0.35 d authoring + 0.2 d execution = **0.55 d** against 0.5 d estimated
+**Time:** 0.35 d authoring + **0.25 d execution (≈2 hours, founder-reported)** = **0.6 d** against
+0.5 d estimated.
+
+**The execution number matches its estimate by coincidence, and saying so is the point.** The
+0.2 d estimate was for _running the steps_. Roughly twenty minutes of the two hours was steps; the
+rest was diagnosing six divergences, three of which were defects in my design rather than in the
+execution. Had the runbook been right, execution would have been under half an hour. Had there been
+ten divergences instead of six it would have been four. See `16 §Type-B estimates` — this number is
+recorded, and it is deliberately **not** used to calibrate anything.
 **Criteria met:** exit criteria **1 and 2** of `15 §Phase 0`
 
 ### What was proven
