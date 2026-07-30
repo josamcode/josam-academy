@@ -3,6 +3,8 @@ import { Global, Module } from '@nestjs/common';
 import { DatabaseHealthIndicator } from './database-health.indicator.js';
 import { PrismaService } from './prisma.service.js';
 import { RefreshTokenRepository } from './repositories/refresh-token.repository.js';
+import { UserRepository } from './repositories/user.repository.js';
+import { VerificationTokenRepository } from './repositories/verification-token.repository.js';
 
 /**
  * Global so repositories can inject PrismaService without every module re-importing this one.
@@ -14,7 +16,13 @@ import { RefreshTokenRepository } from './repositories/refresh-token.repository.
  */
 @Global()
 @Module({
-  providers: [PrismaService, DatabaseHealthIndicator, RefreshTokenRepository],
-  exports: [PrismaService, RefreshTokenRepository],
+  providers: [
+    PrismaService,
+    DatabaseHealthIndicator,
+    RefreshTokenRepository,
+    UserRepository,
+    VerificationTokenRepository,
+  ],
+  exports: [PrismaService, RefreshTokenRepository, UserRepository, VerificationTokenRepository],
 })
 export class DatabaseModule {}

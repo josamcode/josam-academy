@@ -70,6 +70,21 @@ const envSchema = z.object({
   JWT_SECRET: z
     .string()
     .min(32, 'must be at least 32 characters — HS256 security is bounded by key length'),
+
+  /**
+   * PH-1.4 — outbound mail. `BR-1596` / `DEC-47`: no developer ever sends real email locally, so
+   * these default to the MailHog sink already in `docker-compose.yml`.
+   *
+   * Defaulted rather than required, unlike `JWT_SECRET`, and the difference is the blast radius of
+   * getting it wrong. A missing signing key means anyone can mint tokens that verify everywhere.
+   * A missing SMTP host means mail fails loudly at send time against a sink already running.
+   */
+  SMTP_HOST: z.string().min(1).default('127.0.0.1'),
+  SMTP_PORT: z.coerce.number().int().positive().max(65535).default(1025),
+  MAIL_FROM: z.string().min(1).default('Josam Academy <no-reply@josamacademy.com>'),
+
+  /** Base URL for the links in verification and reset emails. */
+  APP_URL: z.string().url().default('http://localhost:3000'),
 });
 
 export type Env = z.infer<typeof envSchema>;

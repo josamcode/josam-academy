@@ -34,8 +34,8 @@ yesterday, and is the single largest change in this project's risk position so f
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-30                                                                                                                                                                                                                                                                                    |
 | **Updated by**     | AI (`PH-0.9` execution recorded — partial; heap-expectation defect corrected)                                                                                                                                                                                                                 |
-| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · 3 / 32. Phase 0 closed at 29/30.                                                                                                                                                                                                                 |
-| **Current task**   | Phase 1 — `PH-1.4` next. `PH-1.3` ✅ (reuse revokes the family, proven against real rows)                                                                                                                                                                                                     |
+| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · 4 / 32. Phase 0 closed at 29/30.                                                                                                                                                                                                                 |
+| **Current task**   | Phase 1 — `PH-1.5` next. `PH-1.4` ✅ (timing gap 1 ms across a 400 ms floor)                                                                                                                                                                                                                  |
 | **Next task**      | `PH-0.9` — the **last** task before the Phase 0 exit check. `PH-0.8` is deferred to after exit.                                                                                                                                                                                               |
 | **Production URL** | **`josamacademy.com` — serving over HTTPS.** Cloudflare proxied, SSL mode Full. All five route groups 200.                                                                                                                                                                                    |
 | **Blocked**        | Nothing is blocked. `PH-0.9` is next; `PH-0.8` is deferred to after exit, so `SB-22` and `BR-1702` stay open. Three items carry a **date**, not a blocker: rotate the R2 credentials today (`SB-36`), a degraded `/health` does not alert (`SB-34`), TLS mode + certificate expiry (`SB-35`). |
@@ -396,6 +396,78 @@ redeploy. All four client sites verified unchanged throughout. Recorded so the u
 §3.3 output is not later misread as damage from this task — which is exactly the right instinct,
 because §3.3 exists to prove the client stack was untouched and an unexplained restart in that
 output would undermine it.
+
+---
+
+### 2026-07-30 · PH-1.4 — Email registration, verification, password reset · ✅
+
+**By:** AI · **Calendar:** 2026-07-30 → 2026-07-30 (same day)
+**Time:** estimated 1.0 d → actual 0.75 d
+
+**Output:** `RegistrationService`, `EmailProvider`, `UserRepository`,
+`VerificationTokenRepository`, mail env. **15 specs against a real database**, 4 proven by
+deliberate failure.
+
+### The measured number
+
+```
+BR-1611 timing — known 405 ms · unknown 406 ms · gap 1 ms (floor 400 ms)
+```
+
+**`BR-1611` has two halves and only one of them is usually implemented.** Identical _responses_ is
+easy. **Identical _timing_ is the half that leaks, and it leaks by construction**: the
+account-exists path hashes a password (~161 ms, `PH-1.2`) and sends mail; the does-not-exist path
+returns immediately. Every response body can be byte-identical and the whole user base is still
+enumerable with a stopwatch.
+
+Two mitigations, and a probe showed they are **not equally load-bearing**:
+
+- **A 400 ms floor** on every enumeration-sensitive response. Chosen ABOVE the slowest real path
+  so the floor, not the work, sets the duration — a floor below the real cost equalises nothing,
+  which is the failure mode of every "add a delay" mitigation that was never measured. **Removing
+  it fails the suite.**
+- **A decoy Argon2id hash** on the path with nothing to hash. **Removing it does NOT fail the
+  suite**, because the floor already exceeds both paths. So it is defence in depth, not the
+  guarantee — it matters only if the floor is ever lowered or removed. Recorded honestly rather
+  than claimed as load-bearing.
+
+The spec measures 8 interleaved samples and asserts both that the gap is far below one hash cost
+**and** that both paths actually reach the floor. The second assertion is the one that catches a
+floor set too low.
+
+### A probe found a real coverage gap
+
+Removing the `consumedAt: null` guard from the repository's `updateMany` **did not fail the
+suite** — the service checks `stored.consumedAt` first, so the sequential path was covered twice
+and the guard not at all. But the guard is not for the sequential path: it is for **concurrent
+redemption**, where two requests both read a link as unconsumed. Without it, two people set a
+password from one link.
+
+A concurrency test now covers it, and with the guard removed it fails `expected 2 to be 1`. Same
+family as `PH-1.3`'s two false-green tests: **the mechanism ran, so the test passed, and neither
+had anything to do with the property being claimed.**
+
+### Divergence — the email provider is three phases early
+
+`13 §18.1` pins `resend` at **`PH-3.21`**, but `PH-1.4` has to send a verification link and a
+reset link. Not a contradiction: `13` lists `EmailProvider` as **"Resend | any SMTP or API
+provider"**, and `BR-1596`/`DEC-47` already name MailHog as the local sink. So the **port** lands
+now with an SMTP transport into MailHog, and `PH-3.21` adds Resend behind the same interface —
+`BR-1599` keeps the SDK inside `shared/providers`, so that swap touches no feature code.
+
+**`nodemailer` 9.0.3 added**, pinned exact, with `@types/nodemailer` 8.0.1.
+
+### Three decisions worth stating
+
+- **Password problems ARE reported; account existence is not.** Not a contradiction — a weak or
+  breached password is a property of the _submitted password_, not of the account, so returning it
+  leaks nothing about who exists.
+- **Registering an address that already exists emails the real owner** (`BR-1362`) — the caller
+  cannot tell, and the person who does own it is told something happened.
+- **A rejected new password does not burn the reset link.** Otherwise a typo costs the user the
+  whole flow.
+- **The email provider rethrows on failure.** Catching and continuing so registration still
+  "succeeds" produces an account that can never be verified and a user with no way to know why.
 
 ---
 

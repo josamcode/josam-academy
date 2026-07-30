@@ -89,6 +89,31 @@ export class IdentityFixtures {
     });
   }
 
+  /** `PH-1.4` — a user at a KNOWN address, so enumeration specs can target it. */
+  async createUserWithEmail(email: string, label: string): Promise<string> {
+    const role = await this.prisma.role.findUniqueOrThrow({ where: { key: 'student' } });
+    const id = newId('user');
+    await this.prisma.user.create({
+      data: { id, roleId: role.id, email, fullName: label },
+    });
+    return id;
+  }
+
+  /** Idempotent: the enumeration specs create and remove the same addresses repeatedly. */
+  async deleteUserByEmail(email: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { email }, select: { id: true } });
+    if (user === null) return;
+    await this.prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+    await this.prisma.verificationToken.deleteMany({ where: { userId: user.id } });
+    await this.prisma.user.delete({ where: { id: user.id } });
+  }
+
+  async verificationRows(): Promise<{ id: string; tokenHash: string; consumedAt: Date | null }[]> {
+    return this.prisma.verificationToken.findMany({
+      select: { id: true, tokenHash: true, consumedAt: true },
+    });
+  }
+
   async disconnect(): Promise<void> {
     await this.prisma.$disconnect();
   }
