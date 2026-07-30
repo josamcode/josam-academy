@@ -34,7 +34,24 @@ export interface BreachListStatus {
   loaded: boolean;
   prefixes: number;
   hashes: number;
+  productionReady: boolean;
 }
+
+/**
+ * Below this, the file is truncated or malformed rather than merely small. A hard failure.
+ */
+export const CORPUS_MIN_HASHES = 50;
+
+/**
+ * `SB-42` — the size at which the corpus is doing the job `BR-1609` describes rather than
+ * catching only the obvious passwords.
+ *
+ * The committed corpus is a 64-entry starter list. `password.spec.ts` used to pass identically
+ * with 64 entries or 850 million, **so the test could never tell you which one you had** — the
+ * mechanism ran either way. That is `BR-1841`'s shape: assert the property, not that the
+ * mechanism ran.
+ */
+export const CORPUS_PRODUCTION_MIN_HASHES = 1_000_000;
 
 @Injectable()
 export class BreachList {
@@ -83,17 +100,37 @@ export class BreachList {
       this.hashCount += 1;
     }
 
-    this.loaded = this.hashCount > 0;
+    this.loaded = this.hashCount >= CORPUS_MIN_HASHES;
     if (!this.loaded) {
       this.logger.error(
-        `breach corpus at ${path} parsed to ZERO hashes — the file exists and is empty or ` +
+        `breach corpus at ${path} parsed to ${String(this.hashCount)} hashes, below the ` +
+          `${String(CORPUS_MIN_HASHES)} floor — the file exists and is empty, truncated or ` +
           'malformed, which is the failure most likely to be mistaken for a working check.',
+      );
+      return;
+    }
+
+    // `SB-42` — loud on every boot until the real corpus lands. A gap recorded only in a status
+    // file is a gap nobody reads at 3 a.m.; a gap that announces itself in the startup log is one
+    // somebody notices. It is a warning rather than a refusal because 64 entries still catch
+    // `password` and `123456`, which is materially better than nothing.
+    if (this.hashCount < CORPUS_PRODUCTION_MIN_HASHES) {
+      this.logger.warn(
+        `breach corpus holds ${String(this.hashCount)} hashes — below the ` +
+          `${String(CORPUS_PRODUCTION_MIN_HASHES)} production threshold (SB-42). BR-1609 is ` +
+          'currently enforced against a starter list, NOT the full corpus. Load the real one ' +
+          'before public registration.',
       );
     }
   }
 
   status(): BreachListStatus {
-    return { loaded: this.loaded, prefixes: this.shards.size, hashes: this.hashCount };
+    return {
+      loaded: this.loaded,
+      prefixes: this.shards.size,
+      hashes: this.hashCount,
+      productionReady: this.hashCount >= CORPUS_PRODUCTION_MIN_HASHES,
+    };
   }
 
   /**

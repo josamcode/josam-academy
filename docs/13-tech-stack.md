@@ -578,6 +578,26 @@ Delete the patch, the pin note and the guarding spec together when jsdom ships t
   `08` and `10` are **not** corrected here: they describe the target design, and the divergence
   is in the client beneath them. This rule exists so Phase 1 cannot walk into it blind
   (`SB-09`, `STATUS.md §7`).
+
+  **Sixth item, found at `PH-1.1` (2026-07-30): Prisma emits column types for extensions it does
+  not create.** `10 §TBL-001` specifies `email CITEXT` (`BR-954` — case-insensitive uniqueness).
+  Prisma accepts `@db.Citext`, generates `"email" CITEXT` in the migration, and **never emits
+  `CREATE EXTENSION citext`**. The migration therefore failed outright on first run.
+
+  It failed loudly, which is the good case. The rule generalises to the bad one: **any
+  extension-backed column type needs its `CREATE EXTENSION` written into the migration by hand**,
+  at the top, before the first column that uses it. The same applies to `pgvector` — `08 §6`
+  plans embeddings on `vector` columns, and `PH-2.x` will hit this identically.
+
+  Two consequences worth stating because neither is obvious from the failure:
+
+  - `CREATE EXTENSION IF NOT EXISTS` belongs in the **migration**, not in a bootstrap script or a
+    container entrypoint. An extension created outside the migration history exists on the machine
+    that ran the script and not on a fresh database, which is `BR-1838` — verification depending
+    on state that a clean checkout does not produce.
+  - Prisma does **not** treat the hand-written statement as drift. Confirmed at `PH-1.1` by running
+    `prisma migrate dev --create-only` afterwards and reading the generated file, which was empty.
+    Checking that the file was *absent* would have been wrong — `--create-only` always writes one.
 - `BR-1817` — Radix is a **Phase 0** dependency, not a deferred one: `PH-0.24` requires
   Radix-based choice fields (`DEC-39`) and `PH-0.27` requires `Dialog`, `Popover`, `Tooltip`, and
   `DropdownMenu`, which are Radix primitives per `12 §20.2`. Radix is versioned per package, so

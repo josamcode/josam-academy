@@ -2,7 +2,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { BreachList } from './breach-list';
+import { BreachList, CORPUS_MIN_HASHES, CORPUS_PRODUCTION_MIN_HASHES } from './breach-list';
 import { ARGON2_PARAMS, PasswordHasher } from './password-hasher';
 import { PASSWORD_MIN_LENGTH, validatePasswordStructure } from './password-policy';
 
@@ -118,8 +118,37 @@ describe('PH-1.2 — breach list (BR-1609 / DEC-48)', () => {
   it('loaded a corpus — the check is not silently empty', () => {
     const status = list.status();
     expect(status.loaded).toBe(true);
-    expect(status.hashes).toBeGreaterThan(0);
+    expect(status.hashes).toBeGreaterThanOrEqual(CORPUS_MIN_HASHES);
     expect(status.prefixes).toBeGreaterThan(0);
+  });
+
+  /**
+   * `SB-42`. Until this assertion existed, THIS SUITE PASSED IDENTICALLY with 64 hashes or with
+   * 850 million — the mechanism ran either way, so no test could tell you which corpus you had.
+   * `BR-1841`: assert the property, not that the mechanism ran.
+   *
+   * It is written INVERTED on purpose. Asserting `productionReady === true` would fail today and
+   * leave the repository permanently red for a deferral that was deliberate, which teaches people
+   * to ignore a failing test — the worst outcome available. Written this way it is green now and
+   * **turns red the moment the real corpus lands**, forcing whoever loads it to come here, flip
+   * the expectation, and confirm the number rather than assuming it.
+   *
+   * The gap is therefore visible in three places that are hard to miss: this test's name, a
+   * `logger.warn` on every boot, and the count printed below.
+   */
+  it('is NOT yet production-ready — 64-entry starter list, not the full corpus (SB-42)', () => {
+    const { hashes, productionReady } = list.status();
+    console.warn(
+      `SB-42: breach corpus holds ${String(hashes)} hashes; production threshold is ` +
+        `${String(CORPUS_PRODUCTION_MIN_HASHES)}. When you load the real corpus this test ` +
+        'FAILS by design — invert it then, and record the new count.',
+    );
+    expect(
+      productionReady,
+      'The corpus now meets the production threshold. That is good news: flip this assertion ' +
+        'to true, close SB-42, and record the real hash count.',
+    ).toBe(false);
+    expect(hashes).toBeLessThan(CORPUS_PRODUCTION_MIN_HASHES);
   });
 
   it('rejects known-breached passwords', () => {
@@ -149,7 +178,7 @@ describe('PH-1.2 — breach list (BR-1609 / DEC-48)', () => {
     expect(() => missing.isBreached('password')).toThrow(/refusing to report a password as clean/);
   });
 
-  it('treats an EMPTY corpus as unavailable, not as clean', () => {
+  it('treats a corpus below the integrity floor as unavailable, not as clean', () => {
     // A file that exists and parses to nothing is the failure most easily mistaken for a working
     // check — it has none of the symptoms of a missing file.
     const empty = new BreachList(join(__dirname, 'password-policy.ts'));
