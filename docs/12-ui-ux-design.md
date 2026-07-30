@@ -1530,6 +1530,36 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
      when the answer is "no figure changed" — that answer is only worth having because it was
      computed rather than assumed.
 
+- `BR-1850` — **The verification suite is the top of the stack and has nothing above it. Its
+  defects are invisible by construction, so it is audited on a SCHEDULE, not on suspicion.**
+
+  Every other layer here has something above it. Application code has tests. Tests have fitness
+  cases. Reported figures have `check:ledgers`. Schema has `schema-conformance`. Each layer's
+  defects surface because the layer above notices.
+
+  **The fitness suite has no layer above it.** When it breaks, nothing reports the breakage — the
+  suite simply says a number, and the number is believed. It surfaces only when something
+  downstream fails loudly enough that somebody goes looking, which means the interval between a
+  verifier defect and its discovery is unbounded and unrelated to its severity.
+
+  **Adding another layer does not fix this.** The new layer would sit at the top and have exactly
+  the same problem. The regress is real and there is no structural escape from it.
+
+  What there is instead is a **schedule**. Every phase exit re-audits the fitness cases against
+  `BR-1849`'s criterion — a pattern must match only what its assertion can emit — in the same
+  spirit as `BR-1832`'s requirement that exit RE-RUNS `verify:fitness` rather than citing a past
+  run. A past audit is evidence about a past suite.
+
+  **Worked example — the session of 2026-07-30/31.** `BR-1849` was written, committed, and then
+  violated by the tool that enforces it, within hours. Case 40's pattern matched a **filename** in
+  an error message, so the suite reported `43 caught, 1 NOT caught` while **two** cases were
+  broken: one alarmed and one hid. The audit that followed then found the same shape one level
+  further out — an extractor that parsed **42 of 44** cases, where the two it missed were the two
+  that mattered, and would have reported "44 / 44 safe" on a list of 42.
+
+  Three instances of one defect, at three levels of tooling, in a single session. **That
+  concentration is not coincidence: it is what "nothing above it" produces.**
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.

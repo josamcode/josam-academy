@@ -469,7 +469,14 @@ Phase 0 is not done until **all** of these are true and evidenced.
 ☐ Every story passes axe in both themes and both directions
 ☐ Fitness functions active: boundaries · tokens · logical properties
     · hardcoded strings · prohibited copy terms
-☐ `pnpm verify:fitness` (44 cases) RE-RUN at exit — not re-read — and every case still caught
+☐ The fitness cases are RE-AUDITED at exit against `BR-1849`'s criterion — every case's
+    pattern matches only what its assertion can emit, never a filename, a path, or a rule id
+    that appears in its own command. `BR-1850`: the suite is the top of the stack and has
+    nothing above it, so its defects are invisible by construction and are found on a
+    SCHEDULE rather than on suspicion. A past audit is evidence about a past suite.
+    Cases that do not use `check` are audited separately — they cannot have case 40's defect
+    and can still pass when their mechanism never ran (case 25 did).
+☐ `pnpm verify:fitness` (45 cases) RE-RUN at exit — not re-read — and every case still caught
     (`BR-1832`). The recorded table in STATUS.md §4 is evidence of a past run, never
     a substitute for a present one (`BR-1768`).
 ☐ All 20 checks in `12 §19` reconciled: active, or recorded against the task that

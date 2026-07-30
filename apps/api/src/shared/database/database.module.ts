@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 
 import { DatabaseHealthIndicator } from './database-health.indicator.js';
 import { PrismaService } from './prisma.service.js';
+import { PermissionRepository } from './repositories/permission.repository.js';
 import { RefreshTokenRepository } from './repositories/refresh-token.repository.js';
 import { UserRepository } from './repositories/user.repository.js';
 import { VerificationTokenRepository } from './repositories/verification-token.repository.js';
@@ -20,9 +21,16 @@ import { VerificationTokenRepository } from './repositories/verification-token.r
     PrismaService,
     DatabaseHealthIndicator,
     RefreshTokenRepository,
+    PermissionRepository,
     UserRepository,
     VerificationTokenRepository,
   ],
-  exports: [PrismaService, RefreshTokenRepository, UserRepository, VerificationTokenRepository],
+  exports: [
+    PrismaService,
+    RefreshTokenRepository,
+    PermissionRepository,
+    UserRepository,
+    VerificationTokenRepository,
+  ],
 })
 export class DatabaseModule {}

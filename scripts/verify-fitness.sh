@@ -711,6 +711,31 @@ node -e '
 check "provider missing from the module graph" "pnpm --filter @josam/api exec vitest run src/shared/security/security.module.spec.ts" "Nest can.t resolve|UnknownDependencies|PasswordHasher"
 mv -f apps/api/src/shared/security/security.module.ts.bak apps/api/src/shared/security/security.module.ts
 
+# ── 45. BR-964 — a permission absent from code is FLAGGED, never deleted ────────────────
+# `role_permissions.permission_id` is ON DELETE CASCADE, so deleting a permission row silently
+# drops every grant referencing it. A permission temporarily removed from code — a refactor, a bad
+# merge, a feature flag — would then destroy an administrator's configuration permanently, and
+# restoring the code would NOT restore the grants. Flagging is reversible; deletion is not.
+#
+# The violation: make the sync DELETE orphans instead of flagging them. The spec that asserts the
+# row survives must fail. `BR-1725` — enforcement is proven by breaking it, not by a green spec.
+hr; echo "45. BR-964 — deleting an orphaned permission instead of flagging it fails the build"
+cp apps/api/src/shared/database/repositories/permission.repository.ts apps/api/src/shared/database/repositories/permission.repository.ts.bak
+node -e '
+  const fs = require("fs");
+  const p = "apps/api/src/shared/database/repositories/permission.repository.ts";
+  const s = fs.readFileSync(p, "utf8").replace(
+    `        await tx.permission.updateMany({
+          where: { key: { in: toOrphan } },
+          data: { isOrphaned: true },
+        });`,
+    `        await tx.permission.deleteMany({ where: { key: { in: toOrphan } } });`,
+  );
+  fs.writeFileSync(p, s);
+'
+check "orphan deleted instead of flagged" "pnpm --filter @josam/api exec vitest run src/modules/access/permission-sync.spec.ts" "the row must still exist|toHaveLength"
+mv -f apps/api/src/shared/database/repositories/permission.repository.ts.bak apps/api/src/shared/database/repositories/permission.repository.ts
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1
