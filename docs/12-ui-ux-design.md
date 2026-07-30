@@ -1501,6 +1501,35 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   Structural matching — a delimiter, a body up to its terminator — is not covered by this rule. The
   test is whether the captured text is a **value being verified**. If it is, it comes from a list.
 
+- `BR-1849` — **A permissive pattern in a verifier fails in the direction that HIDES, not the
+  direction that alarms.** It is a false-green generator, and false greens are invisible by
+  construction: there is no symptom until the underlying thing is genuinely wrong, at which point
+  the check that should have caught it is the reason nobody looked.
+
+  This is why `BR-1848` is not a style preference. A too-strict pattern fails loudly on valid input
+  and gets fixed within minutes of being written. A too-loose one **passes on invalid input** and
+  is discovered only when something else breaks — or never.
+
+  **Worked example — `PH-1.7`, 2026-07-30.** The conformance parser truncated `NUMERIC(10,4)` to
+  `NUMERIC`. That neither throws nor mismatches: **`NUMERIC` lowercased equals the real `udt_name`
+  of a `NUMERIC(10,4)` column**, so the assertion would have PASSED while comparing a type it never
+  actually read. The precision — the part deciding whether money rounds correctly — would have gone
+  unverified, by the suite whose entire purpose is verifying it, reporting green.
+
+  Contrast the `SET NULL` instance: it produced a visible mismatch (`expected 'SET NULL' to be
+  'SET'`) the first time a multi-word action appeared. **It alarmed. The `NUMERIC` one would not
+  have.** Same root defect, opposite observability, and the silent one is strictly worse.
+
+  **Two consequences:**
+
+  1. **When auditing a verifier, ask which direction each looseness fails in.** A pattern that
+     truncates into a *different* value alarms; one that truncates into a *valid* value hides. The
+     second class has to be found deliberately, because nothing will surface it.
+  2. **A defect found in a verifier requires recomputing everything it ever reported**, not merely
+     fixing it. The fix is cheap; the decisions taken on its output are not. Do the recount even
+     when the answer is "no figure changed" — that answer is only worth having because it was
+     computed rather than assumed.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.
