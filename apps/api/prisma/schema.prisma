@@ -88,6 +88,13 @@ enum ClientPlatform {
   @@map("client_platform")
 }
 
+enum OverrideEffect {
+  grant
+  revoke
+
+  @@map("override_effect")
+}
+
 enum TokenPurpose {
   email_verify
   password_reset
@@ -111,9 +118,78 @@ model Role {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  users User[]
+  users           User[]
+  rolePermissions RolePermission[]
 
   @@map("roles")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// `PH-1.7` — `M02` Access. `TBL-008` – `TBL-010`.
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/// `TBL-008` — `BR-964`: populated by the startup sync from the code registry (`PH-1.8`).
+/// Permissions absent from code are flagged `is_orphaned`, NEVER deleted — a deleted row would
+/// cascade away every grant that referenced it, so a temporary code change would silently
+/// destroy an administrator's configuration.
+model Permission {
+  id          String   @id
+  key         String   @unique
+  model       String
+  action      String
+  scope       String?
+  module      String
+  description Json?
+  isOrphaned  Boolean  @default(false) @map("is_orphaned")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  rolePermissions RolePermission[]
+  userOverrides   UserPermissionOverride[]
+
+  @@index([model], map: "idx_permissions_model")
+  @@index([module], map: "idx_permissions_module")
+  @@map("permissions")
+}
+
+/// `TBL-009` — the role→permission grant. Composite primary key, no surrogate id.
+model RolePermission {
+  roleId       String   @map("role_id")
+  permissionId String   @map("permission_id")
+  grantedAt    DateTime @default(now()) @map("granted_at") @db.Timestamptz(6)
+  /// `ON DELETE SET NULL`, not CASCADE: deleting the administrator who granted a permission must
+  /// not revoke the permission. The grant outlives the grantor; only the attribution is lost.
+  grantedBy    String?  @map("granted_by")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  grantor    User?      @relation("PermissionGrantor", fields: [grantedBy], references: [id], onDelete: SetNull)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+/// `TBL-010` — `BR-965`: a reason is mandatory (`BR-039`).
+/// Resolution order: revoke → grant → role → deny (`BR-038`).
+model UserPermissionOverride {
+  id           String         @id
+  userId       String         @map("user_id")
+  permissionId String         @map("permission_id")
+  effect       OverrideEffect
+  /// NOT NULL by design. An override with no reason is an unexplained privilege change, and the
+  /// person who has to audit it six months later is not the person who made it.
+  reason       String
+  expiresAt    DateTime?      @map("expires_at") @db.Timestamptz(6)
+  /// `ON DELETE RESTRICT`: the creator cannot be deleted while the override stands. An override
+  /// is an accountable act, so it must not be possible to erase who made it.
+  createdBy    String         @map("created_by")
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user       User       @relation("OverrideSubject", fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  creator    User       @relation("OverrideCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+
+  @@unique([userId, permissionId])
+  @@map("user_permission_overrides")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -160,6 +236,12 @@ model User {
   refreshTokens      RefreshToken[]
   verificationTokens VerificationToken[]
   loginActivity      LoginActivity[]
+
+  // `PH-1.7`. Three named relations to `users`, because Prisma cannot infer which foreign key
+  // belongs to which back-reference once a model points at `users` more than once.
+  permissionsGranted RolePermission[]         @relation("PermissionGrantor")
+  overrides          UserPermissionOverride[] @relation("OverrideSubject")
+  overridesCreated   UserPermissionOverride[] @relation("OverrideCreator")
 
   @@index([roleId], map: "idx_users_role")
   @@index([createdAt(sort: Desc)], map: "idx_users_created")

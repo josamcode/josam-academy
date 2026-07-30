@@ -34,8 +34,8 @@ yesterday, and is the single largest change in this project's risk position so f
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-07-30                                                                                                                                                                                                                                                                                    |
 | **Updated by**     | AI (`PH-0.9` execution recorded — partial; heap-expectation defect corrected)                                                                                                                                                                                                                 |
-| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · **4 / 32 verified** · `PH-1.5`/`PH-1.6` 🟡 awaiting credentials. Phase 0 closed at 29/30.                                                                                                                                                        |
-| **Current task**   | Phase 1 — `PH-1.7` next. `PH-1.5`/`PH-1.6` 🟡 built to the credential boundary.                                                                                                                                                                                                               |
+| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · **4 / 32 CI-verified** · `PH-1.7` awaiting CI · `PH-1.5`/`PH-1.6` 🟡. Phase 0 closed at 29/30.                                                                                                                                                   |
+| **Current task**   | Phase 1 — `PH-1.8` next. `PH-1.7` ✅ locally; `PH-1.5`/`PH-1.6` 🟡 awaiting credentials.                                                                                                                                                                                                      |
 | **Next task**      | `PH-0.9` — the **last** task before the Phase 0 exit check. `PH-0.8` is deferred to after exit.                                                                                                                                                                                               |
 | **Production URL** | **`josamacademy.com` — serving over HTTPS.** Cloudflare proxied, SSL mode Full. All five route groups 200.                                                                                                                                                                                    |
 | **Blocked**        | Nothing is blocked. `PH-0.9` is next; `PH-0.8` is deferred to after exit, so `SB-22` and `BR-1702` stay open. Three items carry a **date**, not a blocker: rotate the R2 credentials today (`SB-36`), a degraded `/health` does not alert (`SB-34`), TLS mode + certificate expiry (`SB-35`). |
@@ -396,6 +396,55 @@ redeploy. All four client sites verified unchanged throughout. Recorded so the u
 §3.3 output is not later misread as damage from this task — which is exactly the right instinct,
 because §3.3 exists to prove the client stack was untouched and an unexplained restart in that
 output would undermine it.
+
+---
+
+### 2026-07-30 · PH-1.7 — Schema: permissions, role_permissions, user_permission_overrides
+
+**By:** AI · **Calendar:** 2026-07-30 · **Time:** estimated 0.5 d → actual 0.4 d
+**Status:** committed, **awaiting CI** (`BR-1761` — the local gate is not the gate).
+
+`TBL-008` – `TBL-010`. `TBL-007` was already created at `PH-1.1` (`BR-1842`). Conformance extended
+to all three: **38 assertions**, same column-by-column standard as `PH-1.1`.
+
+### Three `ON DELETE` choices that are policy, not plumbing
+
+- **`role_permissions.granted_by` → `SET NULL`.** Deleting the administrator who granted a
+  permission must not revoke the permission. **The grant outlives the grantor**; only the
+  attribution is lost.
+- **`user_permission_overrides.created_by` → `RESTRICT`.** The opposite call, deliberately: an
+  override is an _accountable act_, so the creator cannot be deleted while it stands. It must not
+  be possible to erase who made an unexplained privilege change.
+- **`permissions` rows are flagged `is_orphaned`, never deleted** (`BR-964`). Deleting one would
+  cascade away every grant referencing it, so a temporary code change would silently destroy an
+  administrator's configuration.
+
+`reason` is `NOT NULL` (`BR-965`): an override without one is an unexplained privilege change, and
+the person auditing it in six months is not the person who made it.
+
+### Two defects in my own work, both found by executing rather than reading
+
+**1. I edited a migration that had already been applied.** The Arabic-key check went into
+`access_permissions` _after_ Prisma had run it — leaving the FILE carrying a constraint the local
+database did not have, while a fresh database built from the files would get it. **That is
+`BR-1844`'s exact divergence, introduced while fixing something else.** Corrected: the applied
+migration was restored to Prisma's output byte for byte, and the check became its own migration.
+**Migrations are append-only once applied.**
+
+Recovery took three steps worth recording: the new migration failed because a probe row I had
+inserted violated the constraint, `_prisma_migrations` then recorded it as failed and would not
+retry, and it needed `prisma migrate resolve --rolled-back` before `deploy` would run again. **A
+diagnostic that writes rows must clean up after itself** — mine blocked the very migration it was
+testing.
+
+**2. The conformance spec's foreign-key parser was wrong, and had been since `PH-1.1`.** The action
+was matched with a lazy `([A-Z ]+?)`, which stops at the first space and read `SET NULL` as `SET`.
+It went unnoticed for six tables because **every `ON DELETE` in `PH-1.1` was a single word**;
+`granted_by` is the schema's first `SET NULL` and exposed it on the first run. Now matched from a
+closed set of the five legal actions.
+
+The database was right and the verifier was wrong — the `BR-1844` corollary again, in the tool
+whose whole purpose is catching exactly this.
 
 ---
 

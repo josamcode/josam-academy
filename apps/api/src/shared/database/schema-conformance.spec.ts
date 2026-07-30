@@ -38,6 +38,11 @@ const TABLES = [
   'verification_tokens',
   'otp_codes',
   'login_activity',
+  // `PH-1.7` — M02 Access. Same standard as PH-1.1: the migration applying proves nothing about
+  // whether the table matches `10`.
+  'permissions',
+  'role_permissions',
+  'user_permission_overrides',
 ] as const;
 
 /** `10`'s SQL types → PostgreSQL's `udt_name`, which is the only field that distinguishes them. */
@@ -105,7 +110,16 @@ function parseSpec(): Map<string, SpecTable> {
       const rest = col?.[3] ?? '';
       if (name === undefined || type === undefined) continue;
 
-      const fk = /REFERENCES\s+(\w+)\s*\([^)]*\)\s*ON DELETE\s+([A-Z ]+?)(?:\s|$)/i.exec(rest);
+      // The action is matched from a CLOSED SET, not by a lazy character class. The first
+      // version was `([A-Z ]+?)(?:\s|$)`, which stops at the first space and read `SET NULL` as
+      // `SET`. It went unnoticed from `PH-1.1` because every foreign key there used a
+      // single-word action; `PH-1.7`'s `granted_by` is the first `SET NULL` in the schema and
+      // exposed it immediately. A parser in a verification tool is subject to the same standard
+      // as the thing it verifies (`BR-1844` corollary).
+      const fk =
+        /REFERENCES\s+(\w+)\s*\([^)]*\)\s*ON DELETE\s+(CASCADE|RESTRICT|SET NULL|SET DEFAULT|NO ACTION)/i.exec(
+          rest,
+        );
       const fkTable = fk?.[1];
       const fkOnDelete = fk?.[2];
 
@@ -159,7 +173,7 @@ describe('PH-1.1 — schema conformance against 10, column by column', () => {
     await pool?.end();
   });
 
-  it('parsed all seven tables out of 10 — the parser is not silently empty', () => {
+  it('parsed every table out of 10 — the parser is not silently empty', () => {
     for (const t of TABLES) {
       expect(spec.has(t), `10 has no CREATE TABLE for \`${t}\``).toBe(true);
       expect(specFor(t).columns.length, `\`${t}\` parsed with no columns`).toBeGreaterThan(3);
@@ -261,6 +275,15 @@ describe('PH-1.1 — schema conformance against 10, column by column', () => {
            (SELECT id FROM roles WHERE key='student'), 'no identity')`,
       ),
     ).rejects.toThrow(/has_identity/);
+  });
+
+  it('rejects a permission description without Arabic (BR-953, PH-1.7)', async () => {
+    await expect(
+      pool.query(
+        `INSERT INTO permissions (id, key, model, action, module, description)
+         VALUES ('conformance_probe', 'probe:conformance', 'X', 'x', 'M01', '{"en":"English only"}'::jsonb)`,
+      ),
+    ).rejects.toThrow(/has_arabic/);
   });
 
   it('rejects a bilingual name without Arabic (BR-953)', async () => {
