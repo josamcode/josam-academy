@@ -304,8 +304,17 @@ hr
 # of defects, and the only trustworthy check on one is the artifact it produced. At PH-0.17 every
 # gate was green while this stylesheet held 3,083 bytes of tokens and zero utility classes.
 hr; echo "24. BR-1834 — built stylesheet carries real utilities, not just tokens"
-pnpm --filter @josam/web run build >/dev/null 2>&1
-CSS_FILE="$(find apps/web/.next -name '*.css' -not -path '*/cache/*' 2>/dev/null | head -1)"
+# The build's exit code was discarded. A FAILED build leaves the previous `.next` in place, so a
+# stale stylesheet from an earlier run would satisfy every probe below and the case would pass
+# having measured nothing current. Same shape as case 25's missing positive control.
+rm -rf apps/web/.next
+if ! pnpm --filter @josam/web run build >/dev/null 2>&1; then
+  echo "  RESULT: ✗ the web build failed — nothing to inspect, and a stale .next would have lied"
+  fail=$((fail+1))
+  CSS_FILE=""
+else
+  CSS_FILE="$(find apps/web/.next -name '*.css' -not -path '*/cache/*' 2>/dev/null | head -1)"
+fi
 if [ -z "$CSS_FILE" ]; then
   echo "  RESULT: ✗ no stylesheet was emitted at all"
   fail=$((fail+1))
@@ -331,8 +340,22 @@ fi
 
 # ── 25. BR-1834 — stylelint --fix must not rewrite Tailwind's import out of existence ─────
 hr; echo "25. BR-1834 — stylelint --fix leaves the bare @import and prefix media queries alone"
+# A POSITIVE CONTROL sits in this file alongside the two things autofix must NOT touch.
+#
+# Without it the case passes when stylelint never runs at all: both "was it rewritten?" checks
+# answer no, and the case reports "autofix left both intact" — which is true and meaningless.
+# Verified: with a bad `--config` path stylelint exits 1 and rewrites nothing, and this case
+# reported SUCCESS. Exit codes do not discriminate here, because 1 is also what ordinary lint
+# errors produce.
+#
+# `#FFFFFF` -> `#FFF` is a rewrite this configuration DOES perform (checked, not assumed). If it
+# is still `#FFFFFF` afterwards, autofix did not run and the other two answers are worthless.
+# `BR-1845` — a negative suite needs a positive twin.
 cat > apps/web/app/__probe.css <<'CSS'
 @import 'tailwindcss';
+.positive-control {
+  color: #FFFFFF;
+}
 @media (min-width: 640px) {
   .thing {
     display: grid;
@@ -340,7 +363,11 @@ cat > apps/web/app/__probe.css <<'CSS'
 }
 CSS
 pnpm exec stylelint --fix apps/web/app/__probe.css >/dev/null 2>&1
-if grep -qF "@import url(" apps/web/app/__probe.css; then
+if grep -qF "#FFFFFF" apps/web/app/__probe.css; then
+  echo "  RESULT: ✗ autofix did NOT run — the positive control was not rewritten, so the"
+  echo "          'left alone' assertions below prove nothing"
+  fail=$((fail+1))
+elif grep -qF "@import url(" apps/web/app/__probe.css; then
   echo "  RESULT: ✗ the bare @import was rewritten to url() — Tailwind would be silently disabled"
   fail=$((fail+1))
 elif grep -qF "width >=" apps/web/app/__probe.css; then

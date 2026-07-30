@@ -100,6 +100,15 @@ For every task, in this exact order. **Do not batch tasks.** One task, one verif
 7  REPORT    a short block: what exists now, what was verified, what diverged,
              what the founder must do manually before the next task.
 
+             IF THE CHANGE CAN ONLY BE OBSERVED IN CI, SAY SO HERE AND STOP.
+             Flag it BEFORE moving on, not after the founder notices. Both red-CI
+             episodes had this shape: a change whose correctness was observable
+             only where this environment cannot look — a workflow env block, a
+             reporter flag. "I cannot confirm this; please read the run" is the
+             report, and the next task waits for the answer. The cost of asking
+             is thirty seconds; the cost of not asking was four tasks once and
+             two runs the second time.
+
              IF THE TASK MADE AN ENVIRONMENT VARIABLE REQUIRED, NAME IT HERE
              AS A FOUNDER ACTION (BR-1847). That task has created a deploy that
              WILL fail — queued, dormant, and invisible until somebody deploys,

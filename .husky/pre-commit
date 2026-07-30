@@ -1,1 +1,30 @@
 pnpm exec lint-staged
+
+# ── Touch the mechanism, run the mechanism ───────────────────────────────────────────────────
+#
+# `verify:fitness` is deliberately NOT part of the ordinary gate: it takes minutes, and paying
+# that on every commit would get it disabled within a week. But that exclusion makes a change to
+# the suite itself the single change most likely to ship unverified — and it did, twice.
+#
+# `PH-1.7` edited `verify-fitness.sh`, then ran lint, typecheck, test, build, format:check,
+# check:ledgers and check:fk-order — everything except the script it had just edited.
+# `--reporter=basic` does not exist in Vitest 4, so two cases stopped observing anything: one
+# reported NOT caught and turned CI red, the other reported CAUGHT falsely, because its pattern
+# matched a filename echoed back in the error output. Runs #34 and #35.
+#
+# So: if anything under `scripts/` is staged, the suite runs before the commit is allowed. Narrow
+# on purpose — it fires only for the files that can break the verifier, not for ordinary work.
+if git diff --cached --name-only | grep -q '^scripts/'; then
+  echo ''
+  echo '  scripts/ changed — running pnpm verify:fitness before allowing this commit.'
+  echo '  (BR-1830: a change to the verification mechanism is the one that cannot go unverified.)'
+  echo ''
+  if ! pnpm verify:fitness; then
+    echo ''
+    echo '  x verify:fitness FAILED. The commit is blocked.'
+    echo '    A case reporting NOT caught means the violation was not observed — which may mean'
+    echo '    the rule broke, or that the case can no longer see it. Read which case, and check'
+    echo '    the second possibility before assuming the first.'
+    exit 1
+  fi
+fi

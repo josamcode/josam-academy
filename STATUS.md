@@ -399,6 +399,82 @@ output would undermine it.
 
 ---
 
+### 2026-07-31 · The fitness suite violated the rule it enforces — audit of all 44 cases
+
+**CI green again: run #36, `3e939cd`, summary clean.** Runs #34 and #35 were red; both were pushed
+and reported as completed work. **Second time.**
+
+### The finding, recorded plainly rather than as an aside
+
+`BR-1849` was written, committed, and then **violated by the tool that enforces it, in the same
+session**.
+
+Case 40's pattern was `Skeleton|roster`. When `--reporter=basic` stopped the spec from running at
+all, the pnpm error line — `Command failed ... : vitest run ... src/roster.spec.ts` — contained
+the word **`roster`**. The pattern matched a **filename**, and the case reported **CAUGHT** for a
+violation it had never observed.
+
+So the suite announced **"43 caught, 1 NOT caught"** while **two** cases were broken. One alarmed;
+one hid. **The hidden one was hidden by exactly the permissive matching the rule describes.**
+
+**That is not irony. It is evidence about where these defects live: they cluster in the
+verification layer, because nothing verifies the verifier.** Every other layer here has something
+above it — code has tests, tests have fitness cases, figures have `check-ledgers`. The fitness
+suite has nothing above it, so its defects are found only when something downstream breaks
+loudly enough to look.
+
+### The audit — 44 cases, checked rather than assumed
+
+A mechanical criterion for case 40's defect: **a pattern must not match text present in its own
+command string**, because any startup failure echoes the command back.
+
+| Result                                                      | Count             |
+| ----------------------------------------------------------- | ----------------- |
+| `check`-based cases whose pattern matches their own command | **0 of 42**       |
+| Cases that do not use `check` at all                        | **2** — 24 and 25 |
+
+**42 of 42 were already safe. Case 40 was the only one, and it is fixed.** The founder's warning
+against assuming was still right, because the two cases my extractor did not parse were the ones
+that mattered — and I would have reported "44/44 safe" on a list of 42.
+
+### Both non-`check` cases could false-green, and one demonstrably did
+
+They assert on **file contents** rather than command output, so the case-40 signature cannot reach
+them. A different one can.
+
+- **Case 25** ran `stylelint --fix` with its exit code discarded and then asserted two things were
+  **not** rewritten. **With a bad `--config` path stylelint rewrites nothing and the case reports
+  SUCCESS** — confirmed by running it. Exit codes do not discriminate: `1` is both "config error"
+  and "ordinary lint problems".
+  **Fixed with a positive twin** (`BR-1845`): the probe file now carries `#FFFFFF`, which this
+  configuration **does** rewrite to `#FFF` — checked, not assumed. If the control survives, autofix
+  did not run and the two "left alone" answers are worthless. Proven both ways.
+- **Case 24** discarded the web build's exit code, and a failed build leaves the previous `.next`
+  in place — so a **stale stylesheet** would satisfy every probe. Now removes `.next` first and
+  fails explicitly if the build does not succeed.
+
+### `touch the mechanism, run the mechanism` — now enforced, not remembered
+
+`.husky/pre-commit`: if anything under `scripts/` is staged, `pnpm verify:fitness` runs and a
+failure blocks the commit. Narrow on purpose — it fires only for files that can break the verifier.
+
+`verify:fitness` is excluded from the ordinary gate because it is slow, and **that exclusion is
+precisely what made a change to it the most likely thing to ship unverified.**
+
+### And the other half of the reporting rule
+
+`CLAUDE.md §2` step 7: **if a change can only be observed in CI, say so and stop** — before moving
+on, not after the founder notices. Both red-CI episodes had that shape: a workflow env block, then
+a reporter flag. Asking costs thirty seconds; not asking cost four tasks once and two runs the
+second time.
+
+### `45c8f8d` — the discomfort was correct, and belongs in the record
+
+A change **whose subject is unverified verifiers** was itself unverified for two runs. The parser
+audit and the recount rode on red CI. Green now on `3e939cd`.
+
+---
+
 ### 2026-07-30 · Recount after the ledger-checker defect — NO figure changed
 
 **Founder instruction: recompute every number that check produced.** Done empirically, both ways.
