@@ -48,6 +48,10 @@ export default {
           // packages/ui has no consumer until PH-0.17 builds the primitives. Naming it here keeps
           // the warning meaningful in the meantime, rather than training the reader to skip it.
           'packages/ui/src/index\\.ts$',
+          // Same situation at PH-1.9: `packages/abilities` has no consumer until PH-1.10's guard
+          // and PH-1.11's capability interceptor import it. REMOVE THIS LINE AT PH-1.10 — an
+          // exception that outlives its reason is how a warning list stops meaning anything.
+          'packages/abilities/src/index\\.ts$',
         ],
       },
       to: {},

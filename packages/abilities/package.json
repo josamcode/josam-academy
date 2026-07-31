@@ -1,0 +1,27 @@
+{
+  "name": "@josam/abilities",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared CASL ability definitions consumed by the API, web and mobile (BR-708, FEAT-018). Built at PH-1.9.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@casl/ability": "7.0.1"
+  },
+  "devDependencies": {
+    "@josam/config": "workspace:*"
+  }
+}

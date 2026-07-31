@@ -1560,6 +1560,36 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
   Three instances of one defect, at three levels of tooling, in a single session. **That
   concentration is not coincidence: it is what "nothing above it" produces.**
 
+- `BR-1851` — **When a field's correctness can only be judged by a human who reads the language,
+  generating it is worse than leaving it empty.** The empty state is visible; the wrong state is
+  not.
+
+  A machine-produced Arabic string looks complete, satisfies every constraint, renders correctly,
+  and passes every test — because **no test in this repository can read Arabic**. `BR-953` checks
+  that the `ar` key exists and is non-empty. It cannot check that the text says what it should, is
+  idiomatic, uses the right register, or is not subtly insulting. A `NULL` fails that check
+  loudly and gets fixed; a plausible fabrication passes it forever.
+
+  This is the inverse of the usual instinct — filling a gap feels like progress — and it is why
+  the rule is needed. **A fabrication is not a partial implementation. It is a defect wearing the
+  appearance of completion**, and it is specifically undetectable by the mechanisms that would
+  catch an absence.
+
+  **Worked example — `PH-1.8`, 2026-07-31.** `05` defines 174 permissions with English
+  descriptions. `TBL-008.description` is nullable bilingual JSONB. Generating Arabic for all 174
+  would have produced a database the primary audience reads, full of text nobody verified. They
+  are `NULL`, recorded as `SB-45`, and the admin surface shows the permission key instead — which
+  is honest, legible to an operator, and obviously incomplete.
+
+  **The rule extends to every human-judged field**: bilingual copy, error messages shown to
+  learners, course content, certificate wording, anything a reader evaluates rather than a test
+  asserts.
+
+  **And the task that fills such a field needs a human REVIEWER, not a translation pass.** Naming
+  a task is not enough if the work inside it is "run it through a translator" — that reproduces
+  the same defect with an extra step. The obligation is that a person who reads the language
+  approves each string.
+
 - `BR-1831` — The deliberate-violation suite is **committed and executed by CI**, not run once and
   described. A proof that only re-runs when somebody remembers is not a safety net. In this
   repository it is `scripts/verify-fitness.sh` (`pnpm verify:fitness`), wired into CI at `PH-0.10`.
