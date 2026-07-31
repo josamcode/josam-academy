@@ -399,6 +399,62 @@ output would undermine it.
 
 ---
 
+### 2026-07-31 · `SB-46` CLOSED — the suite could inject a defect and then certify it
+
+**Calendar: 2026-07-31 -> 2026-07-31 (1 day). Its own task, its own commit, nothing else in it.**
+
+Founder decision: this outranked finishing `PH-1.10`. Not a verification gap — **a mechanism that
+could introduce a vulnerability and then attest to its own cleanliness.** It had already left
+`PasswordHasher` out of the DI providers (the API cannot boot) and `permission.deleteMany` in place
+of the orphan flag (irreversible loss of grants), and reported **45/45 green** with both in the
+tree. The pre-commit hook runs this script, so nothing above it objected either.
+
+#### Cause, read rather than inferred
+
+Every mutating case did `cp f f.bak` → inject → `mv -f f.bak f`. **The restore point was the file's
+current on-disk content, not `HEAD`.** Kill the run between the copy and the move and the violation
+is baked in permanently; the next run copies the already-violated file to `.bak`, injects on top,
+and faithfully restores the violated version. The case still reports **CAUGHT**, because injecting
+a violation onto an already-violated file still fails the check. There was **no `trap`**, so a
+signal skipped the restore entirely.
+
+#### Three changes, and it needed all three
+
+1. **Restore from `HEAD`** (`git checkout --`), never from a copy of the working file — 9 call
+   sites. A snapshot of possibly-corrupt content cannot be a recovery point for corruption.
+2. **A `trap` on `EXIT`/`INT`/`TERM`.** The trap handles interruption; the HEAD restore handles the
+   trap itself failing.
+3. **A pre-flight refusal to start** when the tree is dirty in the paths the suite injects into.
+
+**The pre-flight is also what makes the HEAD restore SAFE, which is why it is not optional.**
+`git checkout --` is destructive: real uncommitted work in one of these files — and `STATUS.md` and
+`CLAUDE.md` are both injection targets — would be silently destroyed on exit. Refusing to start
+unless those paths are clean is the precondition that turns a destructive primitive into a lossless
+one. **Order is load-bearing: `preflight` runs BEFORE the trap is armed.**
+
+Generated output has no `HEAD` to restore from, so `packages/i18n/dist` is restored by **rebuild**.
+Case 17's `.bak` of `dist/index.js` was vestigial — copied, then discarded without ever being used
+to restore. Removed.
+
+#### Proven, against all four requirements
+
+| Proof                                             | Result                                                                        |
+| ------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Pre-flight vs a dirty tracked target              | refused, naming ` M renovate.json`                                            |
+| Pre-flight vs a leftover artifact                 | refused, naming `packages/ui/src/__violation.ts`                              |
+| **Kill mid-injection — file-content case**        | `M packages/i18n/src/catalogs/en.ts` live at kill time → **tree clean after** |
+| **Kill mid-injection — created-file case**        | `?? apps/api/src/modules/health/__violation.ts` at kill time → **gone after** |
+| Full suite re-run (every mutating case rewritten) | **45 caught, 0 NOT caught, exit 0, tree clean**                               |
+
+Both injection styles were exercised because they fail differently: one mutates tracked source and
+needs `HEAD`, the other drops an untracked file and needs removal.
+
+> **`PH-1.7` did not go wrong by touching the verifier. It went wrong by touching the verifier as a
+> side-effect of doing something else** (founder, 2026-07-31). Hence its own task and its own
+> commit — the change to the mechanism is the whole of what is in it.
+
+---
+
 ### 2026-07-31 · `PH-1.10` — scope proof installed · 🟡 PARTIAL, and it is not done
 
 **Calendar: 2026-07-31 -> 2026-07-31 (1 day).** Estimated 1.0 d; ~0.7 d spent, task incomplete.
@@ -612,6 +668,11 @@ invisible by construction. This is one of them, found by accident rather than on
 and editing the verifier while running three tasks on it is the shape of the `PH-1.7` incident. The
 fix is small and known: restore with `git checkout --` rather than `.bak`, or add a `trap` on
 `EXIT`/`INT`/`TERM`. **Founder decision required.**
+
+> **CLOSED the same day.** The founder ruled it outranked finishing `PH-1.10` and directed it be
+> done as its own task with its own commit — and that BOTH remedies land, not either: the trap
+> handles interruption, the HEAD restore handles the trap failing. Plus a pre-flight refusal to
+> start on a dirty tree. See the `SB-46` entry at the top of this log.
 
 Mitigation in force meanwhile: **`git status` is read before every commit in this session**, and a
 tracked-file modification that no task authored is treated as an injected violation until proven

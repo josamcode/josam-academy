@@ -28,6 +28,131 @@ cd "$(dirname "$0")/.." || exit 1
 # observed. Runs #34 and #35 went red. `BR-1830` inside the fix for `BR-1830`.
 unset GITHUB_ACTIONS
 
+# ── SB-46 — the suite could inject a defect and then certify it ──────────────────────────────
+#
+# An interrupted run used to leave its injected violations in TRACKED source, and a LATER run
+# would then report 45/45 green with them still sitting there. It happened three times on
+# 2026-07-31 and left `PasswordHasher` out of the DI providers and `permission.deleteMany` in
+# place of the orphan flag — a boot failure and an irreversible data loss, both certified green.
+#
+# That is not a verification gap. It is a mechanism that can introduce a vulnerability and then
+# attest to its own cleanliness, and the pre-commit hook runs this script, so nothing above it
+# would have objected either.
+#
+# ## Cause, read rather than inferred
+#
+# Every mutating case did `cp f f.bak` -> inject -> `mv -f f.bak f`. The restore point was the
+# file's CURRENT ON-DISK CONTENT, not `HEAD`. Kill the run between the copy and the move and the
+# violation is baked in permanently; the next run then copies the already-violated file to `.bak`,
+# injects on top, and faithfully restores the violated version. The case still reports CAUGHT,
+# because injecting a violation onto an already-violated file still fails the check. There was
+# no `trap`, so a signal skipped the restore entirely.
+#
+# ## The fix is three things, and it needs all three
+#
+#  1. Restore with `git checkout --`, never from a copy of the working file. A snapshot of
+#     possibly-corrupt content cannot be a recovery point for corruption.
+#
+#     `git checkout -- <path>` restores from the INDEX, which is the property that makes this
+#     workflow-safe: the suite's injections are unstaged edits on top of the index, so the restore
+#     reverts exactly them and leaves STAGED work intact. That matters because `STATUS.md` and
+#     `CLAUDE.md` are both injection targets AND are staged in every task commit (§2 step 6) — a
+#     restore-from-HEAD would have destroyed the task record on every single commit.
+#  2. A `trap` on EXIT/INT/TERM, so an interruption restores rather than abandoning the tree.
+#     The trap handles interruption; the HEAD restore handles the trap itself failing.
+#  3. A pre-flight refusal to START on a dirty tree. A run beginning from an already-corrupted
+#     tree cannot report anything meaningful.
+#
+# **The pre-flight is also what makes the HEAD restore SAFE, which is why it is not optional.**
+# `git checkout --` is destructive: if a developer had real uncommitted work in one of these
+# files, restoring from HEAD on exit would silently destroy it. Refusing to start unless those
+# paths are clean is the precondition that turns a destructive primitive into a lossless one.
+# The order below matters — preflight FIRST, install the trap only once the tree is known clean.
+
+# TRACKED files the suite mutates in place. Restored from HEAD.
+TRACKED_TARGETS=(
+  .size-limit.mjs
+  CLAUDE.md
+  STATUS.md
+  docs/16-task-breakdown.md
+  renovate.json
+  packages/ui/src/index.ts
+  packages/i18n/src/catalogs/en.ts
+  apps/api/src/shared/security/security.module.ts
+  apps/api/src/shared/database/repositories/permission.repository.ts
+)
+
+# Files the suite CREATES. Removed outright — there is no HEAD version to return to.
+CREATED_TARGETS=(
+  apps/api/src/modules/health/__violation.ts
+  apps/api/src/shared/database/__violation.ts
+  apps/web/app/__probe.css
+  apps/web/app/__violation.css
+  apps/web/app/__violation.tsx
+  apps/web/app/__violation/page.tsx
+  apps/web/components/__Violation.tsx
+  packages/i18n/src/__a.ts
+  packages/i18n/src/__b.ts
+  packages/ui/src/__violation.ts
+  packages/ui/src/__violation.tsx
+  packages/ui/src/__Violation.tsx
+)
+
+# `packages/i18n/dist/**` is generated and gitignored, so it has no HEAD to restore from. Case 17
+# edits `dist/catalogs/en.js` directly; the restore primitive for generated output is a rebuild.
+rebuild_i18n() { pnpm --filter @josam/i18n run build >/dev/null 2>&1 || true; }
+
+restore_tree() {
+  git checkout -- "${TRACKED_TARGETS[@]}" 2>/dev/null || true
+  rm -f "${CREATED_TARGETS[@]}"
+  rmdir apps/web/app/__violation 2>/dev/null || true
+  # Sweep any `.bak` left by the old design or by a run killed before this fix landed.
+  local f
+  for f in "${TRACKED_TARGETS[@]}"; do rm -f "$f.bak"; done
+    rebuild_i18n
+}
+
+preflight() {
+  local dirty="" leftover="" f
+  # UNSTAGED changes only. Staged content is safe — `git checkout --` restores to the index, so
+  # committing a task that stages STATUS.md does not trip this and cannot lose the staged edit.
+  # Unstaged dirt is the fatal case: it is what the restore would silently discard.
+  dirty="$(git diff --name-only -- "${TRACKED_TARGETS[@]}" 2>/dev/null)"
+  for f in "${CREATED_TARGETS[@]}"; do
+    [ -e "$f" ] && leftover="${leftover}    ${f}"$'
+'
+  done
+  for f in "${TRACKED_TARGETS[@]}"; do
+    [ -e "$f.bak" ] && leftover="${leftover}    ${f}.bak"$'
+'
+  done
+
+  if [ -n "$dirty" ] || [ -n "$leftover" ]; then
+    echo ""
+    echo "  x verify:fitness REFUSES TO START — the working tree is not clean where this suite injects."
+    echo ""
+    [ -n "$dirty" ] && { echo "    tracked files with UNSTAGED changes:"; echo "$dirty" | sed 's/^/      /'; echo ""; }
+    [ -n "$leftover" ] && { echo "    leftover artifacts:"; printf '%s' "$leftover"; echo ""; }
+    echo "    Two reasons this is fatal rather than a warning (SB-46):"
+    echo ""
+    echo "      1. A run starting from an already-injected tree measures the ARTIFACT, not the code."
+    echo "         It reports confident, specific, WRONG results — cases failing for reasons that"
+    echo "         look exactly like a regression in the rules."
+    echo "      2. This suite restores these paths on exit. Unstaged work in them would be"
+    echo "         DESTROYED. (Staged work is safe and does not trip this check.)"
+    echo ""
+    echo "    Commit or stash the real work; delete the artifacts. If these are leftovers from a"
+    echo "    killed run, 'git checkout -- <file>' and remove the __violation files."
+    echo ""
+    exit 1
+  fi
+}
+
+# Order is load-bearing: refuse on a dirty tree BEFORE arming a trap that restores from HEAD.
+preflight
+trap 'restore_tree' EXIT
+trap 'echo ""; echo "  ! interrupted — restoring the tree (SB-46)"; restore_tree; exit 130' INT TERM
+
 pass=0; fail=0
 hr() { printf '\n────────────────────────────────────────────────────────────────────\n'; }
 
@@ -198,7 +323,6 @@ rm -f packages/ui/src/__violation.ts
 
 # ── 16. BR-811 / BR-1365 — prohibited copy term ───────────────────────────────
 hr; echo "16. BR-811 — a prohibited copy term in a catalog fails the check"
-cp packages/i18n/src/catalogs/en.ts packages/i18n/src/catalogs/en.ts.bak
 node -e "
 const fs=require('node:fs');const f='packages/i18n/src/catalogs/en.ts';
 let s=fs.readFileSync(f,'utf8');
@@ -207,12 +331,11 @@ fs.writeFileSync(f,s);
 "
 pnpm --filter @josam/i18n run build >/dev/null 2>&1
 check "prohibited copy" "pnpm check:catalogs" "BR-811"
-mv packages/i18n/src/catalogs/en.ts.bak packages/i18n/src/catalogs/en.ts
+git checkout -- packages/i18n/src/catalogs/en.ts
 pnpm --filter @josam/i18n run build >/dev/null 2>&1
 
 # ── 17. BR-524 — English key with no Arabic source ────────────────────────────
 hr; echo "17. BR-524 — an English key with no Arabic source fails the check"
-cp packages/i18n/dist/index.js packages/i18n/dist/index.js.bak
 node -e "
 const fs=require('node:fs');const f='packages/i18n/dist/catalogs/en.js';
 let s=fs.readFileSync(f,'utf8');
@@ -221,7 +344,6 @@ fs.writeFileSync(f,s);
 "
 check "arabic source" "pnpm check:catalogs" "BR-524"
 pnpm --filter @josam/i18n run build >/dev/null 2>&1
-rm -f packages/i18n/dist/index.js.bak
 
 # ── 18. BR-1469 — clickable non-semantic element (jsx-a11y, activated at PH-0.17) ─────────
 hr; echo "18. BR-1469 — a clickable non-semantic element fails the build"
@@ -593,7 +715,6 @@ rm -f packages/ui/src/__violation.ts
 # The same shape as the Prisma failure one level out: a config that has never been validated is
 # not a config that works. This puts the exact rejected key back and requires it to fail.
 hr; echo "37. BR-1838 — an invalid renovate.json fails the build"
-cp renovate.json renovate.json.bak
 node -e '
   const fs = require("fs");
   const config = JSON.parse(fs.readFileSync("renovate.json", "utf8"));
@@ -601,16 +722,15 @@ node -e '
   fs.writeFileSync("renovate.json", JSON.stringify(config, null, 2));
 '
 check "invalid renovate key" "pnpm check:renovate" "Invalid configuration option|_comment"
-mv -f renovate.json.bak renovate.json
+git checkout -- renovate.json
 
 # ── 38. BR-1486 — the bundle budget, activated at PH-0.30 ────────────────────────────────
 # Row 14 of 12 §19 named size-limit and 13 §18.1 pinned it at PH-0.16. It was never installed, and
 # the row pointed at a task that had already closed — it had no owner until now.
 hr; echo "38. BR-1486 — a bundle over the 200 KB budget fails the build"
-cp .size-limit.mjs .size-limit.mjs.bak
 sed -i "s/limit: '200 KB'/limit: '1 KB'/" .size-limit.mjs
 check "bundle over budget" "pnpm check:size" "exceeded|has exceeded"
-mv -f .size-limit.mjs.bak .size-limit.mjs
+git checkout -- .size-limit.mjs
 
 # ── 39. BR-1502 — a blanket "use client" in the route tree ───────────────────────────────
 # Row 17. It had been waiting for a client component to exist; twenty do. Its own rule name rather
@@ -632,7 +752,6 @@ rm -rf apps/web/app/__violation
 # The Phase 0 report had to say "69/69, but that is a count I did, not a gate". The gate found that
 # the real figure was 68: `Toast` was in the roster and not exported.
 hr; echo "40. 12 §20.12.1 — a component missing from the package surface fails the build"
-cp packages/ui/src/index.ts packages/ui/src/index.ts.bak
 node -e '
   const fs = require("fs");
   const s = fs.readFileSync("packages/ui/src/index.ts", "utf8").replace(/^\s*Skeleton,$/m, "");
@@ -643,7 +762,7 @@ node -e '
 # green inside the fitness suite, hidden by exactly the permissive matching `BR-1849`
 # describes. `to include 'Skeleton'` is emitted by the assertion and by nothing else.
 check "component missing from the roster" "pnpm --filter @josam/ui exec vitest run src/roster.spec.ts" "to include .Skeleton."
-mv -f packages/ui/src/index.ts.bak packages/ui/src/index.ts
+git checkout -- packages/ui/src/index.ts
 
 # ── 41. A summary figure that disagrees with its own table ──────────────────────────────
 # Phase 0 shipped FIVE of these — `12 §19`'s score line, and two totals in CLAUDE.md's own
@@ -652,27 +771,25 @@ mv -f packages/ui/src/index.ts.bak packages/ui/src/index.ts
 # enforces nothing: it occupies the place where a check should be, and reports something
 # reassuring. Founder decision, 2026-07-30.
 hr; echo "41. A progress total that disagrees with its own table fails the build"
-cp CLAUDE.md CLAUDE.md.bak
 node -e '
   const fs = require("fs");
   fs.writeFileSync("CLAUDE.md",
     fs.readFileSync("CLAUDE.md","utf8").replace(/Estimated total [\d.]+ d/, "Estimated total 20.5 d"));
 '
 check "stale summary total" "pnpm check:ledgers" "estimated total says|sums to"
-mv -f CLAUDE.md.bak CLAUDE.md
+git checkout -- CLAUDE.md
 
 # ── 42. BR-1833 / BR-1840 — a deferral owned by a task that has already closed ──────────
 # `12 §19` row 15 sat on `PH-0.11` after `PH-0.11` closed without it, and row 20 named a
 # PHASE rather than a task. Both survived because the summary was read instead of the rows.
 hr; echo "42. BR-1840 — a deferred check owned by a COMPLETED task fails the build"
-cp STATUS.md STATUS.md.bak
 node -e '
   const fs = require("fs");
   const s = fs.readFileSync("STATUS.md","utf8").replace("⬜ **`PH-1.10`**", "⬜ **`PH-0.11`**");
   fs.writeFileSync("STATUS.md", s);
 '
 check "deferral owned by a done task" "pnpm check:ledgers" "which is DONE|BR-1840"
-mv -f STATUS.md.bak STATUS.md
+git checkout -- STATUS.md
 
 # ── 43. BR-1842 — task order inconsistent with foreign-key direction ────────────────────
 # Found before `PH-1.1` started, by reading the schema rather than by running the migration.
@@ -680,7 +797,6 @@ mv -f STATUS.md.bak STATUS.md
 # migration would have APPLIED — an ORM orders CREATE TABLE correctly within one migration — and
 # failed at seed time, three tasks later, looking like a bad seed script.
 hr; echo "43. BR-1842 — a table referencing one created in a LATER task fails the build"
-cp docs/16-task-breakdown.md docs/16-task-breakdown.md.bak
 node -e '
   const fs = require("fs");
   const p = "docs/16-task-breakdown.md";
@@ -690,7 +806,7 @@ node -e '
   fs.writeFileSync(p, s);
 '
 check "fk order vs task order" "pnpm check:fk-order" "not created until|BR-1842"
-mv -f docs/16-task-breakdown.md.bak docs/16-task-breakdown.md
+git checkout -- docs/16-task-breakdown.md
 
 # ── 44. The module graph resolves — the container, not the units ────────────────────────
 # The widest blind spot this project has produced. `BreachList` took an optional `string`, which
@@ -700,7 +816,6 @@ mv -f docs/16-task-breakdown.md.bak docs/16-task-breakdown.md
 #
 # Removing a provider that something injects must fail the build. Not "when someone suspects DI".
 hr; echo "44. BR-1830 — a provider missing from the graph fails the build (the container check)"
-cp apps/api/src/shared/security/security.module.ts apps/api/src/shared/security/security.module.ts.bak
 node -e '
   const fs = require("fs");
   const p = "apps/api/src/shared/security/security.module.ts";
@@ -709,7 +824,7 @@ node -e '
   fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace("providers: [PasswordHasher, BreachList],", "providers: [BreachList],"));
 '
 check "provider missing from the module graph" "pnpm --filter @josam/api exec vitest run src/shared/security/security.module.spec.ts" "Nest can.t resolve|UnknownDependencies|PasswordHasher"
-mv -f apps/api/src/shared/security/security.module.ts.bak apps/api/src/shared/security/security.module.ts
+git checkout -- apps/api/src/shared/security/security.module.ts
 
 # ── 45. BR-964 — a permission absent from code is FLAGGED, never deleted ────────────────
 # `role_permissions.permission_id` is ON DELETE CASCADE, so deleting a permission row silently
@@ -720,7 +835,6 @@ mv -f apps/api/src/shared/security/security.module.ts.bak apps/api/src/shared/se
 # The violation: make the sync DELETE orphans instead of flagging them. The spec that asserts the
 # row survives must fail. `BR-1725` — enforcement is proven by breaking it, not by a green spec.
 hr; echo "45. BR-964 — deleting an orphaned permission instead of flagging it fails the build"
-cp apps/api/src/shared/database/repositories/permission.repository.ts apps/api/src/shared/database/repositories/permission.repository.ts.bak
 node -e '
   const fs = require("fs");
   const p = "apps/api/src/shared/database/repositories/permission.repository.ts";
@@ -734,7 +848,7 @@ node -e '
   fs.writeFileSync(p, s);
 '
 check "orphan deleted instead of flagged" "pnpm --filter @josam/api exec vitest run src/modules/access/permission-sync.spec.ts" "the row must still exist|toHaveLength"
-mv -f apps/api/src/shared/database/repositories/permission.repository.ts.bak apps/api/src/shared/database/repositories/permission.repository.ts
+git checkout -- apps/api/src/shared/database/repositories/permission.repository.ts
 
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
