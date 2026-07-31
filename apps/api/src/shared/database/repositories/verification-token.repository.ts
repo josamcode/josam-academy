@@ -30,13 +30,16 @@ export class VerificationTokenRepository {
     target?: string | undefined;
     expiresAt: Date;
   }): Promise<void> {
-    await this.prisma.verificationToken.create({
+    // `pre-authentication` — issued during registration or a reset request, both signed out.
+    await this.prisma.unscoped('pre-authentication').verificationToken.create({
       data: { ...token, target: token.target ?? null },
     });
   }
 
   async findByHash(tokenHash: string): Promise<StoredVerificationToken | null> {
-    return this.prisma.verificationToken.findUnique({
+    // `pre-authentication` — the presented hash IS the credential, and this lookup determines
+    // which user it belongs to. There is no actor until it returns.
+    return this.prisma.unscoped('pre-authentication').verificationToken.findUnique({
       where: { tokenHash },
       select: { id: true, userId: true, purpose: true, expiresAt: true, consumedAt: true },
     });
@@ -51,19 +54,27 @@ export class VerificationTokenRepository {
    * password from one link.
    */
   async consume(id: string): Promise<boolean> {
-    const { count } = await this.prisma.verificationToken.updateMany({
-      where: { id, consumedAt: null },
-      data: { consumedAt: new Date() },
-    });
+    // `pre-authentication` — redeeming an emailed link. The atomic `consumedAt: null` guard above
+    // is the single-use control; the scope is not what protects this row.
+    const { count } = await this.prisma
+      .unscoped('pre-authentication')
+      .verificationToken.updateMany({
+        where: { id, consumedAt: null },
+        data: { consumedAt: new Date() },
+      });
     return count === 1;
   }
 
   /** A new reset request invalidates outstanding ones for the same purpose. */
   async consumeOutstanding(userId: string, purpose: TokenPurpose): Promise<number> {
-    const { count } = await this.prisma.verificationToken.updateMany({
-      where: { userId, purpose, consumedAt: null },
-      data: { consumedAt: new Date() },
-    });
+    // `pre-authentication` — invalidating older reset tokens as a new one is issued, for a user
+    // who is by definition signed out. `userId` is resolved server-side from the request address.
+    const { count } = await this.prisma
+      .unscoped('pre-authentication')
+      .verificationToken.updateMany({
+        where: { userId, purpose, consumedAt: null },
+        data: { consumedAt: new Date() },
+      });
     return count;
   }
 }

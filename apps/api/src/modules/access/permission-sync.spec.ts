@@ -23,7 +23,7 @@ if (url === undefined || url === '') {
 }
 
 const fixtures = new IdentityFixtures(url);
-const repository = new PermissionRepository(fixtures.client as never);
+const repository = new PermissionRepository(fixtures.service);
 const service = new PermissionSyncService(repository);
 
 const asInput = (defs: readonly (typeof PERMISSION_REGISTRY)[number][]) =>

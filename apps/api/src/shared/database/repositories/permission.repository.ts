@@ -32,7 +32,11 @@ export class PermissionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async all(): Promise<PermissionRow[]> {
-    return this.prisma.permission.findMany({ select: { key: true, isOrphaned: true } });
+    // `system` — `permission` is classified `global`: the registry is a projection of code
+    // (`PH-1.8`) and is identical for every actor. Read at startup, before any request exists.
+    return this.prisma
+      .unscoped('system')
+      .permission.findMany({ select: { key: true, isOrphaned: true } });
   }
 
   /**
@@ -58,7 +62,9 @@ export class PermissionRepository {
    * the round trip is lossless.
    */
   async sync(registry: PermissionInput[]): Promise<SyncCounts> {
-    return this.prisma.$transaction(async (tx) => {
+    // `system` — the boot-time registry reconciliation. No request, no actor; it runs before the
+    // application is able to serve anything.
+    return this.prisma.unscoped('system').$transaction(async (tx) => {
       const existing = await tx.permission.findMany({ select: { key: true, isOrphaned: true } });
       const byKey = new Map(existing.map((p) => [p.key, p]));
       const inCode = new Set(registry.map((p) => p.key));

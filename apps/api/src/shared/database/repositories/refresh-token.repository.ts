@@ -37,7 +37,9 @@ export class RefreshTokenRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(token: NewRefreshToken): Promise<void> {
-    await this.prisma.refreshToken.create({
+    // `pre-authentication` — a token is minted at the END of sign-in, as the session comes into
+    // existence. A create has no `where`, so there is nothing for a scope to filter.
+    await this.prisma.unscoped('pre-authentication').refreshToken.create({
       data: {
         id: token.id,
         userId: token.userId,
@@ -54,7 +56,10 @@ export class RefreshTokenRepository {
 
   /** Looked up by HASH — `BR-1622`, a database read never yields a usable token. */
   async findByHash(tokenHash: string): Promise<StoredRefreshToken | null> {
-    return this.prisma.refreshToken.findUnique({
+    // `pre-authentication` — the refresh path. The presented hash IS the credential and this
+    // lookup is what establishes whose session it is. Scoping by actor would presuppose the
+    // identity this query exists to determine.
+    return this.prisma.unscoped('pre-authentication').refreshToken.findUnique({
       where: { tokenHash },
       select: {
         id: true,
@@ -81,7 +86,10 @@ export class RefreshTokenRepository {
    * the loser sees `count === 0` and throws — which surfaces as reuse, which is exactly right.
    */
   async rotate(presentedId: string, successor: NewRefreshToken): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
+    // `pre-authentication` — rotation happens during refresh, before the new session exists.
+    // The presented token id is the credential; `BR-1819` item 3 requires the two writes to stay
+    // atomic, which is why the transaction rather than the scope is what carries the guarantee.
+    await this.prisma.unscoped('pre-authentication').$transaction(async (tx) => {
       const marked = await tx.refreshToken.updateMany({
         where: { id: presentedId, rotatedAt: null, revokedAt: null },
         data: { rotatedAt: new Date(), lastUsedAt: new Date() },
@@ -115,7 +123,9 @@ export class RefreshTokenRepository {
    * suspect, including ones that look spent.
    */
   async revokeFamily(familyId: string, reason: string): Promise<number> {
-    const { count } = await this.prisma.refreshToken.updateMany({
+    // `system` — reuse detection. Revoking a compromised family is a security response that must
+    // succeed regardless of who triggered it, and the family, not the actor, is the unit.
+    const { count } = await this.prisma.unscoped('system').refreshToken.updateMany({
       where: { familyId, revokedAt: null },
       data: { revokedAt: new Date(), revokedReason: reason },
     });
@@ -124,7 +134,12 @@ export class RefreshTokenRepository {
 
   /** `BR-1610` — a password change revokes every session across every device. */
   async revokeAllForUser(userId: string, reason: string): Promise<number> {
-    const { count } = await this.prisma.refreshToken.updateMany({
+    // `pre-authentication` — called by the password-reset flow (`BR-1610`), where the user is
+    // signed out by definition. `userId` arrives from a verified reset token.
+    //
+    // AUDIT NOTE: `PH-1.31`'s "sign out my other devices" is the SAME operation with an actor
+    // present. That caller must use `scoped()`; this declaration does not stretch to cover it.
+    const { count } = await this.prisma.unscoped('pre-authentication').refreshToken.updateMany({
       where: { userId, revokedAt: null },
       data: { revokedAt: new Date(), revokedReason: reason },
     });
@@ -132,6 +147,9 @@ export class RefreshTokenRepository {
   }
 
   async countLiveInFamily(familyId: string): Promise<number> {
-    return this.prisma.refreshToken.count({ where: { familyId, revokedAt: null } });
+    // `system` — reuse-detection bookkeeping over a token family, not a user-facing read.
+    return this.prisma
+      .unscoped('system')
+      .refreshToken.count({ where: { familyId, revokedAt: null } });
   }
 }

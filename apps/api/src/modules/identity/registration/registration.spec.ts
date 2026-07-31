@@ -26,7 +26,7 @@ if (url === undefined || url === '') {
 }
 
 const fixtures = new IdentityFixtures(url);
-const prisma = fixtures.client as never;
+const prisma = fixtures.service;
 
 /** Captures instead of sending. MailHog is the local sink; this suite asserts on the content. */
 interface Sent {

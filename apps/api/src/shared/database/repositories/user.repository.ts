@@ -35,7 +35,9 @@ export class UserRepository {
    * UNIQUE constraint would silently stop being case-insensitive.
    */
   async findByEmail(email: string): Promise<UserRecord | null> {
-    const row = await this.prisma.user.findUnique({
+    // `pre-authentication` — this is the login lookup. It ESTABLISHES which actor is signing in,
+    // so there is no actor to scope it by; scoping it would require the answer as the question.
+    const row = await this.prisma.unscoped('pre-authentication').user.findUnique({
       where: { email },
       select: {
         id: true,
@@ -51,16 +53,25 @@ export class UserRepository {
   }
 
   async create(user: NewUser): Promise<void> {
-    await this.prisma.user.create({ data: user });
+    // `pre-authentication` — registration creates the actor. There is nothing to scope against.
+    await this.prisma.unscoped('pre-authentication').user.create({ data: user });
   }
 
   async findRoleIdByKey(key: string): Promise<string | null> {
-    const role = await this.prisma.role.findUnique({ where: { key }, select: { id: true } });
+    // `system` — `role` is classified `global` in `MODEL_SCOPES`: the catalogue is identical for
+    // every actor, so there is no ownership dimension to forget. Reached during registration,
+    // before an actor exists, which is why it is not on the `scoped()` path.
+    const role = await this.prisma
+      .unscoped('system')
+      .role.findUnique({ where: { key }, select: { id: true } });
     return role?.id ?? null;
   }
 
   async markEmailVerified(userId: string): Promise<void> {
-    await this.prisma.user.update({
+    // `pre-authentication` — reached from the emailed verification link. The bearer proved control
+    // of the address by presenting the token; no session exists yet. `userId` comes from the
+    // verified token, not from a caller, so it is not a parameter an attacker chooses.
+    await this.prisma.unscoped('pre-authentication').user.update({
       where: { id: userId },
       data: { emailVerifiedAt: new Date() },
     });
@@ -68,7 +79,14 @@ export class UserRepository {
 
   /** `BR-955` — any change affecting a user's permissions bumps the version (`BR-718`). */
   async setPassword(userId: string, passwordHash: string): Promise<void> {
-    await this.prisma.user.update({
+    // `pre-authentication` — the password-reset flow runs for a signed-OUT user holding a reset
+    // token. `userId` is taken from that verified token.
+    //
+    // AUDIT NOTE: when `PH-1.31` adds "change password while signed in", that path HAS an actor
+    // and must go through `scoped()`. It is a second caller, not a reason to relabel this one —
+    // a pre-authentication query that later becomes actor-scopable and keeps this declaration is
+    // the loophole this design exists to close.
+    await this.prisma.unscoped('pre-authentication').user.update({
       where: { id: userId },
       data: { passwordHash, permissionVersion: { increment: 1 } },
     });

@@ -399,6 +399,91 @@ output would undermine it.
 
 ---
 
+### 2026-07-31 · `PH-1.10` — scope proof installed · 🟡 PARTIAL, and it is not done
+
+**Calendar: 2026-07-31 -> 2026-07-31 (1 day).** Estimated 1.0 d; ~0.7 d spent, task incomplete.
+
+#### What exists and is verified
+
+**The branded type landed, and it is a real build-time guarantee.** `shared/database/scope.ts` +
+a restructured `PrismaService`. `PrismaService` **no longer extends `PrismaClient`** — the client
+sits in a `#private` field, and there are exactly two routes to a delegate: `scoped()`, whose
+owned-model methods demand a `ScopedWhere` that only `applyScope` can produce, and
+`unscoped(reason)` from a closed enum.
+
+A forgotten `where` cannot leak because forgetting means never calling `applyScope`, and then
+there is no value to pass. `applyScope` **applies the predicate itself** — the caller cannot omit
+it, which is the whole difference from a lint rule, which can only observe whether someone
+remembered.
+
+**The wrong-model finding, which is why this was prototyped before it was promised.** The first
+brand carried a bare `true`. It compiled, it rejected the forgotten `where`, and it was wrong:
+`ScopedWhere<UserWhere>` was assignable to `ScopedWhere<RefreshTokenWhereInput>`, so a `user`
+filter laundered into a refresh-token query and applied `id = actorId` to the wrong column. The
+brand now carries the model (`ScopedWhere<W, M>`).
+
+> **A guarantee that does not carry the model is not a guarantee — it is a habit with a type
+> annotation** (founder, 2026-07-31). Ten minutes in a prototype instead of permanently, in the
+> data layer.
+
+**Deny-by-default is proven, not asserted.** `satisfies Record<ScopableModel, ScopeSpec>` where
+`ScopableModel = Uncapitalize<Prisma.ModelName>` — derived from the generated schema, not restated
+beside it. Adding a `ScopeProbe` model to `schema.prisma` and regenerating gave:
+
+```
+scope.ts(87,12): error TS1360: ... does not satisfy the expected type
+  'Record<... | "scopeProbe", ScopeSpec>'.  Property 'scopeProbe' is missing
+```
+
+Removed, regenerated, `tsc exit=0`. **`PH-1.14`/`1.17`/`1.20` cannot introduce an unclassified
+table**, so there is no population of queries-written-before-the-guarantee to re-audit.
+
+**Requirement 2 — the two silent denials are distinct, designed in from the start.**
+`denial-reason.ts` carries a five-member closed enum; `PermissionGuard` gives each denial its own
+log line. `ANNOTATION_MISSING` logs at **error** and describes an _unprotected endpoint_;
+`PERMISSION_UNKNOWN` logs at **error** naming the key and stating that nobody can hold it. The
+`super_admin` short-circuit sits **after** both, deliberately — placing `BR-963` first would have
+hidden exactly these two defects behind the role most likely to exercise a new endpoint.
+
+`BR-1633` holds: the reason codes go to the log, never the response. A spec asserts the body does
+not contain the permission.
+
+**Proven by deliberate failure (`BR-1835`).** Collapsing the two silent denials onto one reason
+code failed 2 of 11 specs; restored, 11/11. The specs assert the **log line**, not the exception —
+asserting `ForbiddenException` would pass identically for all five causes, which is the ambiguity
+the requirement exists to remove (`BR-1837`).
+
+#### The 18 `unscoped()` declarations, each audited against what the query does
+
+Every one is `pre-authentication` or `system`. **There is no actor-scoped query in the codebase
+today** — which is the finding that made "install now" cheap: the whole cost was mechanical and
+the risk was zero.
+
+Two carry explicit AUDIT NOTES because they are the ones that will rot: `setPassword` and
+`revokeAllForUser` are `pre-authentication` today, and `PH-1.31` adds signed-in callers for both.
+Those are **second callers that must use `scoped()`**, not a reason to relabel these — a
+pre-authentication query that later becomes actor-scopable and keeps its old declaration is the
+loophole this design exists to close.
+
+#### ⛔ NOT DONE — what remains, stated plainly
+
+1. **The guard is not wired in.** `PermissionGuard` is unit-proven but registered nowhere. There
+   are no annotated routes yet, and registering it globally today would deny every existing
+   endpoint. **No request is currently authorized by it.**
+2. **`BR-1631`'s startup check does not exist.** The spec requires an endpoint without a
+   declaration to fail at startup; only the runtime deny-closed fallback is built.
+3. **The fitness case pinning the `unscoped()` call-site count is NOT written** — the mechanism
+   the founder named as what keeps `unscoped()` from becoming a habit. Not proven, not audited
+   against `BR-1849`.
+4. **Deny-by-default is not in the fitness suite.** Proven by hand above; it re-runs when someone
+   remembers, which `BR-1830` says is not a safety net.
+5. `PH-1.11` and `PH-1.12` not started.
+
+Gate run on this commit: **lint clean · typecheck 10/10 · tests 173/173 · build 7/7**.
+`verify:fitness` unchanged at 45 cases — no case was added, which is item 3 above.
+
+---
+
 ### 2026-07-31 · A corrupted domain in a frozen document, and the rule that held
 
 <!-- domain-check: off — this entry records a domain corruption and must quote the bad value -->

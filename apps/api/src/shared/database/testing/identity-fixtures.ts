@@ -2,6 +2,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 import { PrismaClient } from '../../../generated/prisma/client.js';
 import { newId } from '../id.js';
+import type { PrismaService } from '../prisma.service.js';
 
 /**
  * Test fixtures for `M01`. **Test-only, and it lives here for a reason.**
@@ -112,6 +113,26 @@ export class IdentityFixtures {
     return this.prisma.verificationToken.findMany({
       select: { id: true, tokenHash: true, consumedAt: true },
     });
+  }
+
+  /**
+   * A `PrismaService`-shaped view over the fixture client. `PH-1.10`.
+   *
+   * Specs used to pass `fixtures.client as never` straight into a repository, which compiled only
+   * because `PrismaService` WAS a `PrismaClient`. It no longer is: the client is `#private` and
+   * reachable only through `scoped()` or `unscoped()`, which is the whole mechanism. So the double
+   * has to present that surface instead of the raw client.
+   *
+   * Both accessors return the same real client, because the brand is erased at runtime — the
+   * guarantee is enforced by the compiler, so a runtime double has nothing to enforce. Specs still
+   * hit real rows, which is what `BR-1837` (assert the effect) requires.
+   */
+  get service(): PrismaService {
+    const client = this.prisma;
+    return {
+      scoped: () => client,
+      unscoped: () => client,
+    } as unknown as PrismaService;
   }
 
   async disconnect(): Promise<void> {

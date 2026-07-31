@@ -28,7 +28,10 @@ export class DatabaseHealthIndicator implements HealthIndicator, OnModuleInit {
 
   async check(): Promise<string> {
     // A real round trip. `$connect()` succeeding is not evidence the server still answers.
-    await this.prisma.$queryRaw`SELECT 1`;
+    //
+    // `system` — a liveness probe, run by the health endpoint with no request actor. It reads no
+    // rows, so there is nothing for a scope to filter; `SELECT 1` is the point.
+    await this.prisma.unscoped('system').$queryRaw`SELECT 1`;
     return 'ok';
   }
 }

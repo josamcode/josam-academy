@@ -27,7 +27,7 @@ if (url === undefined || url === '') {
 // Prisma is reached through `IdentityFixtures`, which lives in `shared/database/` — `BR-1580`
 // applies to specs too, and the fitness rule caught the first draft importing the client here.
 const fixtures = new IdentityFixtures(url);
-const repository = new RefreshTokenRepository(fixtures.client as never);
+const repository = new RefreshTokenRepository(fixtures.service);
 const service = new RefreshTokenService(repository);
 
 let userId: string;
