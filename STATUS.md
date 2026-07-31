@@ -399,6 +399,143 @@ output would undermine it.
 
 ---
 
+### 2026-07-31 · A corrupted domain in a frozen document, and the rule that held
+
+<!-- domain-check: off — this entry records a domain corruption and must quote the bad value -->
+
+**An editor accident, caught by reading the diff rather than the file.** `docs/16-task-breakdown.md`
+was modified in the working tree — 636 lines changed, uncommitted. Isolating the semantic changes
+from the churn gave exactly three: the session's prompt pasted into the document body between the
+header table and `§1`, a format-on-save pass that reflowed every table (which is the entire 636), and
+**the domain silently changed from `josamacademy.com` to `jocsamacademy.com`**.
+
+The task rows for `PH-1.10`–`PH-1.12` were semantically identical to the committed version, so
+nothing about the scope was in question. The domain was the finding.
+
+#### Why one character mattered enough to stop for
+
+`jocsamacademy.com` is **well-formed**. Lowercase, single label, `.com`, no invalid characters,
+plausible against a project called Josam Academy. Nothing in the repository consumes the string
+today, so no build step could reject it, and a person proofreading a 300-line specification table
+reads it as correct — the corruption is invisible in precisely the way that matters, and it would
+have kept until something finally used the value. A wrong domain stops being cosmetic the moment it
+reaches a certificate, an OAuth redirect URI, or a CORS allowlist, and by then the cause is dozens
+of commits back.
+
+Same family as `BR-1839`: a confident, truthful-looking signal that answers a question nobody asked.
+
+#### The check — founder instruction, and deliberately wider than the accident
+
+`check:ledgers` §4 now reads the canonical domain from **CLAUDE.md's header row** and compares every
+`*academy.com` token in `CLAUDE.md`, `STATUS.md` and `docs/**.md` against it. 43 occurrences across
+26 files, all agreeing today.
+
+It is wider than the accident on purpose. Matching only the `| **Domain** |` header row would have
+caught this instance and missed the identical corruption in prose, in a runbook command, or in an
+example URL — **a check inspecting one member of a class while reporting coverage of the class**,
+which is `BR-1849` restated. It also fails when CLAUDE.md's header row becomes unparseable, because
+a canonical value that cannot be read makes every comparison below it pass vacuously.
+
+Both failure modes were made to fail before being trusted (`BR-1835`), against `STATUS.md` rather
+than `/docs`:
+
+```
+✗ STATUS.md:16: domain reads "jocsamacademy.com", CLAUDE.md's header says "josamacademy.com"
+✗ CLAUDE.md: no `| **Domain** | ... |` header row found — the canonical domain cannot be read,
+              so the consistency check below would pass vacuously
+```
+
+Restored, and green. `check-ledgers.mjs` is a verification mechanism, so it was run after being
+edited rather than alongside the standard gate — touch the mechanism, run the mechanism.
+
+#### The check caught its own record, which is the point
+
+Writing the paragraphs above **failed the check four times** — three quotations of the corrupted
+value and one bare pattern reference. That is the test-corpus problem: a document recording a
+forbidden value must contain it.
+
+It is resolved with a **bounded, greppable suppression region** rather than by narrowing the
+pattern, because narrowing to dodge a known counterexample is how a check quietly stops covering the
+class it advertises. An unclosed region fails on its own — a suppression that silently extended to
+everything written after it would reintroduce `BR-1849` through the escape hatch built to contain
+it.
+
+#### The frozen-docs rule held under a real accident
+
+**`/docs` was not modified, including to repair damage that was obviously damage.** The spec was read
+from `git show HEAD:docs/16-task-breakdown.md` rather than the dirty working file, the corruption was
+reported, and the founder decided the remedy.
+
+This is the instance worth recording, because the rule's value is only visible when following it is
+inconvenient. §1 exists so that **a modified specification always means a founder decision and never
+an AI edit** — an invariant that survives exactly as long as it holds in the case where the edit
+looks harmless and self-evidently correct. Repairing a one-character typo unasked would have been
+locally right and would have destroyed the guarantee: after it, a diff in `/docs` no longer answers
+the question "did a person decide this?"
+
+**The working tree is not the specification. The commit is.** Recorded as a habit, not an incident.
+
+#### One self-inflicted loss, recorded rather than quietly redone
+
+The first draft of this entry was **destroyed by my own verification command**. Proving the
+unclosed-region failure mode ended with `git checkout -- STATUS.md`, a revert line reused from the
+earlier throwaway test where STATUS.md was clean — by then it held this entry, uncommitted. Rewritten
+from context, no lasting damage, roughly ten minutes.
+
+The rule that would have prevented it: **a destructive revert is safe only against a path with
+nothing uncommitted in it, and that is a precondition to check rather than remember.** Testing a
+mechanism against a file that holds live work needs a scratch copy, not the working tree.
+
+The same interruption produced a second, more misleading effect. The pre-commit hook runs
+`verify:fitness` whenever `scripts/` is staged, that run was killed at the two-minute mark, and it
+**left a `__violation.ts` behind**. The next suite run started against a tree that already contained
+a deliberate violation and reported **37 caught, 8 NOT caught** — eight convincing failures with
+nothing wrong. A clean tree gave **45 / 45, exit 0**.
+
+Recorded because the false reading is the dangerous one: it names real cases, it looks exactly like
+a regression in the rules, and the instinct it invites is to go fix the rules. **A fitness run that
+begins with an uncommitted violation file in the tree is measuring the artifact, not the code** —
+check `git status` before believing a fitness failure.
+
+#### ⚠️ `SB-46` — an interrupted fitness run leaves real defects in the tree, and a GREEN run keeps them
+
+The stray file was the visible half. The same interruption also left **three injected violations in
+tracked source**, and they survived a subsequent **45 / 45, exit 0** run:
+
+| File                                    | Injected defect                                                 |
+| --------------------------------------- | --------------------------------------------------------------- |
+| `shared/security/security.module.ts`    | `PasswordHasher` removed from `providers` — the API cannot boot |
+| `repositories/permission.repository.ts` | orphaned permissions `deleteMany` instead of flagged (`BR-964`) |
+| `packages/ui/src/index.ts`              | `Skeleton` export removed                                       |
+
+**Mechanism, read rather than inferred.** Each case does `cp f f.bak` → inject → run → `mv -f f.bak
+f`. The restore point is therefore **the file's current on-disk content, not `HEAD`**, and there is
+**no `trap`**. A run killed between inject and restore bakes the violation in permanently; every
+later run then copies the already-violated file to `.bak`, injects on top, and faithfully restores
+the violated version. The case still reports **CAUGHT**, because injecting a violation onto an
+already-violated file still fails the check.
+
+**So the suite reported 45/45 green while three defects sat in the tree, and the pre-commit hook —
+which runs that same suite — would not have blocked the commit.** Only `git status` showed it. Two
+of the three are serious: one breaks DI at boot, one destroys permission grants irreversibly, which
+is the exact asymmetry the case's own comment calls out ("flagging is reversible; deletion is not").
+
+`BR-1850` says the suite is the top of the stack, has nothing above it, and its defects are
+invisible by construction. This is one of them, found by accident rather than on schedule.
+
+**Not fixed here** — it is a change to the verification mechanism, it is outside `PH-1.10`'s scope,
+and editing the verifier while running three tasks on it is the shape of the `PH-1.7` incident. The
+fix is small and known: restore with `git checkout --` rather than `.bak`, or add a `trap` on
+`EXIT`/`INT`/`TERM`. **Founder decision required.**
+
+Mitigation in force meanwhile: **`git status` is read before every commit in this session**, and a
+tracked-file modification that no task authored is treated as an injected violation until proven
+otherwise.
+
+<!-- domain-check: on -->
+
+---
+
 ### 2026-07-31 · `PH-1.10` — decided in advance, not discovered
 
 **Founder direction, recorded before the task starts so it survives the session boundary.**

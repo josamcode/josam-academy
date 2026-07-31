@@ -22,7 +22,7 @@
  *
  * Founder decision, 2026-07-30, carried into Phase 1.
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -233,6 +233,110 @@ if (ledgerStart === -1) {
     }
     if (!id.startsWith('PH-0.') && !breakdown.includes(`\`${id}\``)) {
       fail('STATUS.md `12 §19`', `row ${row.n} names ${id}, which is not in 16-task-breakdown.md`);
+    }
+  }
+}
+
+// ── 4. The domain string — one value, checked everywhere it appears ────────────────────────
+//
+// Founder instruction, 2026-07-31, after a real accident: an editor fumble turned the domain in
+// `docs/16-task-breakdown.md` into `jocsamacademy.com` and nothing in the repository objected.
+//
+// **That is the whole reason this check exists.** The corrupted value is well-formed, lowercase,
+// ends in `.com`, and reads correctly at a glance — a human proofreader scanning a frozen
+// specification does not catch it, and no build step consumes the string, so it would have sat
+// there until something finally used it. A wrong domain is not a typo when it reaches a
+// certificate, a redirect URI, or a CORS allowlist.
+//
+// The check is deliberately WIDER than the accident. Matching only the `**Domain**` header row
+// would have caught this one instance and missed the same corruption in prose, in a runbook
+// command, or in an example URL — the permissive-mechanism failure of `BR-1849`, where a check
+// reports full coverage of a class while inspecting one member of it. Every occurrence of a
+// `*academy.com` token is compared, wherever it appears.
+{
+  const domainRow = claude.match(/^\|\s*\*\*Domain\*\*\s*\|\s*`?([a-z0-9.-]+)`?\s*\|/m);
+
+  if (!domainRow) {
+    // Blind-check protection, the same as the task-row parse above: if the header shape changes,
+    // this must fail loudly rather than silently comparing every file against nothing.
+    fail(
+      'CLAUDE.md',
+      'no `| **Domain** | ... |` header row found — the canonical domain cannot be read, ' +
+        'so the consistency check below would pass vacuously',
+    );
+  } else {
+    const canonical = domainRow[1];
+    const files = [
+      'CLAUDE.md',
+      'STATUS.md',
+      ...readdirSync(join(root, 'docs'), { recursive: true })
+        .map((f) => String(f).replaceAll('\\', '/'))
+        .filter((f) => f.endsWith('.md'))
+        .map((f) => `docs/${f}`),
+    ];
+
+    /**
+     * Counterexample regions. A document that RECORDS a domain corruption has to quote the
+     * corrupted value, so the incident write-up in `STATUS.md` fails this check by existing —
+     * the standard problem of a test corpus containing the value the test forbids.
+     *
+     * The suppression is a bounded region rather than a whole-file or whole-pattern exemption:
+     *
+     *   <!-- domain-check: off — reason -->   ...   <!-- domain-check: on -->
+     *
+     * so every suppression is greppable, carries its reason inline, and cannot silently grow to
+     * cover text written after it. An UNCLOSED region is a failure, not a shrug: `off` with no
+     * matching `on` disables the rest of the file, which is the permissive-mechanism failure this
+     * check exists to prevent (`BR-1849`) reintroduced through its own escape hatch.
+     */
+    const suppressedLines = (file, text) => {
+      const suppressed = new Set();
+      let openedAt = null;
+      text.split('\n').forEach((line, i) => {
+        if (/<!--\s*domain-check:\s*off\b/i.test(line)) openedAt ??= i + 1;
+        else if (/<!--\s*domain-check:\s*on\b/i.test(line)) openedAt = null;
+        if (openedAt !== null) suppressed.add(i + 1);
+      });
+      if (openedAt !== null) {
+        fail(
+          `${file}:${String(openedAt)}`,
+          'opens a `domain-check: off` region that is never closed — an unbounded suppression ' +
+            'silently exempts everything written after it',
+        );
+      }
+      return suppressed;
+    };
+
+    let occurrences = 0;
+    for (const file of files) {
+      let text;
+      try {
+        text = read(file);
+      } catch {
+        continue;
+      }
+      const suppressed = suppressedLines(file, text);
+      for (const m of text.matchAll(/\b[a-z0-9-]*academy\.com\b/gi)) {
+        const line = text.slice(0, m.index).split('\n').length;
+        if (suppressed.has(line)) continue;
+        occurrences += 1;
+        if (m[0].toLowerCase() !== canonical.toLowerCase()) {
+          fail(
+            `${file}:${String(line)}`,
+            `domain reads "${m[0]}", CLAUDE.md's header says "${canonical}" — ` +
+              'a well-formed wrong domain is invisible to proofreading and to every build step ' +
+              'until something uses it',
+          );
+        }
+      }
+    }
+
+    if (occurrences === 0) {
+      fail(
+        'docs/',
+        'no domain string matched anywhere — the pattern went blind and this check is ' +
+          'asserting nothing',
+      );
     }
   }
 }
