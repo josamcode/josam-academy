@@ -53,11 +53,28 @@ unset GITHUB_ACTIONS
 #  1. Restore with `git checkout --`, never from a copy of the working file. A snapshot of
 #     possibly-corrupt content cannot be a recovery point for corruption.
 #
-#     `git checkout -- <path>` restores from the INDEX, which is the property that makes this
-#     workflow-safe: the suite's injections are unstaged edits on top of the index, so the restore
-#     reverts exactly them and leaves STAGED work intact. That matters because `STATUS.md` and
-#     `CLAUDE.md` are both injection targets AND are staged in every task commit (§2 step 6) — a
-#     restore-from-HEAD would have destroyed the task record on every single commit.
+#     ## DO NOT "TIGHTEN" THIS TO HEAD. The index is load-bearing, not incidental.
+#
+#     `git checkout -- <path>` restores from the **INDEX**, not from HEAD. That is the entire
+#     reason this suite can inject into files which legitimately carry staged work.
+#
+#     The suite's injections are UNSTAGED edits on top of the index, so an index restore reverts
+#     exactly them and leaves STAGED content untouched. `STATUS.md` and `CLAUDE.md` are both
+#     injection targets AND are staged in every task commit (`§2` step 6), so:
+#
+#       - restore from the INDEX  -> the injection is undone, the task record survives
+#       - restore from HEAD       -> the injection is undone, AND THE TASK RECORD IS DESTROYED,
+#                                    silently, on every single commit that runs this hook
+#
+#     `git checkout HEAD -- <path>` and `git restore --source=HEAD` both LOOK stricter and read
+#     like a hardening. They are the opposite: they widen what gets discarded from "the suite's own
+#     edits" to "everything the author had staged". The first version of the pre-flight below made
+#     exactly this class of mistake in the other direction — it rejected ANY modification, which
+#     would have blocked every future task commit. A safety mechanism that makes the work
+#     impossible is not safer, it fails differently.
+#
+#     The pre-flight is what closes the remaining gap: it refuses to start on UNSTAGED changes in
+#     these paths, which are the only edits an index restore would discard.
 #  2. A `trap` on EXIT/INT/TERM, so an interruption restores rather than abandoning the tree.
 #     The trap handles interruption; the HEAD restore handles the trap itself failing.
 #  3. A pre-flight refusal to START on a dirty tree. A run beginning from an already-corrupted
@@ -80,6 +97,7 @@ TRACKED_TARGETS=(
   packages/i18n/src/catalogs/en.ts
   apps/api/src/shared/security/security.module.ts
   apps/api/src/shared/database/repositories/permission.repository.ts
+  apps/api/prisma/schema.prisma
 )
 
 # Files the suite CREATES. Removed outright — there is no HEAD version to return to.
@@ -849,6 +867,45 @@ node -e '
 '
 check "orphan deleted instead of flagged" "pnpm --filter @josam/api exec vitest run src/modules/access/permission-sync.spec.ts" "the row must still exist|toHaveLength"
 git checkout -- apps/api/src/shared/database/repositories/permission.repository.ts
+
+# ── 46. PH-1.10 — an added scope exception fails the build ────────────────────
+#
+# BR-1849 AUDIT: the assertion pattern is "count changed: pinned at", which appears nowhere in
+# the command (`pnpm check:scope-exceptions`), in any path, or in any argument. It can only come
+# from the check's own stderr. Case 40 passed while observing nothing because its pattern matched
+# a filename echoed back by its own command; this pattern cannot.
+hr; echo "46. PH-1.10 — an added unscoped() call site fails the build"
+node -e "
+const fs=require('node:fs');const f='apps/api/src/shared/database/repositories/user.repository.ts';
+let s=fs.readFileSync(f,'utf8');
+s=s.replace('async findRoleIdByKey(', 'async __extraException(): Promise<number> {\n    return this.prisma.unscoped(\'system\').user.count();\n  }\n\n  async findRoleIdByKey(');
+fs.writeFileSync(f,s);
+"
+check "scope exception added" "pnpm check:scope-exceptions" "count changed: pinned at"
+git checkout -- apps/api/src/shared/database/repositories/user.repository.ts
+
+# ── 47. PH-1.10 — an unclassified Prisma model fails the build ────────────────
+#
+# Deny-by-default: `MODEL_SCOPES` is `satisfies Record<Uncapitalize<Prisma.ModelName>, ScopeSpec>`,
+# so a new table cannot be queried until its scoping is decided. PH-1.14/1.17/1.20 add owned
+# tables, and this is what stops them arriving unclassified.
+#
+# BR-1849 AUDIT: the pattern is "scopeProbe' is missing", emitted only by tsc. The identifier
+# exists solely inside the injected schema, which is never echoed by `pnpm typecheck`.
+hr; echo "47. PH-1.10 — a Prisma model with no scope classification fails the build"
+cat >> apps/api/prisma/schema.prisma <<'PRISMA'
+
+model ScopeProbe {
+  id String @id @default(uuid()) @db.Uuid
+
+  @@map("scope_probe")
+}
+PRISMA
+pnpm --filter @josam/api exec prisma generate >/dev/null 2>&1
+check "unclassified model" "pnpm typecheck" "scopeProbe' is missing"
+git checkout -- apps/api/prisma/schema.prisma
+pnpm --filter @josam/api exec prisma generate >/dev/null 2>&1
+
 
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"

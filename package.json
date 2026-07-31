@@ -23,9 +23,10 @@
     "check:renovate": "renovate-config-validator --strict renovate.json",
     "check:size": "size-limit",
     "check:deps": "depcruise apps packages --config .dependency-cruiser.mjs",
-    "fitness": "pnpm lint && pnpm lint:css && pnpm check:deps && pnpm check:catalogs && pnpm check:renovate && pnpm check:ledgers && pnpm check:fk-order",
+    "fitness": "pnpm lint && pnpm lint:css && pnpm check:deps && pnpm check:catalogs && pnpm check:renovate && pnpm check:ledgers && pnpm check:scope-exceptions && pnpm check:fk-order",
     "verify:fitness": "bash scripts/verify-fitness.sh",
     "check:ledgers": "node scripts/check-ledgers.mjs",
+    "check:scope-exceptions": "node scripts/check-scope-exceptions.mjs",
     "check:fk-order": "node scripts/check-fk-order.mjs"
   },
   "devDependencies": {

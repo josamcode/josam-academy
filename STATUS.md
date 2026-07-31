@@ -399,6 +399,44 @@ output would undermine it.
 
 ---
 
+### 2026-07-31 · `PH-1.10` — the two missing mechanisms are now in the suite (47 cases)
+
+Both were the `SB-46` shape: **proven by hand, re-run only when someone remembers.** A proof that
+depends on memory is not a safety net (`BR-1830`).
+
+**Case 46 — the `unscoped()` call-site count is pinned** at 18 (`system` 6, `pre-authentication` 12) by `scripts/check-scope-exceptions.mjs`. An escape hatch nobody counts becomes the way things
+are done: each call is individually defensible when written, the twentieth looks exactly like the
+first, and nothing in a diff separates "this genuinely runs before authentication" from "scoping
+this was awkward" — both are one identical line. Raising the pin is an edit to that file in the
+same commit, so the increase is a line a reviewer reads. **Not prevention, visibility.**
+
+**Case 47 — deny-by-default.** Appending a `ScopeProbe` model to `schema.prisma` and regenerating
+fails `pnpm typecheck` with `Property 'scopeProbe' is missing`. `PH-1.14`/`1.17`/`1.20` cannot
+introduce an unclassified table.
+
+#### `BR-1849` audit of both patterns, done BEFORE trusting them
+
+Case 40's defect was asserting on a string that appeared in its own command line, so it reported
+CAUGHT for a mechanism that never ran.
+
+- Case 46 asserts **`count changed: pinned at`**. That phrase occurs in no path, argument, or task
+  name. The check is deliberately named `check:scope-exceptions` and **not** `check:unscoped`,
+  precisely so the command shares no token with the assertion.
+- Case 47 asserts **`scopeProbe' is missing`**, emitted only by `tsc`. The identifier exists solely
+  inside the injected schema, which `pnpm typecheck` never echoes.
+
+`schema.prisma` was added to `TRACKED_TARGETS`, so case 47's injection is covered by `SB-46`'s
+pre-flight and trap. Verified: **47 caught, 0 NOT caught, exit 0, tree clean.**
+
+#### `PH-1.10` is STILL 🟡 — two gaps remain, and they are not these
+
+1. **The guard is wired nowhere.** No request is authorized by it.
+2. **`BR-1631`'s startup check does not exist.**
+
+Both need a route table to exist. Recorded rather than quietly folded into "done".
+
+---
+
 ### 2026-07-31 · `SB-46` CLOSED — the suite could inject a defect and then certify it
 
 **Calendar: 2026-07-31 -> 2026-07-31 (1 day). Its own task, its own commit, nothing else in it.**
