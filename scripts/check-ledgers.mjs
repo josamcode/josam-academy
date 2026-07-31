@@ -57,27 +57,95 @@ const failures = [];
 const fail = (where, msg) => failures.push(`${where}: ${msg}`);
 const near = (a, b) => Math.abs(a - b) < 0.005;
 
-// ── 1. CLAUDE.md §5 — the progress line against its own table ──────────────────────────────
 const claude = read('CLAUDE.md');
 
-const taskRows = [
-  ...claude.matchAll(
-    /^\|\s*`(PH-0\.\d+)`\s*\|[^|]*\|\s*([AB])\s*\|[^|]*\|\s*([\d.]+)\s*\|\s*([^|]*?)\s*\|\s*([\d.—-]+)\s*\|/gm,
-  ),
-].map((m) => ({ id: m[1], type: m[2], est: Number(m[3]), status: m[4], act: m[5] }));
+/**
+ * ── Task-table parsing, by SHAPE rather than by a per-phase list ──────────────────────────
+ *
+ * Founder decision, 2026-07-31. The previous version carried one hand-written regex per phase —
+ * `PH-0\.\d+` for `§5`, `PH-1\.\d+` for `§5b` — and every consumer below was fed the Phase 0 list
+ * alone. **Every Phase 1 owner marked done therefore passed silently**, which is `12 §19` row 15's
+ * original defect reproduced one phase over, inside the check written to prevent it. It was found
+ * only because a probe for something else printed a failure nobody asked for.
+ *
+ * **A per-phase list has the defect built in.** It is correct exactly until a phase starts, and
+ * then it is quietly wrong until somebody remembers to extend it — the extension being invisible
+ * work that nothing demands. It would have reproduced at Phase 2 for the same reason it appeared
+ * at Phase 1. So the phase is no longer named anywhere: any table with an `ID`/`Status` header
+ * and `` `PH-N.M` `` in its first column is a task table, whatever N is.
+ *
+ * Columns are resolved **by header name**, not by position. `§5` and `§5b` order their columns
+ * differently (`Type`/`Depends` are swapped), which is why the old code needed two regexes at all.
+ * Position-independence also rules out the obvious alternative — "find the cell containing a
+ * status glyph" — which is already wrong today: `PH-1.10`'s Note cell contains both 🟡 and ✅ in
+ * prose, and would be read as the status column.
+ */
+const parseTaskRows = (text, where) => {
+  const cells = (line) =>
+    line
+      .split('|')
+      .slice(1, -1)
+      .map((c) => c.trim());
+  const lines = text.split('\n');
+  const rows = [];
+  let cols = null;
+
+  for (const [i, line] of lines.entries()) {
+    if (!line.startsWith('|')) {
+      cols = null; // a table ends at the first non-table line; headers never leak across tables
+      continue;
+    }
+    const next = lines[i + 1] ?? '';
+    if (/^\|[\s:|-]+\|$/.test(next) && next.includes('-')) {
+      cols = cells(line).map((c) => c.replaceAll('*', '').trim().toLowerCase());
+      continue;
+    }
+    if (cols === null) continue;
+
+    const c = cells(line);
+    const id = /^`(PH-(\d+)\.\d+)`$/.exec(c[0] ?? '');
+    if (!id) continue;
+
+    const at = (name) => {
+      const idx = cols.indexOf(name);
+      return idx === -1 ? undefined : (c[idx] ?? '');
+    };
+    rows.push({
+      id: id[1],
+      phase: Number(id[2]),
+      status: at('status') ?? '',
+      est: at('est') ?? '',
+      act: at('actual') ?? '',
+      where,
+    });
+  }
+  return rows;
+};
+
+const allRows = parseTaskRows(claude, 'CLAUDE.md');
 
 /**
- * `SB-44`, closed at `PH-1.9`. Phase 1's progress figure was maintained by hand and computed by
- * nothing — which is precisely what `BR-1832` says drifts, and it had never been computed at all.
- *
- * It is also what the `REMOVE-AT` check below needs: to decide whether an exception has outlived
- * its reason, something has to know whether the named task is finished.
+ * A task id appearing as the first cell of two different tables means two tables are asserting
+ * something about the same task, and nothing says they agree. Ambiguity throws rather than
+ * picking one — the same reasoning as `statusOf`'s two-glyph case (`BR-1848`).
  */
-const phase1Rows = [
-  ...claude.matchAll(
-    /^\|\s*`(PH-1\.\d+)`\s*\|[^|]*\|[^|]*\|\s*([AB])\s*\|\s*([\d.]+)\s*\|\s*([^|]*?)\s*\|/gm,
-  ),
-].map((m) => ({ id: m[1], status: m[4] }));
+{
+  const seen = new Map();
+  for (const r of allRows) {
+    if (seen.has(r.id)) fail(r.where, `task ${r.id} appears in more than one task table`);
+    else seen.set(r.id, r);
+  }
+}
+
+/** id → status glyph, across every phase. The single notion of "what state is this task in". */
+const stateOf = new Map(allRows.map((r) => [r.id, statusOf(r.status, `CLAUDE.md ${r.id}`)]));
+const isDone = (id) => stateOf.get(id) === '✅';
+
+const byPhase = (n) => allRows.filter((r) => r.phase === n);
+const taskRows = byPhase(0).map((r) => ({ ...r, est: Number(r.est) }));
+const phase1Rows = byPhase(1);
+
+// ── 1. CLAUDE.md §5 — the progress line against its own table ──────────────────────────────
 
 if (taskRows.length === 0) {
   fail('CLAUDE.md §5', 'no task rows parsed — the table shape changed and this check went blind');
@@ -133,20 +201,37 @@ if (phase1Rows.length === 0) {
   }
 }
 
-// ── 1c. REMOVE-AT markers whose task has completed ─────────────────────────────────────────
+// ── 1c. REMOVE-AT markers whose expiry can no longer arrive ────────────────────────────────
 //
 // An exception that outlives its reason is how a warning list stops meaning anything, and this
 // repository has already produced one — `12 §19` row 15, orphaned against a closed task. A
 // `REMOVE-AT-PH-x.y` marker records WHY a suppression exists and WHEN it stops being justified;
 // without a check, the marker is a comment nobody re-reads.
 //
-// Reuses the completion map above rather than introducing a second notion of "done".
+// ## The general form, recorded because it cost a real defect (founder, 2026-07-31)
+//
+// **A marker whose expiry condition depends on a task's STATE can become permanently unreachable
+// when that state changes for an unrelated reason.** The marker does not move, nothing edits it,
+// nothing warns — it simply stops being able to fire, and continues to read as governed.
+//
+// The instance: `.dependency-cruiser.mjs` suppressed the orphan rule for `packages/abilities` and
+// named `PH-1.10` as its expiry. A scope decision then made `PH-1.10` close 🟡 **permanently**, so
+// it can never be ✅, so this check — which fired only on ✅ — could never speak about that
+// suppression again. The decision was about task ownership and had nothing to do with dependency
+// rules; the damage landed two files away, in the relationship between a status glyph and a
+// comment, which is a place no single-file review looks.
+//
+// Hence: **🟡 fails too.** Amber is a state that may never resolve — this repository has three
+// tasks deliberately parked in it (`PH-0.9`, `PH-1.5`, `PH-1.10`) — so a marker naming an amber
+// task is already dead and must be re-pointed at a task that can actually complete. An UNKNOWN
+// task fails for the same reason: an expiry naming a task that exists nowhere can never arrive.
+//
+// NOT applied to the `12 §19` deferral owners in section 3 below, deliberately. A deferred
+// enforcement row names the task that will ACTIVATE it, and naming an in-progress task there is
+// legitimate — row 20 names `PH-1.10` on purpose, pending a judgement at `PH-1.12`'s close about
+// whether fitness cases 46/47 already satisfy it. The two look alike and are not: a REMOVE-AT
+// marker says "delete me when X finishes", a deferral says "X is who owes this".
 {
-  const complete = new Set(
-    [...taskRows, ...phase1Rows]
-      .filter((r) => statusOf(r.status, `CLAUDE.md ${r.id}`) === '✅')
-      .map((r) => r.id),
-  );
   const scanned = ['.dependency-cruiser.mjs', 'turbo.json', 'scripts/verify-fitness.sh'];
   for (const file of scanned) {
     let text;
@@ -157,12 +242,29 @@ if (phase1Rows.length === 0) {
     }
     for (const m of text.matchAll(/REMOVE[- ]?(?:THIS LINE )?AT[- ]+(PH-\d+\.\d+)/gi)) {
       const task = m[1];
-      if (task !== undefined && complete.has(task)) {
+      if (task === undefined) continue;
+      const state = stateOf.get(task);
+
+      if (state === undefined) {
+        fail(
+          file,
+          `carries a REMOVE-AT marker for ${task}, which appears in NO task table. An expiry ` +
+            'naming a task that does not exist can never arrive — the suppression is permanent ' +
+            'and reads as temporary.',
+        );
+      } else if (state === '✅') {
         fail(
           file,
           `carries a REMOVE-AT marker for ${task}, which is DONE. The exception has outlived ` +
             'its reason — remove the suppression, or move the marker to the task that now ' +
             'justifies it.',
+        );
+      } else if (state === '🟡') {
+        fail(
+          file,
+          `carries a REMOVE-AT marker for ${task}, which is 🟡 — a state that may never resolve. ` +
+            'An expiry condition that cannot arrive is a permanent suppression wearing a ' +
+            'temporary label. Re-point it at a task that can complete.',
         );
       }
     }
@@ -205,9 +307,11 @@ if (ledgerStart === -1) {
   }
 
   // ── 3. BR-1833 + BR-1840 — every deferral names a task that has NOT started ──────────────
-  const phase0Done = new Set(
-    taskRows.filter((r) => statusOf(r.status, `CLAUDE.md ${r.id}`) === '✅').map((r) => r.id),
-  );
+  //
+  // `isDone` covers EVERY phase. It was `phase0Done` until 2026-07-31 and built from the `PH-0.x`
+  // rows alone, so a deferral owned by a completed PHASE 1 task passed silently — which row 19
+  // was, naming `PH-1.8` (done, and never the task that would have discharged it). The check
+  // written to catch row 15's orphaned owner had row 15's defect.
   const breakdown = read('docs/16-task-breakdown.md');
 
   for (const row of rows.filter((r) => statusOf(r.status, `12 §19 row ${String(r.n)}`) !== '✅')) {
@@ -223,7 +327,7 @@ if (ledgerStart === -1) {
       continue;
     }
     const id = owner[1];
-    if (phase0Done.has(id)) {
+    if (isDone(id)) {
       fail(
         'STATUS.md `12 §19`',
         `row ${row.n} (${row.name}) is owned by ${id}, which is DONE — ` +

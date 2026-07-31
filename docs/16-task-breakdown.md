@@ -232,6 +232,7 @@ Two things this split assumes, stated so they can be checked rather than discove
 | `PH-1.11` | Capability interceptor computing `_can` + `_reason` on every response | `1.9` | 1 | Reason codes from the fixed enum | `BR-1107` |
 | `PH-1.12` | Generated permission tests: every endpoint × every role — **plus the two mechanisms `PH-1.10` could not build without a route table: `PermissionGuard` registered globally, and `BR-1631`'s startup check** | `1.10` | 1.5 | Matrix green · an endpoint with no permission declaration fails startup · a real request is authorized by the guard | `DEC-28`, `BR-1631` |
 | `PH-1.13` | Admin: role list, permission matrix editor, per-user overrides | `1.11`, `0.26` | 1.5 | Full replacement semantics | `BR-1125` |
+| `PH-1.33` | `packages/contracts` generated in CI from the NestJS OpenAPI surface; hand-edits fail the build | `1.12` | 1.5 | API and clients derive types from one generated source · a hand-edit fails CI · an endpoint absent from the contract fails the build | `BR-931`, `BR-1584`, `BR-1447`, `DEC-30` |
 
 ## Week 3 — Entitlements & Products
 

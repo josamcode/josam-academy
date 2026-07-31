@@ -222,6 +222,34 @@ empty `try/catch` · blanket optional chaining · `@ts-ignore`.
 
 > **If you reach for one of these, the design is wrong — stop and report.**
 
+### An expiry that depends on a task's state can become unreachable (founder, 2026-07-31)
+
+**A marker whose expiry condition depends on a task's STATE — `REMOVE-AT-PH-x.y`, a deferral, a
+"revisit at" — can become permanently unreachable when that task's state changes for a reason that
+has nothing to do with the marker.** Nothing edits it. Nothing warns. It simply stops being able to
+fire, and goes on reading as governed.
+
+**Any `REMOVE-AT` marker naming a 🟡 task is already dead.** Amber here does not mean "in progress,
+resolving shortly" — this project deliberately parks tasks there, some permanently (`PH-0.9`,
+`PH-1.10`). A marker naming a task that will never be ✅ is a permanent suppression wearing a
+temporary label. So is one naming a task that exists in no table at all.
+
+Enforced in `scripts/check-ledgers.mjs` — ✅, 🟡 and unknown all fail — and proven by fitness cases
+48 and 49. **Not applied to `12 §19` deferral owners**, deliberately: a deferral names who will
+_activate_ a check, and naming an in-progress task there is legitimate. The two look alike and are
+not. A `REMOVE-AT` says "delete me when X finishes"; a deferral says "X owes this".
+
+**How it was found is the transferable part.** A probe flipping a status glyph to test something
+else printed a second failure nobody asked for. Neither the decision that caused it nor a careful
+read of the affected config would have surfaced it, because the defect lived in the **relationship
+between two files** — a glyph in `CLAUDE.md` and a comment in `.dependency-cruiser.mjs` — and only
+the checker holds both. When a decision changes a task's state, ask what else was keyed to it.
+
+> Not yet allocated a `BR` number. Its canonical home is `12 §19.1` alongside `BR-1849`–`BR-1851`,
+> which is a frozen document — one word from the founder and it becomes `BR-1852` there plus a
+> `BR-REGISTRY §4` update (`BR-1821`). Recorded here in the meantime so it binds now rather than
+> waiting on the paperwork.
+
 ---
 
 ## 5. Phase 0 Task Queue — live status
@@ -482,8 +510,9 @@ and the second instance in this file.
 | `PH-1.30` | Refund request workflow: request → recommend → approve                                                            | `1.20`, `1.13` |  A   |   1 |   ⬜   |      — | Entitlement revoked, progress preserved                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `PH-1.31` | Account area: profile, sessions, identities, devices, billing                                                     | `1.4`, `0.26`  |  A   |   1 |   ⬜   |      — | Sections absent when empty                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `PH-1.32` | Manual entitlement grant + bulk grant with required reason                                                        | `1.15`, `1.13` |  A   | 0.5 |   ⬜   |      — | Audit-logged                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `PH-1.33` | `packages/contracts` generated in CI from the OpenAPI surface; hand-edits fail the build                          | `1.12`         |  A   | 1.5 |   ⬜   |      — | **Added 2026-07-31, founder-authorised.** `packages/contracts` had NO owning task while `12 §19` row 19, `BR-931` and `BR-1584` all assumed it existed. Owns row 19.                                                                                                                                                                                                                                                                                                                                                                                                |
 
-**Progress (Phase 1): 7 / 32 · 21.9%** — CI-verified. `PH-1.5` and `PH-1.6` are 🟡: built to the credential boundary, not exercised.
+**Progress (Phase 1): 7 / 33 · 21.2%** — CI-verified. `PH-1.5` and `PH-1.6` are 🟡: built to the credential boundary, not exercised. `PH-1.10` is 🟡 permanently.
 
 > **`PH-1.10`'s two gaps close under `PH-1.12`, not under `PH-1.10`** (founder decision, 2026-07-31).
 >

@@ -88,6 +88,7 @@ unset GITHUB_ACTIONS
 
 # TRACKED files the suite mutates in place. Restored from HEAD.
 TRACKED_TARGETS=(
+  .dependency-cruiser.mjs
   .size-limit.mjs
   CLAUDE.md
   STATUS.md
@@ -906,6 +907,62 @@ check "unclassified model" "pnpm typecheck" "scopeProbe' is missing"
 git checkout -- apps/api/prisma/schema.prisma
 pnpm --filter @josam/api exec prisma generate >/dev/null 2>&1
 
+# ── 48. A `12 §19` deferral owned by a DONE task in ANY phase fails ─────────────────────
+#
+# This case holds the WIDENING, not the rule. `BR-1840` was already enforced — but the completion
+# set was built from the `PH-0.x` rows alone, so a deferral owned by a completed PHASE 1 task
+# passed silently. Row 19 was exactly that, orphaned on `PH-1.8` and invisible to the mechanism
+# written to catch `12 §19` row 15's identical defect one phase earlier.
+#
+# A per-phase list is correct until a phase starts and quietly wrong afterwards; it would have
+# reproduced at Phase 2 for the identical reason. So the violation names `PH-1.8` — DONE, and in
+# PHASE 1. Against the old Phase-0-only owner set this case reports NOT CAUGHT, which is the whole
+# point of it. (The REMOVE-AT check above was never the phase-limited one; case 49 covers that.)
+#
+# BR-1849 AUDIT: the pattern is "an owner that has already closed cannot act", emitted only by
+# check-ledgers' BR-1840 branch. The command is `pnpm check:ledgers`, which echoes a script path
+# and no task ids; the pattern appears in no argument, path, or task name, and is distinct from
+# case 49's — neither case can pass on the other's failure.
+hr; echo "48. BR-1840 — a 12 §19 deferral owned by a DONE task fails, in EVERY phase"
+node -e "
+const fs=require('node:fs');const f='STATUS.md';
+const s=fs.readFileSync(f,'utf8').replace(/^(\|\s*19\s*\|.*?)PH-1\.33(.*)$/m,'\$1PH-1.8\$2');
+fs.writeFileSync(f,s);
+"
+check "deferral owned by a done Phase 1 task" "pnpm check:ledgers" "an owner that has already closed cannot act"
+git checkout -- STATUS.md
+
+# ── 49. A REMOVE-AT marker owned by a 🟡 task fails ──────────────────────────────────────
+#
+# The general form, and the more valuable of the two (founder, 2026-07-31): **a marker whose
+# expiry depends on a task's STATE can become permanently unreachable when that state changes for
+# an unrelated reason.** Nothing edits the marker; it simply stops being able to fire.
+#
+# The real instance: this exact suppression named `PH-1.10`, and a scope decision then parked
+# `PH-1.10` at 🟡 permanently. The expiry could never arrive again, and the suppression went on
+# reading as governed. It was found by a probe for something else — never by reading either file,
+# because the defect is in the RELATIONSHIP between a glyph in CLAUDE.md and a comment in a
+# config, and only the checker holds both.
+#
+# Amber is not "in progress, will resolve shortly". This repository deliberately parks tasks
+# there: PH-0.9, PH-1.5, PH-1.6 and PH-1.10 are all 🟡 by decision, some permanently.
+#
+# BR-1849 AUDIT: the pattern is "a state that may never resolve", emitted only by the amber
+# branch of check-ledgers. It is distinct from case 48's pattern, so neither case can pass on the
+# other's failure — two cases sharing an assertion is one case wearing two labels.
+# The marker string is BUILT, never spelled. check-ledgers scans this file for markers, so a
+# literal payload here registers as a real marker owned by this suite — and the amber rule caught
+# exactly that on its first run, failing on case 49's own injection text. Same family as case 40:
+# a corpus containing the value it forbids. Splitting the tag makes the payload inert to the
+# scanner while leaving what gets WRITTEN identical.
+hr; echo "49. A REMOVE-AT marker owned by a 🟡 task fails — an expiry that may never arrive"
+node -e "
+const fs=require('node:fs');const f='.dependency-cruiser.mjs';
+const tag='REMOVE THIS LINE AT ';
+fs.writeFileSync(f, fs.readFileSync(f,'utf8').replace(tag+'PH-1.11', tag+'PH-1.10'));
+"
+check "marker owned by an amber task" "pnpm check:ledgers" "a state that may never resolve"
+git checkout -- .dependency-cruiser.mjs
 
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
