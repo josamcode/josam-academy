@@ -66,6 +66,19 @@ const taskRows = [
   ),
 ].map((m) => ({ id: m[1], type: m[2], est: Number(m[3]), status: m[4], act: m[5] }));
 
+/**
+ * `SB-44`, closed at `PH-1.9`. Phase 1's progress figure was maintained by hand and computed by
+ * nothing — which is precisely what `BR-1832` says drifts, and it had never been computed at all.
+ *
+ * It is also what the `REMOVE-AT` check below needs: to decide whether an exception has outlived
+ * its reason, something has to know whether the named task is finished.
+ */
+const phase1Rows = [
+  ...claude.matchAll(
+    /^\|\s*`(PH-1\.\d+)`\s*\|[^|]*\|[^|]*\|\s*([AB])\s*\|\s*([\d.]+)\s*\|\s*([^|]*?)\s*\|/gm,
+  ),
+].map((m) => ({ id: m[1], status: m[4] }));
+
 if (taskRows.length === 0) {
   fail('CLAUDE.md §5', 'no task rows parsed — the table shape changed and this check went blind');
 } else {
@@ -99,6 +112,60 @@ if (taskRows.length === 0) {
         'CLAUDE.md §5',
         `actual total says ${totals[2]}, Actual column sums to ${actSum.toFixed(2)}`,
       );
+  }
+}
+
+// ── 1b. CLAUDE.md §5b — the Phase 1 progress line against its own table ────────────────────
+if (phase1Rows.length === 0) {
+  fail(
+    'CLAUDE.md §5b',
+    'no Phase 1 task rows parsed — the table shape changed and this went blind',
+  );
+} else {
+  const p1Done = phase1Rows.filter((r) => statusOf(r.status, `CLAUDE.md ${r.id}`) === '✅').length;
+  const p1 = claude.match(/\*\*Progress \(Phase 1\):\s*(\d+)\s*\/\s*(\d+)/);
+  if (!p1) fail('CLAUDE.md §5b', 'no "Progress (Phase 1): N / M" line found');
+  else {
+    if (Number(p1[2]) !== phase1Rows.length)
+      fail('CLAUDE.md §5b', `denominator is ${p1[2]}, table has ${phase1Rows.length} tasks`);
+    if (Number(p1[1]) !== p1Done)
+      fail('CLAUDE.md §5b', `numerator is ${p1[1]}, table has ${p1Done} rows marked done`);
+  }
+}
+
+// ── 1c. REMOVE-AT markers whose task has completed ─────────────────────────────────────────
+//
+// An exception that outlives its reason is how a warning list stops meaning anything, and this
+// repository has already produced one — `12 §19` row 15, orphaned against a closed task. A
+// `REMOVE-AT-PH-x.y` marker records WHY a suppression exists and WHEN it stops being justified;
+// without a check, the marker is a comment nobody re-reads.
+//
+// Reuses the completion map above rather than introducing a second notion of "done".
+{
+  const complete = new Set(
+    [...taskRows, ...phase1Rows]
+      .filter((r) => statusOf(r.status, `CLAUDE.md ${r.id}`) === '✅')
+      .map((r) => r.id),
+  );
+  const scanned = ['.dependency-cruiser.mjs', 'turbo.json', 'scripts/verify-fitness.sh'];
+  for (const file of scanned) {
+    let text;
+    try {
+      text = read(file);
+    } catch {
+      continue;
+    }
+    for (const m of text.matchAll(/REMOVE[- ]?(?:THIS LINE )?AT[- ]+(PH-\d+\.\d+)/gi)) {
+      const task = m[1];
+      if (task !== undefined && complete.has(task)) {
+        fail(
+          file,
+          `carries a REMOVE-AT marker for ${task}, which is DONE. The exception has outlived ` +
+            'its reason — remove the suppression, or move the marker to the task that now ' +
+            'justifies it.',
+        );
+      }
+    }
   }
 }
 
@@ -183,5 +250,6 @@ if (failures.length > 0) {
 }
 
 console.log(
-  'check-ledgers: OK — summary figures recomputed, every deferral owned by an unstarted task',
+  'check-ledgers: OK — summary figures recomputed from their tables, every deferral owned by ' +
+    'an unstarted task, no REMOVE-AT marker outliving its reason',
 );
