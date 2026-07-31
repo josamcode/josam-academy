@@ -48,9 +48,18 @@ export default {
           // packages/ui has no consumer until PH-0.17 builds the primitives. Naming it here keeps
           // the warning meaningful in the meantime, rather than training the reader to skip it.
           'packages/ui/src/index\\.ts$',
-          // Same situation at PH-1.9: `packages/abilities` has no consumer until PH-1.10's guard
-          // and PH-1.11's capability interceptor import it. REMOVE THIS LINE AT PH-1.10 — an
-          // exception that outlives its reason is how a warning list stops meaning anything.
+          // Same situation at PH-1.9: `packages/abilities` has no consumer until something
+          // imports it. REMOVE THIS LINE AT PH-1.11 — an exception that outlives its reason is
+          // how a warning list stops meaning anything.
+          //
+          // Re-pointed from PH-1.10 on 2026-07-31, and the reason is the marker's whole point.
+          // PH-1.10's remaining scope moved to PH-1.12 and PH-1.10 now closes 🟡 PERMANENTLY, so
+          // it can never reach ✅ — and check-ledgers fires this marker only when its named task
+          // is DONE. Left on PH-1.10 the expiry could never occur: a suppression with an
+          // unreachable expiry condition, which reads as governed and is not. Found by probing
+          // check-ledgers rather than by reading this file. PH-1.11's capability interceptor is
+          // the next task that genuinely imports abilities; verified 2026-07-31 that nothing
+          // imports `@josam/abilities` today, so the exemption is still earning its place.
           'packages/abilities/src/index\\.ts$',
         ],
       },
