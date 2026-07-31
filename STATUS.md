@@ -399,6 +399,46 @@ output would undermine it.
 
 ---
 
+### 2026-07-31 · `PH-1.10` — decided in advance, not discovered
+
+**Founder direction, recorded before the task starts so it survives the session boundary.**
+`PH-1.10`'s output is _"a forgotten `where` cannot leak"_, and the failure mode is **silent
+cross-tenant disclosure** — the one place in Phase 1 where a tired mistake is unrecoverable.
+
+### The analysis that prompted this
+
+A forgotten scope is **well-typed TypeScript**. Nothing in the type system separates
+`findMany({ where: { courseId } })` from `findMany({ where: { courseId, ownerId } })`. So the
+build-time guarantee is not free, and pretending otherwise is the trap.
+
+### The order is fixed, and the reason matters more than the order
+
+1. **Branded type FIRST. Not the lint rule.**
+   A lint rule catches the shapes it knows and misses the rest — **which is `BR-1849` by
+   construction**: a permissive mechanism reporting full coverage. It would report green on the
+   query that leaks. That is the worst available outcome here, because it produces confidence
+   rather than merely absence.
+2. **If the branded type constrains how every repository method is written, that is a real cost —
+   state it, and the founder decides.** The cost is probably worth paying, because the alternative
+   is a runtime guarantee on a silent-disclosure failure mode.
+3. **If neither lands honestly, say "runtime only" IN THOSE WORDS**, and record what that means
+   concretely: **the leak happens, is served, and is detected only if something else notices.**
+
+> **`PH-1.10` must not become "we added a lint rule and called it build-time."** That is the exact
+> failure this project keeps producing — describing a mechanism by the layer it runs at rather than
+> the guarantee it delivers — and this is the worst possible place for it.
+
+### Requirement 2 — two silent denials, designed in from the start
+
+`PH-1.8`'s registry already resolves **deny** for an unknown permission. A missing guard annotation
+would produce **the same denial from a different cause**, so an administrator debugging one would
+be looking in the wrong place entirely.
+
+They need **distinct log lines and distinct reason codes** — designed in at the start, not bolted
+on once the ambiguity has been shipped.
+
+---
+
 ### 2026-07-31 · REMOVE-AT markers are enforced; `SB-44` closed
 
 **Founder instruction: make the exception's expiry enforceable rather than remembered.** Done, and
