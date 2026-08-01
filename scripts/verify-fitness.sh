@@ -964,6 +964,40 @@ fs.writeFileSync(f, fs.readFileSync(f,'utf8').replace(tag+'PH-1.11', tag+'PH-1.1
 check "marker owned by an amber task" "pnpm check:ledgers" "a state that may never resolve"
 git checkout -- .dependency-cruiser.mjs
 
+# ── 50. A stated task count drifting from the enumeration fails ─────────────────────────
+#
+# `docs/16` claimed 191 tasks in three places and enumerated 190 at its own FIRST COMMIT — wrong
+# before a task was executed, and never recomputed since. PH-0.29, PH-0.30 and PH-1.33 each moved
+# the enumeration; none moved the stated figure. Worse, at `8e07222` PH-0.29 brought the count up
+# to meet the claim, so for one commit the number was correct BY COINCIDENCE. A figure that is
+# right by accident is more dangerous than one that is plainly wrong: checking it once confirms it.
+#
+# BR-1849 AUDIT: the pattern is "the file enumerates", emitted only by check-ledgers' census
+# branch. `pnpm check:ledgers` echoes a script path and no counts.
+hr; echo "50. A stated task count that disagrees with the enumerated rows fails"
+node -e "
+const fs=require('node:fs');const f='docs/16-task-breakdown.md';
+fs.writeFileSync(f, fs.readFileSync(f,'utf8').replace('30 flows · 193 tasks.','30 flows · 191 tasks.'));
+"
+check "stated total drifted from the rows" "pnpm check:ledgers" "the file enumerates"
+git checkout -- docs/16-task-breakdown.md
+
+# ── 51. STATUS §1 disagreeing with the machine-checked numerator fails ──────────────────
+#
+# This is the drift that actually happened, in both directions at once: §1 read 28 done against
+# §5's machine-checked 29, and 0 against §5b's 7. Two ledgers describing the same fact with
+# nothing comparing them — so the wrong one stayed wrong through a whole phase.
+#
+# BR-1849 AUDIT: the pattern is "CLAUDE.md §5b has", emitted only by the cross-ledger branch, and
+# distinct from case 50's — neither case can pass on the other's failure.
+hr; echo "51. STATUS §1's Done column disagreeing with CLAUDE.md's numerator fails"
+node -e "
+const fs=require('node:fs');const f='STATUS.md';
+fs.writeFileSync(f, fs.readFileSync(f,'utf8').replace('| 1 — Identity & Commerce |      33 |      7 |','| 1 — Identity & Commerce |      33 |      6 |'));
+"
+check "STATUS section 1 drifted from CLAUDE.md" "pnpm check:ledgers" "CLAUDE.md §5b has"
+git checkout -- STATUS.md
+
 hr
 echo "BR-1725 SUMMARY: ${pass} caught, ${fail} NOT caught"
 [ "$fail" -eq 0 ] || exit 1

@@ -1530,6 +1530,40 @@ Rules enforced by machines do not depend on discipline (`BR-900`).
      when the answer is "no figure changed" — that answer is only worth having because it was
      computed rather than assumed.
 
+- `BR-1852` — **A corpus that contains the value it forbids will flag itself. Any check that scans
+  files for a marker must BUILD the marker, never spell it.**
+
+  A scanner and its own source are not separate things when the source is in scope. Writing the
+  forbidden literal into the scanner, into a test that injects it, or into a document the scanner
+  reads makes that file a genuine instance of the thing being looked for — and the check is right
+  to flag it. The failure is real, not a false positive, which is what makes it confusing: the rule
+  works perfectly and the result is still wrong.
+
+  **Worked example — case 49, 2026-07-31.** The amber-owner rule was added to `check-ledgers`,
+  which scans `scripts/verify-fitness.sh` for `REMOVE-AT` markers. Case 49's injection payload
+  spelled the marker as a literal, so the suite's own source registered as carrying an amber-owned
+  marker, and the rule failed the repository on its first run. Fixed by splitting the tag —
+  `const tag = 'REMOVE THIS LINE AT '; … tag + 'PH-1.10'` — which leaves what gets WRITTEN
+  identical and makes the payload inert to the scanner.
+
+  Same family as `BR-1849`'s case 40, from the other side. Case 40 asserted on a string its own
+  command echoed, so it passed while observing nothing; this passes the string to a scanner that
+  correctly observes it. **One is a check reading its own input as evidence; the other is a check
+  reading its own input as a violation.** Both come from the corpus and the instrument sharing a
+  file, and both are found by asking: *if this check ran over its own source, what would it see?*
+
+  The existing counterpart for prose is the bounded `domain-check: off` / `on` HTML-comment region,
+  which is the right tool when the value genuinely must appear verbatim — a document RECORDING a
+  corrupted domain has to quote it. Prefer building the value; suppress only when the literal is the
+  point, and always as a bounded, greppable region carrying its reason.
+
+  **This rule was violated by the paragraph above, in the commit that introduced it.** The sentence
+  originally wrote that region's opening comment out in full, delimiters included, so the domain
+  check read `12` as opening a suppression that is never closed and failed the build — correctly.
+  The marker is now named without its `<!--` delimiters: identical to a reader, inert to the
+  scanner. **A rule whose own explanation trips it is the rule stated at exactly the right level**,
+  and it took under a minute to find because the mechanism was already watching.
+
 - `BR-1850` — **The verification suite is the top of the stack and has nothing above it. Its
   defects are invisible by construction, so it is audited on a SCHEDULE, not on suspicion.**
 

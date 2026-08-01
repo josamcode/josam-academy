@@ -11,7 +11,7 @@
 | **Owner** | Founder (Super Admin) |
 | **Depends On** | All prior documents |
 | **Feeds Into** | Execution |
-| **Contains** | `PH-0.1` – `PH-7.14` · 191 tasks · `BR-1761` – `BR-1790` |
+| **Contains** | `PH-0.1` – `PH-7.14` · 193 tasks · `BR-1761` – `BR-1790` |
 
 ---
 
@@ -41,7 +41,7 @@ Refs        the documents that specify it
 
 ---
 
-# Phase 0 — Foundation · 28 tasks · 3 weeks
+# Phase 0 — Foundation · 30 tasks · 3 weeks
 
 ## Week 1 — Infrastructure
 
@@ -180,7 +180,7 @@ Two things this split assumes, stated so they can be checked rather than discove
 
 ---
 
-# Phase 1 — Identity & Commerce · 32 tasks · 5 weeks
+# Phase 1 — Identity & Commerce · 33 tasks · 5 weeks
 
 ## Week 1 — Identity
 
@@ -563,7 +563,7 @@ Day 6   PH-0.11  Deploy + rollback verification
 | 15 | Implementation Roadmap | 8 phases · milestones · risk register |
 | 16 | Task Breakdown | 191 executable tasks |
 
-**Totals:** 220 features · 1,790 business rules · 60 decisions · 174 permissions · 85 tables · 248 endpoints · 134 components · 72 screens · 30 flows · 191 tasks.
+**Totals:** 220 features · 1,790 business rules · 60 decisions · 174 permissions · 85 tables · 248 endpoints · 134 components · 72 screens · 30 flows · 193 tasks.
 
 - `BR-1777` — These documents are the specification of record. Where code and documents disagree, one of them is wrong and it is resolved, not tolerated (`BR-1765`).
 - `BR-1778` — Every document is versioned. Material changes bump the version and note what changed.
@@ -594,7 +594,7 @@ Day 6   PH-0.11  Deploy + rollback verification
 | Item | Status |
 |---|---|
 | Task granularity (half a day to two days) is right | ☐ Approved |
-| 191 tasks cover all 220 features and 134 components | ☐ Approved |
+| 193 tasks cover all 220 features and 134 components | ☐ Approved |
 | Dependency ordering is correct | ☐ Approved |
 | VPS hardening as task one (`BR-1771`) is accepted | ☐ Approved |
 | Estimates are realistic for solo + AI execution | ☐ Approved |

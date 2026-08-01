@@ -445,6 +445,161 @@ if (ledgerStart === -1) {
   }
 }
 
+// ── 5. The task census — every stated count against the enumerated rows ────────────────────
+//
+// Founder-authorised, 2026-08-01, after the census. `docs/16` stated **191 tasks** in three
+// places and enumerated **190** at its own first commit: wrong before a single task was executed,
+// never recomputed, and briefly correct BY COINCIDENCE at `8e07222` when `PH-0.29` brought the
+// enumeration up to meet it. A number that is right by accident is worse than one that is plainly
+// wrong, because checking it once confirms it.
+//
+// Both remedial Phase 0 tasks and `PH-1.33` moved the enumeration and none of them moved the
+// stated figure — three chances to notice, taken by nobody, because nothing recomputed it.
+//
+// Counts are enumerated from `docs/16` — the specification is the census, not `CLAUDE.md`, which
+// carries only the two phases in flight. Every stated figure is then compared against it:
+//   · each `# Phase N — ... · M tasks` heading, against that phase's rows
+//   · every OTHER "N tasks" mention (the `Contains` row, the `Totals:` line, the approval row),
+//     against the grand total
+//   · `STATUS.md §1`'s progress table, per phase and in total
+//   · `STATUS.md §1`'s Done column against the two MACHINE-CHECKED numerators above, which is
+//     the drift that actually happened: it read 28 against §5's 29 and 0 against §5b's 7.
+{
+  const breakdown = read('docs/16-task-breakdown.md');
+
+  /**
+   * The census scans for IDS ONLY, deliberately NOT reusing `parseTaskRows`.
+   *
+   * `parseTaskRows` requires a header row so it can resolve `Status`/`Est` by name — correct for
+   * `CLAUDE.md`, where those columns are the point. Here the columns are irrelevant and the header
+   * requirement is a liability: `PH-0.30` sits in a HEADERLESS one-row table embedded in prose
+   * (`docs/16` line ~101), so the strict parser silently dropped it and this check's first run
+   * enumerated 192 against a true 193. Reusing a parser built for a different job is how a check
+   * acquires a blind spot it did not intend and cannot see.
+   *
+   * It was caught only because the count was already known independently. Two measurements that
+   * disagree is the cheapest defect-finder there is; one measurement is a number nobody can check.
+   *
+   * The exact-match anchor is load-bearing: `docs/16` has a discussion table whose first cells read
+   * `` `PH-0.8` Cloudflare Tunnel ``. Those are not task rows and must not be counted — they are
+   * four of the five rows that produced the phantom "196".
+   */
+  const censusRows = [];
+  for (const line of breakdown.split('\n')) {
+    if (!line.startsWith('|')) continue;
+    const first = line.split('|').slice(1, -1)[0]?.trim() ?? '';
+    const m = /^`(PH-(\d+)\.\d+)`$/.exec(first);
+    if (m) censusRows.push({ id: m[1], phase: Number(m[2]) });
+  }
+
+  // A duplicated id is either a task counted twice in every estimate, or a real task hidden
+  // behind a reused id. Both change what the remaining work is, so neither may pass quietly.
+  {
+    const seen = new Set();
+    for (const r of censusRows) {
+      if (seen.has(r.id))
+        fail(
+          'docs/16',
+          `task ${r.id} is listed more than once — a task counted twice, or one hidden behind a reused id`,
+        );
+      seen.add(r.id);
+    }
+  }
+
+  const census = new Map();
+  for (const r of censusRows) census.set(r.phase, (census.get(r.phase) ?? 0) + 1);
+  const grandTotal = censusRows.length;
+
+  if (grandTotal === 0) {
+    fail('docs/16', 'no task rows enumerated — the census went blind and asserts nothing');
+  } else {
+    // Per-phase headings.
+    const headings = [...breakdown.matchAll(/^# Phase (\d+)\b[^\n·]*·\s*(\d+)\s*tasks/gm)];
+    if (headings.length === 0)
+      fail('docs/16', 'no `# Phase N — ... · M tasks` headings found — this check went blind');
+    for (const h of headings) {
+      const phase = Number(h[1]);
+      const stated = Number(h[2]);
+      const actual = census.get(phase) ?? 0;
+      if (stated !== actual)
+        fail(
+          'docs/16',
+          `Phase ${phase} heading says ${stated} tasks, the file enumerates ${actual}`,
+        );
+    }
+
+    // Every remaining "N tasks" mention refers to the whole document.
+    const headingLines = new Set(
+      headings.map((h) => breakdown.slice(0, h.index).split('\n').length),
+    );
+    let totalMentions = 0;
+    for (const m of breakdown.matchAll(/\b(\d+)\s*tasks\b/g)) {
+      const line = breakdown.slice(0, m.index).split('\n').length;
+      if (headingLines.has(line)) continue;
+      totalMentions += 1;
+      if (Number(m[1]) !== grandTotal)
+        fail(`docs/16:${String(line)}`, `states ${m[1]} tasks, the file enumerates ${grandTotal}`);
+    }
+    if (totalMentions === 0)
+      fail('docs/16', 'no document-wide "N tasks" figure found — this check went blind');
+
+    // STATUS.md §1's progress table.
+    const PHASE_ROW = /^\|\s*\*{0,2}(\d)\s*—[^|]*\|\s*(\d+)\s*\|\s*(\d+)\s*\|/gm;
+    const s1 = status.slice(status.indexOf('## 1. Progress'), status.indexOf('## 2.'));
+    const s1Rows = [...s1.matchAll(PHASE_ROW)].map((m) => ({
+      phase: Number(m[1]),
+      tasks: Number(m[2]),
+      done: Number(m[3]),
+    }));
+
+    if (s1Rows.length === 0) {
+      fail('STATUS.md §1', 'no phase rows parsed from the progress table — this check went blind');
+    } else {
+      for (const r of s1Rows) {
+        const actual = census.get(r.phase);
+        if (actual !== undefined && r.tasks !== actual)
+          fail(
+            'STATUS.md §1',
+            `Phase ${r.phase} says ${r.tasks} tasks, docs/16 enumerates ${actual}`,
+          );
+        if (r.done > r.tasks)
+          fail(
+            'STATUS.md §1',
+            `Phase ${r.phase} shows ${r.done} done of ${r.tasks} — done exceeds total`,
+          );
+      }
+
+      // The two phases in flight are machine-checked in §5/§5b; §1 must agree with them.
+      const doneIn = (n) =>
+        byPhase(n).filter((r) => statusOf(r.status, `CLAUDE.md ${r.id}`) === '✅').length;
+      for (const n of [0, 1]) {
+        const row = s1Rows.find((r) => r.phase === n);
+        if (row && row.done !== doneIn(n))
+          fail(
+            'STATUS.md §1',
+            `Phase ${n} shows ${row.done} done, CLAUDE.md §5${n === 1 ? 'b' : ''} has ${doneIn(n)}`,
+          );
+      }
+
+      const totalRow =
+        /^\|\s*\*{0,2}Total\*{0,2}\s*\|\s*\*{0,2}(\d+)\*{0,2}\s*\|\s*\*{0,2}(\d+)\*{0,2}\s*\|/m.exec(
+          s1,
+        );
+      if (!totalRow) fail('STATUS.md §1', 'no Total row parsed — this check went blind');
+      else {
+        const rowSum = s1Rows.reduce((a, r) => a + r.tasks, 0);
+        const doneSum = s1Rows.reduce((a, r) => a + r.done, 0);
+        if (Number(totalRow[1]) !== rowSum)
+          fail('STATUS.md §1', `Total says ${totalRow[1]} tasks, its own rows sum to ${rowSum}`);
+        if (Number(totalRow[1]) !== grandTotal)
+          fail('STATUS.md §1', `Total says ${totalRow[1]} tasks, docs/16 enumerates ${grandTotal}`);
+        if (Number(totalRow[2]) !== doneSum)
+          fail('STATUS.md §1', `Total says ${totalRow[2]} done, its own rows sum to ${doneSum}`);
+      }
+    }
+  }
+}
+
 // ── Report ─────────────────────────────────────────────────────────────────────────────────
 if (failures.length > 0) {
   console.error('check-ledgers: FAILED\n');

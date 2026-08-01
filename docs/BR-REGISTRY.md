@@ -61,7 +61,7 @@ document that defines rules in a table not listed here will be undercounted unti
 | `10-database-design-part-2` | — | `BR-1025` – `BR-1104` | 80 | — |
 | `11-api-contract-part-1` | — | `BR-1105` – `BR-1152` | 48 | — |
 | `11-api-contract-part-2` | — | `BR-1153` – `BR-1210` | 58 | — |
-| `12-ui-ux-design` | `BR-1211` – `BR-1594` | `BR-1211` – `BR-1576` (complete, 14 of them in the `§17.2` table) · `BR-1812` – `BR-1813` · `BR-1830` – `BR-1839` (`§19.1`) | 375 | ⚠️ over-declared; `1577`–`1594` belong to `13` |
+| `12-ui-ux-design` | `BR-1211` – `BR-1594` | `BR-1211` – `BR-1576` (complete, 14 of them in the `§17.2` table) · `BR-1812` – `BR-1813` · `BR-1830` – `BR-1852` (`§19.1`, `BR-1843` skipped) | 375 | ⚠️ over-declared; `1577`–`1594` belong to `13`. ⚠️ **the 375 is not derived** — 376 rules are bullet-defined in the file as of 2026-08-01. Range corrected when `BR-1852` was allocated; the count is left as found because recomputing every row of this table is a recount the founder has not authorised, and one corrected cell beside eleven uncounted ones would read as verified. |
 | `13-tech-stack` | `BR-1577` – `BR-1604` · `BR-1805` – `BR-1811` · `BR-1814` – `BR-1819` · `BR-1826` – `BR-1829` | same | 45 | ✅ corrected 2026-07-28; `BR-1819` allocated 2026-07-29 (`PH-0.6`); `BR-1826`–`BR-1829` allocated 2026-07-29 (`§16.1` Renovate policy, `OQ-24`) |
 | `14-security-design` | `BR-1605` – `BR-1704` | `BR-1605` – `BR-1718` | 114 | ⚠️ under-declared by 14 — **the collision source** |
 | `15-implementation-roadmap` | `BR-1719` – `BR-1760` | `BR-1719` – `BR-1748` | 30 | ⚠️ over-declared; `1749`–`1760` unused |
@@ -83,7 +83,8 @@ The per-document counts above sum to the same figure.
 
 | Range | Status |
 |---|---|
-| **`BR-1852` onward** | ✅ **Next free block — use this.** `BR-1843` is skipped: `10-database-design` cites it as an off-by-1000 typo for `BR-843`, and allocating it would collide with a live (if erroneous) citation. |
+| **`BR-1853` onward** | ✅ **Next free block — use this.** `BR-1843` is skipped: `10-database-design` cites it as an off-by-1000 typo for `BR-843`, and allocating it would collide with a live (if erroneous) citation. |
+| `BR-1852` | ❌ taken by `12 §19.1` — a corpus containing the value it forbids flags itself; a marker-scanning check must BUILD the marker, never spell it. Allocated 2026-08-01 (case 49). |
 | `BR-1851` | ❌ taken by `12 §19.1` — a human-judged field is better empty than generated. Allocated 2026-07-31 (`PH-1.8`). |
 | `BR-1850` | ❌ taken by `12 §19.1` — the verification suite has nothing above it; audit it on a schedule, at every phase exit. Allocated 2026-07-31. |
 | `BR-1849` | ❌ taken by `12 §19.1` — a permissive pattern in a verifier fails in the direction that hides. Allocated 2026-07-30 (`PH-1.7` audit). |
