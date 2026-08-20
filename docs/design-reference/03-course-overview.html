@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+<style>
+body { margin: 0; background: #DED7C7; }
+a { color: #3F5B22; text-decoration: none; }
+a:hover { color: #2E4318; text-decoration: underline; }
+</style>
+</helmet>
+<div style="width: 1780px; box-sizing: border-box; background: #DED7C7; padding: 34px 40px 56px; display: flex; flex-direction: column; gap: 26px; font-family: 'Almarai', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif">
+
+  <div dir="{{ dirAttr }}" style="display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; border-bottom: 2px solid #23201B; padding-bottom: 14px">
+    <div style="display: flex; flex-direction: column; gap: 7px">
+      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.2em; color: #635A4D">JOSAM ACADEMY · COURSE OVERVIEW · STEP 2</div>
+      <div style="font-size: 25px; font-weight: 800; color: #23201B"><span style="display: {{ ad }}">المنهج كله في شاشة واحدة</span><span dir="ltr" style="display: {{ ed }}">The whole curriculum in one screen</span></div>
+    </div>
+    <div style="display: flex; align-items: flex-end; gap: 20px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 9px; letter-spacing: 0.16em; color: #635A4D">THEME</div>
+        <div style="display: flex; border: 1px solid #23201B">
+          <div onClick="{{ setLight }}" style="padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer; background: {{ liBg }}; color: {{ liFg }}"><span style="display: {{ ad }}">النهار</span><span dir="ltr" style="display: {{ ed }}">Light</span></div>
+          <div onClick="{{ setDark }}" style="padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ dkBg }}; color: {{ dkFg }}"><span style="display: {{ ad }}">الليل</span><span dir="ltr" style="display: {{ ed }}">Dark</span></div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 9px; letter-spacing: 0.16em; color: #635A4D">LANGUAGE</div>
+        <div style="display: flex; border: 1px solid #23201B">
+          <div onClick="{{ setAr }}" style="padding: 8px 15px; font-size: 12.5px; font-weight: 700; cursor: pointer; background: {{ arBg }}; color: {{ arFg }}">العربية</div>
+          <div onClick="{{ setEn }}" dir="ltr" style="padding: 8px 15px; font-size: 12.5px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ enBg }}; color: {{ enFg }}">English</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 30px; align-items: flex-start">
+
+    <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">DESKTOP 1280 · WHOLE SHAPE, NOTHING TO EXPAND</div>
+      <div dir="{{ dirAttr }}" style="width: 1280px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; padding: 0 0 30px; display: flex; flex-direction: column">
+
+        <div style="display: flex; align-items: center; gap: 10px; padding: 12px 32px; border-bottom: 1px solid {{ t.hair }}; font-size: 12.5px; color: {{ t.sec }}">
+          <span style="cursor: pointer"><span style="display: {{ ad }}">كورساتي</span><span dir="ltr" style="display: {{ ed }}">My courses</span></span>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.5" style="transform: {{ arrowFlip }}"><polyline points="10 3 5 8 10 13"></polyline></svg>
+          <span style="color: {{ t.ink }}; font-weight: 700"><span style="display: {{ ad }}">أساسيات البرمجة</span><span dir="ltr" style="display: {{ ed }}">Programming Foundations</span></span>
+        </div>
+
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; padding: 24px 32px 20px">
+          <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+            <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 40px; font-weight: 700; line-height: 1.4"><span style="display: {{ ad }}">أساسيات البرمجة بـ<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.72em">Python</span></span><span dir="ltr" style="display: {{ ed }}">Programming Foundations with <span style="font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.72em">Python</span></span></div>
+            <div style="display: flex; align-items: center; gap: 16px; font-size: 13px; color: {{ t.sec }}">
+              <span><span style="display: {{ ad }}">مع جو سام</span><span dir="ltr" style="display: {{ ed }}">with Jo Sam Code</span></span>
+              <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11.5px">10 MODULES · 41 LESSONS · 4 QUIZZES · 14 H 20 M</span>
+            </div>
+          </div>
+          <div style="flex: 0 0 auto; display: flex; align-items: stretch; gap: 0; border: 1px solid {{ t.ink }}">
+            <div style="padding: 12px 18px; display: flex; flex-direction: column; gap: 3px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 30px; font-weight: 700; line-height: 1; color: {{ t.accent }}">38</div>
+              <div style="font-size: 11px; color: {{ t.sec }}"><span style="display: {{ ad }}">يوم للنهاية</span><span dir="ltr" style="display: {{ ed }}">days to finish</span></div>
+            </div>
+            <div style="padding: 12px 18px; display: flex; flex-direction: column; gap: 3px; border-inline-start: 1px solid {{ t.hair }}">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 20px; font-weight: 500; line-height: 1.4">11 / 41</div>
+              <div style="font-size: 11px; color: {{ t.sec }}"><span style="display: {{ ad }}">درس خلّصته</span><span dir="ltr" style="display: {{ ed }}">lessons done</span></div>
+            </div>
+            <div style="padding: 12px 18px; display: flex; flex-direction: column; gap: 3px; border-inline-start: 1px solid {{ t.hair }}">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 20px; font-weight: 500; line-height: 1.4">15 SEP</div>
+              <div style="font-size: 11px; color: {{ t.sec }}"><span style="display: {{ ad }}">على <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">5</span> ساعات/أسبوع</span><span dir="ltr" style="display: {{ ed }}">at 5 h/week</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding: 0 32px 18px">
+          <div style="display: flex; align-items: center; gap: 5px">
+            <div style="flex: 4.2; height: 24px; background: {{ t.ink }}; display: flex; align-items: center; justify-content: center; color: {{ t.page }}; font-size: 11px; font-weight: 700"><span style="display: {{ ad }}">خلص</span><span dir="ltr" style="display: {{ ed }}">Done</span></div>
+            <div style="flex: 1.5; height: 32px; background: {{ t.accent }}; display: flex; align-items: center; justify-content: center; gap: 7px; color: {{ t.onAccent }}; font-size: 11.5px; font-weight: 700"><div style="width: 7px; height: 7px; border-radius: 50%; background: {{ t.onAccent }}"></div><span style="display: {{ ad }}">هنا</span><span dir="ltr" style="display: {{ ed }}">Here</span></div>
+            <div style="flex: 1.1; height: 24px; border: 1px solid {{ t.ink }}"></div>
+            <div style="flex: 8.2; height: 24px; border: 1px dashed {{ t.border }}; display: flex; align-items: center; justify-content: center; gap: 7px">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.5"><rect x="3" y="7" width="10" height="7"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>
+              <div style="font-size: 11px; color: {{ t.sec }}"><span style="display: {{ ad }}"><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">29</span> درس بيفتحوا واحد ورا التاني</span><span dir="ltr" style="display: {{ ed }}">29 lessons that open one after another</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 34px; padding: 0 32px">
+          <sc-for list="{{ sections }}" as="s" hint-placeholder-count="10">
+            <div style="display: flex; flex-direction: column; gap: 0; padding-bottom: 16px">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 9px 0 7px; border-bottom: 2px solid {{ t.ink }}">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ s.num }}</div>
+                <div style="flex: 1; font-size: 14.5px; font-weight: 800; min-width: 0"><span style="display: {{ ad }}">{{ s.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ s.en }}</span><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">{{ s.term }}</span></div>
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10.5px; color: {{ t.sec }}">{{ s.meta }}</div>
+              </div>
+              <sc-for list="{{ s.lessons }}" as="l" hint-placeholder-count="4">
+                <div style="display: flex; align-items: center; gap: 11px; padding: {{ l.pad }}; border-bottom: 1px solid {{ t.hair }}; background: {{ l.bg }}; border-inline-start: {{ l.rule }}">
+                  <div style="flex: 0 0 17px; height: 17px; border-radius: 50%; background: {{ l.dotBg }}; border: {{ l.dotBorder }}; display: flex; align-items: center; justify-content: center">
+                    <sc-if value="{{ l.isDone }}" hint-placeholder-val="{{ false }}"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="{{ t.page }}" stroke-width="2.6"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg></sc-if>
+                    <sc-if value="{{ l.isCurrent }}" hint-placeholder-val="{{ false }}"><div style="width: 6px; height: 6px; border-radius: 50%; background: {{ t.accent }}"></div></sc-if>
+                    <sc-if value="{{ l.isLocked }}" hint-placeholder-val="{{ false }}"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="{{ t.ink }}" stroke-width="1.6"><rect x="3" y="7" width="10" height="7"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg></sc-if>
+                  </div>
+                  <sc-if value="{{ l.isQuiz }}" hint-placeholder-val="{{ false }}">
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 9px; letter-spacing: 0.1em; border: 1px solid {{ t.border }}; padding: 1px 5px; color: {{ t.ink }}">QUIZ</div>
+                  </sc-if>
+                  <div style="flex: 1; font-size: 13px; font-weight: {{ l.weight }}; color: {{ l.titleColor }}; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span style="display: {{ ad }}">{{ l.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ l.en }}</span><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">{{ l.term }}</span></div>
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10.5px; color: {{ l.metaColor }}; font-variant-numeric: tabular-nums">{{ l.len }}</div>
+                  <div style="flex: 0 0 130px; text-align: end; font-size: 11px; color: {{ l.stateColor }}; font-weight: {{ l.weight }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span style="display: {{ ad }}">{{ l.stateAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ l.stateEn }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 8px 32px 0; background: {{ t.raised }}; border-inline-start: 4px solid {{ t.accent }}; padding: 18px 22px">
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.14em; color: {{ t.accent }}">YOUR ONE NEXT STEP</div>
+            <div style="font-size: 16px; font-weight: 700"><span style="display: {{ ad }}">الدرس <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">12</span> — الحلقات، فاضل <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">6:20</span></span><span dir="ltr" style="display: {{ ed }}">Lesson 12 — Loops, 6:20 remaining</span></div>
+          </div>
+          <div style="flex: 0 0 auto; background: {{ t.accent }}; color: {{ t.onAccent }}; padding: 15px 26px; font-size: 15.5px; font-weight: 700; display: flex; align-items: center; gap: 10px; cursor: pointer">
+            <span style="display: {{ ad }}">كمّل من عند <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">7:45</span></span><span dir="ltr" style="display: {{ ed }}">Resume at 7:45</span>
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="{{ t.onAccent }}" stroke-width="1.6" style="transform: {{ arrowFlip }}"><polyline points="10 3 5 8 10 13"></polyline></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">MOBILE 390 · SAME SEQUENCE</div>
+      <div dir="{{ dirAttr }}" style="width: 390px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 13px; border-bottom: 1px solid {{ t.hair }}">
+          <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 30px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">أساسيات البرمجة بـ<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.7em">Python</span></span><span dir="ltr" style="display: {{ ed }}">Programming Foundations</span></div>
+          <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10.5px; color: {{ t.sec }}">10 MODULES · 41 LESSONS · 14 H 20 M · JO SAM CODE</div>
+          <div style="display: flex; align-items: center; gap: 4px">
+            <div style="flex: 4.2; height: 20px; background: {{ t.ink }}"></div>
+            <div style="flex: 1.5; height: 26px; background: {{ t.accent }}"></div>
+            <div style="flex: 1.1; height: 20px; border: 1px solid {{ t.ink }}"></div>
+            <div style="flex: 8.2; height: 20px; border: 1px dashed {{ t.border }}"></div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; color: {{ t.sec }}">
+            <span><span style="display: {{ ad }}"><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">11 / 41</span> درس</span><span dir="ltr" style="display: {{ ed }}">11 / 41 lessons</span></span>
+            <span><span style="display: {{ ad }}">هتخلّص <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">15 SEP</span></span><span dir="ltr" style="display: {{ ed }}">Finish 15 SEP</span></span>
+          </div>
+        </div>
+        <div style="background: {{ t.raised }}; border-inline-start: 4px solid {{ t.accent }}; margin: 16px; padding: 15px; display: flex; flex-direction: column; gap: 11px">
+          <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: {{ t.accent }}">YOUR ONE NEXT STEP · 6:20 LEFT</div>
+          <div style="font-size: 15px; font-weight: 700"><span style="display: {{ ad }}">الدرس <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">12</span> — الحلقات</span><span dir="ltr" style="display: {{ ed }}">Lesson 12 — Loops</span></div>
+          <div style="background: {{ t.accent }}; color: {{ t.onAccent }}; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700"><span style="display: {{ ad }}">كمّل من عند <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">7:45</span></span><span dir="ltr" style="display: {{ ed }}">Resume at 7:45</span></div>
+        </div>
+        <div style="padding: 0 16px 16px; display: flex; flex-direction: column">
+          <sc-for list="{{ sections }}" as="s" hint-placeholder-count="10">
+            <div style="display: flex; flex-direction: column; padding-bottom: 12px">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0 6px; border-bottom: 2px solid {{ t.ink }}">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10.5px; color: {{ t.sec }}">{{ s.num }}</div>
+                <div style="flex: 1; font-size: 13.5px; font-weight: 800; min-width: 0"><span style="display: {{ ad }}">{{ s.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ s.en }}</span><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">{{ s.term }}</span></div>
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: {{ t.sec }}">{{ s.meta }}</div>
+              </div>
+              <sc-for list="{{ s.lessons }}" as="l" hint-placeholder-count="4">
+                <div style="display: flex; align-items: flex-start; gap: 10px; padding: {{ l.padM }}; border-bottom: 1px solid {{ t.hair }}; background: {{ l.bg }}; border-inline-start: {{ l.rule }}">
+                  <div style="flex: 0 0 16px; height: 16px; margin-top: 2px; border-radius: 50%; background: {{ l.dotBg }}; border: {{ l.dotBorder }}; display: flex; align-items: center; justify-content: center">
+                    <sc-if value="{{ l.isDone }}" hint-placeholder-val="{{ false }}"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="{{ t.page }}" stroke-width="2.6"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg></sc-if>
+                    <sc-if value="{{ l.isCurrent }}" hint-placeholder-val="{{ false }}"><div style="width: 6px; height: 6px; border-radius: 50%; background: {{ t.accent }}"></div></sc-if>
+                    <sc-if value="{{ l.isLocked }}" hint-placeholder-val="{{ false }}"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="{{ t.ink }}" stroke-width="1.8"><rect x="3" y="7" width="10" height="7"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg></sc-if>
+                  </div>
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+                      <div style="font-size: 13px; font-weight: {{ l.weight }}; color: {{ l.titleColor }}; min-width: 0"><span style="display: {{ ad }}">{{ l.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ l.en }}</span><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">{{ l.term }}</span></div>
+                      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: {{ l.metaColor }}; flex: 0 0 auto">{{ l.len }}</div>
+                    </div>
+                    <div style="font-size: 11px; color: {{ l.stateColor }}"><span style="display: {{ ad }}">{{ l.stateAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ l.stateEn }}</span></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; max-width: 1100px">
+      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">DECISIONS</div>
+      <div dir="{{ dirAttr }}" style="background: #EDE7DA; padding: 16px 18px; display: flex; flex-direction: column; gap: 11px; color: #23201B">
+        <div style="font-size: 12.5px; line-height: 1.8"><strong style="font-weight: 800">مفيش أكورديون.</strong> العشر وحدات وكل الـ<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">41</span> درس مفتوحين على الشاشة في عمودين. الشكل بيتقرا في نظرة واحدة من غير ولا ضغطة.</div>
+        <div style="font-size: 12.5px; line-height: 1.8; border-top: 1px solid #DCD3C1; padding-top: 10px"><strong style="font-weight: 800">الاختبارات في مكانها.</strong> شارة <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">QUIZ</span> جوّه التسلسل نفسه، مش في تبويب لوحده — لأنها خطوة في الطريق مش نوع محتوى.</div>
+        <div style="font-size: 12.5px; line-height: 1.8; border-top: 1px solid #DCD3C1; padding-top: 10px"><strong style="font-weight: 800">كل قفل بيقول شرطه.</strong> عمود الحالة مكتوب فيه سبب الفتح بالكلام، مش أيقونة قفل ساكتة.</div>
+        <div style="font-size: 12.5px; line-height: 1.8; border-top: 1px solid #DCD3C1; padding-top: 10px"><strong style="font-weight: 800">فعل واحد.</strong> شريط «خطوتك الجاية» تحت المنهج هو الزر المليان الوحيد. باقي الصفوف مقروءة بس.</div>
+        <div style="font-size: 12.5px; line-height: 1.8; border-top: 1px solid #DCD3C1; padding-top: 10px"><strong style="font-weight: 800">الكثافة.</strong> الصفحة دي أقرب للوضع الكثيف: صف <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">13px</span> بتباعد <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">1.45</span> ومن غير نقط قيادة — عشان 41 صف يبانوا مع بعض.</div>
+      </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1780}}">
+class Component extends DCLogic {
+  state = { lang: 'ar', theme: 'light' };
+
+  data() {
+    // [num, ar, en, term, meta, [lesson…]] ; lesson = [ar, en, term, len, state, stateAr, stateEn, isQuiz]
+    return [
+      ['01', 'أساسيات الكمبيوتر', 'Computer basics', '', '4 · 42:10', [
+        ['إيه هو الكمبيوتر أصلاً', 'What a computer is', '', '12:40', 'done', 'خلصته 6 AUG', 'Done 6 Aug'],
+        ['الملفات والمجلدات', 'Files and folders', '', '09:15', 'done', 'خلصته 7 AUG', 'Done 7 Aug'],
+        ['سطر الأوامر', 'The command line', '', '11:20', 'done', 'خلصته 9 AUG', 'Done 9 Aug'],
+        ['تجهيز جهازك', 'Setting up your machine', '', '08:55', 'done', 'خلصته 10 AUG', 'Done 10 Aug']
+      ]],
+      ['02', 'منطق البرمجة', 'Programming logic', '', '5 · 58:25', [
+        ['الخطوات والترتيب', 'Steps and sequence', '', '09:30', 'done', 'خلصته 12 AUG', 'Done 12 Aug'],
+        ['الشروط ', 'Conditions ', 'if / else', '12:10', 'done', 'خلصته 13 AUG', 'Done 13 Aug'],
+        ['التكرار', 'Repetition', '', '10:45', 'done', 'خلصته 15 AUG', 'Done 15 Aug'],
+        ['تمرين على الورق', 'Pen-and-paper exercise', '', '14:00', 'done', 'خلصته 16 AUG', 'Done 16 Aug'],
+        ['أخطاء المنطق الشائعة', 'Common logic mistakes', '', '12:00', 'done', 'خلصته 17 AUG', 'Done 17 Aug']
+      ]],
+      ['03', 'لغة ', '', 'Python', '6 · 1:22:40', [
+        ['أول برنامج', 'Your first program', '', '10:20', 'done', 'خلصته 18 AUG', 'Done 18 Aug'],
+        ['المتغيّرات وأنواع البيانات', 'Variables and data types', '', '08:40', 'done', 'خلصته 19 AUG', 'Done 19 Aug'],
+        ['الحلقات ', 'Loops ', 'loops', '14:05', 'current', 'واقف هنا · 7:45', 'You are here · 7:45'],
+        ['الدوال ', 'Functions ', 'functions', '15:30', 'available', 'متاح دلوقتي', 'Available now'],
+        ['اختبار القسم الأول', 'Section quiz 1', '', '10 Q · 60%', 'locked', 'بعد الدوال', 'After Functions', true],
+        ['المصفوفات ', 'Arrays ', 'arrays', '18:05', 'locked', 'بعد اختبار القسم', 'After the quiz']
+      ]],
+      ['04', 'تصحيح الأخطاء ', 'Debugging ', 'debugging', '4 · 47:50', [
+        ['اقرا رسالة الغلط', 'Read the error message', '', '11:30', 'locked', 'بعد المصفوفات', 'After Arrays'],
+        ['اعزل السطر', 'Isolate the line', '', '12:15', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson'],
+        ['فرض واحد في المرة', 'One hypothesis at a time', '', '13:05', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson'],
+        ['أدوات التتبّع', 'Tracing tools', '', '11:00', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson']
+      ]],
+      ['05', 'حل المشاكل', 'Problem solving', '', '4 · 1:04:30', [
+        ['قسّم المشكلة', 'Break the problem down', '', '15:20', 'locked', 'بعد وحدة تصحيح الأخطاء', 'After Debugging'],
+        ['التمثيل بالرسم', 'Sketching a model', '', '16:10', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson'],
+        ['اختبار القسم التاني', 'Section quiz 2', '', '12 Q · 60%', 'locked', 'بعد الدرسين', 'After both lessons', true],
+        ['تمرين محلول بالكامل', 'A fully worked exercise', '', '20:00', 'locked', 'بعد اختبار القسم التاني', 'After Section quiz 2']
+      ]],
+      ['06', 'هياكل البيانات', 'Data structures', '', '4 · 1:12:05', [
+        ['القوائم والقواميس', 'Lists and dictionaries', '', '18:40', 'locked', 'بعد حل المشاكل', 'After Problem solving'],
+        ['المجموعات', 'Sets', '', '14:25', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson'],
+        ['إمتى تستخدم إيه', 'When to use which', '', '19:00', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson'],
+        ['تمرين على البيانات', 'Data exercise', '', '20:00', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson']
+      ]],
+      ['07', '', 'Git and GitHub', 'Git + GitHub', '3 · 38:15', [
+        ['ليه بنستخدم إصدارات', 'Why version control', '', '10:15', 'locked', 'بعد هياكل البيانات', 'After Data structures'],
+        ['أول مستودع', 'Your first repository', '', '14:00', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson'],
+        ['الشغل مع حد تاني', 'Working with someone else', '', '14:00', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson']
+      ]],
+      ['08', 'الشبكات وأساسيات الويب', 'Networking and web basics', '', '4 · 52:40', [
+        ['إزاي الإنترنت شغّال', 'How the internet works', '', '13:10', 'locked', 'بعد Git', 'After Git'],
+        ['الطلب والاستجابة', 'Request and response', '', '12:30', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson'],
+        ['اختبار القسم التالت', 'Section quiz 3', '', '10 Q · 60%', 'locked', 'بعد الدرسين', 'After both lessons', true],
+        ['صفحة على الويب', 'A page on the web', '', '17:00', 'locked', 'بعد اختبار القسم التالت', 'After Section quiz 3']
+      ]],
+      ['09', 'مشروع صغير', 'A small project', '', '3 · 55:00', [
+        ['اختار مشكلة', 'Pick a problem', '', '15:00', 'locked', 'بعد أساسيات الويب', 'After Web basics'],
+        ['ابنيها خطوة خطوة', 'Build it step by step', '', '25:00', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson'],
+        ['نشر المشروع', 'Ship it', '', '15:00', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson']
+      ]],
+      ['10', 'مشاريع التخرّج', 'Final projects', '', '4 · 2:10:00', [
+        ['المشروع الأول', 'First project', '', '35:00', 'locked', 'بعد المشروع الصغير', 'After the small project'],
+        ['المشروع التاني', 'Second project', '', '40:00', 'locked', 'بعد الدرس اللي قبله', 'After the previous lesson'],
+        ['الاختبار النهائي', 'Final quiz', '', '20 Q · 70%', 'locked', 'بعد المشروعين', 'After both projects', true],
+        ['شهادتك', 'Your certificate', '', '05:00', 'locked', 'بعد الاختبار النهائي', 'After the final quiz']
+      ]]
+    ];
+  }
+
+  theme() {
+    return this.state.theme === 'dark'
+      ? { page: '#1D1B17', raised: '#26231D', selected: '#2A2D20', ink: '#EDE7DA', sec: '#A79C88', accent: '#A9C57E', accentText: '#A9C57E', onAccent: '#1D1B17', border: '#7C7666', hair: '#35312A' }
+      : { page: '#EDE7DA', raised: '#F5F1E7', selected: '#E4E8D8', ink: '#23201B', sec: '#635A4D', accent: '#3F5B22', accentText: '#2E4318', onAccent: '#FFFFFF', border: '#7D7364', hair: '#DCD3C1' };
+  }
+
+  renderVals() {
+    const ar = this.state.lang === 'ar';
+    const t = this.theme();
+    const light = this.state.theme === 'light';
+    const on = '#23201B', onFg = '#EDE7DA';
+    const sections = this.data().map(([num, sar, sen, term, meta, lessons]) => ({
+      num, ar: sar, en: sen, term, meta,
+      lessons: lessons.map(([lar, len_, lterm, length, st, stateAr, stateEn, isQuiz]) => {
+        const done = st === 'done', cur = st === 'current', locked = st === 'locked';
+        return {
+          ar: lar, en: len_, term: lterm, len: length, stateAr, stateEn,
+          isDone: done, isCurrent: cur, isLocked: locked, isQuiz: !!isQuiz,
+          pad: cur ? '10px 10px' : '7px 0',
+          padM: cur ? '10px 9px' : '8px 0',
+          bg: cur ? t.selected : 'transparent',
+          rule: cur ? '3px solid ' + t.accent : 'none',
+          dotBg: done ? t.ink : 'transparent',
+          dotBorder: done ? 'none' : cur ? '2px solid ' + t.accent : locked ? '1px dashed ' + t.sec : '1px solid ' + t.ink,
+          weight: cur ? '700' : '400',
+          titleColor: t.ink,
+          metaColor: cur ? t.accentText : t.sec,
+          stateColor: cur ? t.accentText : locked ? t.ink : t.sec
+        };
+      })
+    }));
+    return {
+      t, sections,
+      dirAttr: ar ? 'rtl' : 'ltr',
+      ad: ar ? 'inline' : 'none',
+      ed: ar ? 'none' : 'inline',
+      arrowFlip: ar ? 'none' : 'scaleX(-1)',
+      arBg: ar ? on : 'transparent', arFg: ar ? onFg : on,
+      enBg: ar ? 'transparent' : on, enFg: ar ? on : onFg,
+      liBg: light ? on : 'transparent', liFg: light ? onFg : on,
+      dkBg: light ? 'transparent' : on, dkFg: light ? on : onFg,
+      setAr: () => this.setState({ lang: 'ar' }),
+      setEn: () => this.setState({ lang: 'en' }),
+      setLight: () => this.setState({ theme: 'light' }),
+      setDark: () => this.setState({ theme: 'dark' })
+    };
+  }
+}
+</script>
+</body>
+</html>

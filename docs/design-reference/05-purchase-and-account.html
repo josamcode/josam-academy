@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+<style>
+body { margin: 0; background: #DED7C7; }
+a { color: #3F5B22; text-decoration: none; }
+a:hover { color: #2E4318; text-decoration: underline; }
+</style>
+</helmet>
+<div style="width: 1800px; box-sizing: border-box; background: #DED7C7; padding: 32px 40px 56px; display: flex; flex-direction: column; gap: 24px; font-family: 'Almarai', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif">
+
+  <div dir="{{ dirAttr }}" style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid #23201B; padding-bottom: 16px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">JOSAM ACADEMY · STEP 4 · PURCHASE, ACCOUNT, LIFECYCLE</div>
+      <div style="font-size: 22px; font-weight: 800; color: #23201B">{{ screenTitle }}</div>
+    </div>
+    <div style="display: flex; align-items: flex-end; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">THEME</div>
+        <div style="display: flex; border: 1px solid #23201B; width: fit-content">
+          <div onClick="{{ setLight }}" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; background: {{ liBg }}; color: {{ liFg }}"><span style="display: {{ ad }}">النهار</span><span dir="ltr" style="display: {{ ed }}">Light</span></div>
+          <div onClick="{{ setDark }}" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ dkBg }}; color: {{ dkFg }}"><span style="display: {{ ad }}">الليل</span><span dir="ltr" style="display: {{ ed }}">Dark</span></div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">LANGUAGE</div>
+        <div style="display: flex; border: 1px solid #23201B; width: fit-content">
+          <div onClick="{{ setAr }}" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; background: {{ arBg }}; color: {{ arFg }}">العربية</div>
+          <div onClick="{{ setEn }}" dir="ltr" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ enBg }}; color: {{ enFg }}">English</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div dir="{{ dirAttr }}" style="display: flex; flex-wrap: wrap; gap: 8px">
+    <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="16">
+      <div onClick="{{ n.go }}" style="padding: 8px 16px; border: 1px solid #23201B; background: {{ n.bg }}; color: {{ n.fg }}; font-size: 12.5px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">{{ n.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ n.en }}</span></div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ isCheckout }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; gap: 32px; align-items: flex-start">
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">DESKTOP 1280 · SUBMIT IS IMPOSSIBLE TWICE</div>
+        <div dir="{{ dirAttr }}" style="width: 1280px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 16px 40px; border-bottom: 1px solid {{ t.hair }}; display: flex; align-items: center; justify-content: space-between; gap: 24px">
+            <div style="font-size: 16px; font-weight: 800">جوسام</div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">SECURE CHECKOUT</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; padding: 32px 40px 40px; align-items: start">
+            <div style="display: flex; flex-direction: column; gap: 24px">
+              <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 35px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">إتمام الشراء</span><span dir="ltr" style="display: {{ ed }}">Complete your purchase</span></div>
+
+              <div style="display: flex; flex-direction: column; gap: 12px">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">WHAT THIS PURCHASE GRANTS · FROM ENTITLEMENTS</div>
+                <sc-for list="{{ grants }}" as="g" hint-placeholder-count="5">
+                  <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid {{ t.hair }}">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{ t.accentText }}" stroke-width="2.2" style="flex: 0 0 auto; margin-top: 4px"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg>
+                    <div style="flex: 1; font-size: 14px; line-height: 1.9"><span style="display: {{ ad }}">{{ g.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ g.en }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 12px">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">HOW YOU PAY</div>
+                <sc-for list="{{ payMethods }}" as="p" hint-placeholder-count="3">
+                  <div style="display: flex; align-items: flex-start; gap: 16px; border: {{ p.border }}; background: {{ p.bg }}; padding: 16px; cursor: pointer">
+                    <div style="flex: 0 0 20px; height: 20px; border-radius: 50%; border: {{ p.markBorder }}; background: {{ p.markBg }}; display: flex; align-items: center; justify-content: center; margin-top: 4px">
+                      <sc-if value="{{ p.on }}" hint-placeholder-val="{{ false }}"><div style="width: 8px; height: 8px; border-radius: 50%; background: {{ t.onAccent }}"></div></sc-if>
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+                      <div style="font-size: 16px; font-weight: {{ p.weight }}"><span style="display: {{ ad }}">{{ p.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ p.en }}</span></div>
+                      <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ p.noteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ p.noteEn }}</span></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background: {{ t.raised }}; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+              <div style="font-size: 22px; font-weight: 800"><span style="display: {{ ad }}">اللي بتشتريه</span><span dir="ltr" style="display: {{ ed }}">What you're buying</span></div>
+              <div style="display: flex; flex-direction: column; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid {{ t.hair }}">
+                <div style="font-size: 16px; font-weight: 700"><span style="display: {{ ad }}">أساسيات البرمجة بـ<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.85em">Python</span></span><span dir="ltr" style="display: {{ ed }}">Programming Foundations with <span style="font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.85em">Python</span></span></div>
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">41 LESSONS · 14 H 20 M · LIFETIME ACCESS</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 12px">
+                <sc-for list="{{ priceLines }}" as="l" hint-placeholder-count="4">
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px">
+                    <div style="font-size: 14px; color: {{ l.color }}; font-weight: {{ l.weight }}"><span style="display: {{ ad }}">{{ l.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ l.en }}</span></div>
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 14px; color: {{ l.color }}; font-weight: {{ l.weight }}; font-variant-numeric: tabular-nums; text-decoration: {{ l.strike }}">{{ l.amount }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-top: 16px; border-top: 2px solid {{ t.ink }}">
+                <div style="font-size: 16px; font-weight: 800"><span style="display: {{ ad }}">الإجمالي</span><span dir="ltr" style="display: {{ ed }}">Total</span></div>
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums">899 EGP</div>
+              </div>
+              <div style="display: flex; gap: 8px">
+                <div dir="ltr" style="flex: 1; border: 1px solid {{ t.border }}; background: {{ t.sunken }}; padding: 12px; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 14px; color: {{ t.sec }}">COUPON</div>
+                <div style="flex: 0 0 auto; border: 1px solid {{ t.ink }}; padding: 12px 20px; font-size: 14px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">طبّق</span><span dir="ltr" style="display: {{ ed }}">Apply</span></div>
+              </div>
+              <div style="background: {{ t.accent }}; color: {{ t.onAccent }}; padding: 16px 24px; font-size: 16px; font-weight: 700; text-align: center; cursor: pointer"><span style="display: {{ ad }}">ادفع <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">899 EGP</span></span><span dir="ltr" style="display: {{ ed }}">Pay 899 EGP</span></div>
+              <div style="display: flex; align-items: center; gap: 8px; justify-content: center">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.6" style="flex: 0 0 auto"><rect x="3" y="7" width="10" height="7"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>
+                <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">لك <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">14</span> يوم ترجّع فيهم كامل</span><span dir="ltr" style="display: {{ ed }}">14 days for a full refund</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 24px; padding: 0 40px 40px">
+            <div style="flex: 1; border: 1px solid {{ t.hair }}; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">SUBMITTING · BUTTON REPLACED, NOT DIMMED</div>
+              <div style="background: {{ t.sunken }}; border: 1px solid {{ t.border }}; padding: 16px 24px; display: flex; align-items: center; justify-content: center; gap: 12px">
+                <div style="width: 16px; height: 16px; border: 2px solid {{ t.sec }}; border-top-color: transparent; border-radius: 50%"></div>
+                <div style="font-size: 16px; font-weight: 700; color: {{ t.sec }}"><span style="display: {{ ad }}">بنأكّد الدفع…</span><span dir="ltr" style="display: {{ ed }}">Confirming payment…</span></div>
+              </div>
+              <div style="font-size: 12.5px; line-height: 1.9; color: {{ t.sec }}"><span style="display: {{ ad }}">الزر بيتبدّل بالحالة دي، فمفيش ضغطة تانية ممكنة. الطلب بيتبعت بمفتاح واحد، فلو الشبكة كرّرته السيرفر بيرفض التكرار.</span><span dir="ltr" style="display: {{ ed }}">The button is replaced by this state, so a second press is impossible. The request carries one key, so a network retry is rejected as a duplicate.</span></div>
+            </div>
+            <div style="flex: 1; border: 1px solid {{ t.hair }}; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">COUPON REJECTED · INLINE, ORDER INTACT</div>
+              <div style="border: 1px solid {{ t.attention }}; border-top: 2px solid {{ t.attention }}; padding: 16px; display: flex; align-items: flex-start; gap: 12px">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{ t.attention }}" stroke-width="1.6" style="flex: 0 0 auto; margin-top: 4px"><circle cx="8" cy="8" r="5.5"></circle><path d="M8 5v3.5M8 10.6v.01"></path></svg>
+                <div style="flex: 1; font-size: 14px; line-height: 1.9"><span style="display: {{ ad }}">الكوبون <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">SEP20</span> خلص استخدامه. عرض الافتتاح لسه ماشي وهو أوفر — سايبينه مطبّق.</span><span dir="ltr" style="display: {{ ed }}">Coupon SEP20 is fully used. The launch offer is still active and is the better one — we've left it applied.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">MOBILE 390</div>
+        <div dir="{{ dirAttr }}" style="width: 390px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 20px 16px 16px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid {{ t.hair }}">
+            <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 35px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">إتمام الشراء</span><span dir="ltr" style="display: {{ ed }}">Complete purchase</span></div>
+            <div style="font-size: 16px; font-weight: 700"><span style="display: {{ ad }}">أساسيات البرمجة بـ<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.85em">Python</span></span><span dir="ltr" style="display: {{ ed }}">Programming Foundations</span></div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">41 LESSONS · LIFETIME ACCESS</div>
+          </div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid {{ t.hair }}">
+            <sc-for list="{{ priceLines }}" as="l" hint-placeholder-count="4">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px">
+                <div style="font-size: 14px; color: {{ l.color }}; font-weight: {{ l.weight }}"><span style="display: {{ ad }}">{{ l.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ l.en }}</span></div>
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 14px; color: {{ l.color }}; font-weight: {{ l.weight }}; text-decoration: {{ l.strike }}">{{ l.amount }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">HOW YOU PAY</div>
+            <sc-for list="{{ payMethods }}" as="p" hint-placeholder-count="3">
+              <div style="display: flex; align-items: flex-start; gap: 12px; border: {{ p.border }}; background: {{ p.bg }}; min-height: 48px; box-sizing: border-box; padding: 12px">
+                <div style="flex: 0 0 20px; height: 20px; border-radius: 50%; border: {{ p.markBorder }}; background: {{ p.markBg }}; display: flex; align-items: center; justify-content: center; margin-top: 4px">
+                  <sc-if value="{{ p.on }}" hint-placeholder-val="{{ false }}"><div style="width: 8px; height: 8px; border-radius: 50%; background: {{ t.onAccent }}"></div></sc-if>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+                  <div style="font-size: 14px; font-weight: {{ p.weight }}"><span style="display: {{ ad }}">{{ p.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ p.en }}</span></div>
+                  <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ p.noteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ p.noteEn }}</span></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="position: sticky; bottom: 0; background: {{ t.raised }}; border-top: 2px solid {{ t.ink }}; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px">
+              <div style="font-size: 16px; font-weight: 800"><span style="display: {{ ad }}">الإجمالي</span><span dir="ltr" style="display: {{ ed }}">Total</span></div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 22px; font-weight: 500">899 EGP</div>
+            </div>
+            <div style="background: {{ t.accent }}; color: {{ t.onAccent }}; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700"><span style="display: {{ ad }}">ادفع <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">899 EGP</span></span><span dir="ltr" style="display: {{ ed }}">Pay 899 EGP</span></div>
+            <div style="font-size: 12.5px; color: {{ t.sec }}; text-align: center"><span style="display: {{ ad }}">لك <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">14</span> يوم ترجّع فيهم كامل</span><span dir="ltr" style="display: {{ ed }}">14 days for a full refund</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isCash }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; gap: 32px; align-items: flex-start">
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">DESKTOP 1280 · NO COUNTDOWN, NO SCARCITY</div>
+        <div dir="{{ dirAttr }}" style="width: 1280px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 40px 40px 32px; display: flex; flex-direction: column; gap: 24px">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <div style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid {{ t.accent }}; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><div style="width: 8px; height: 8px; border-radius: 50%; background: {{ t.accent }}"></div></div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.accentText }}">ORDER PLACED · AWAITING CASH PAYMENT</div>
+            </div>
+            <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 52px; font-weight: 700; line-height: 1.34; max-width: 28ch"><span style="display: {{ ad }}">طلبك محفوظ. روح لأي فرع فوري بالكود ده</span><span dir="ltr" style="display: {{ ed }}">Your order is saved. Take this code to any Fawry outlet</span></div>
+            <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start">
+              <div style="display: flex; flex-direction: column; gap: 20px">
+                <div style="background: {{ t.raised }}; border: 2px solid {{ t.ink }}; padding: 32px; display: flex; flex-direction: column; gap: 16px">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">REFERENCE CODE</div>
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 52px; font-weight: 500; letter-spacing: 0.08em; line-height: 1.34; font-variant-numeric: tabular-nums">7 4 1 9 2 8 3 6</div>
+                  <div style="display: flex; align-items: center; gap: 12px">
+                    <div style="border: 1px solid {{ t.ink }}; padding: 12px 20px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{ t.ink }}" stroke-width="1.6"><rect x="5" y="5" width="8" height="9"></rect><path d="M3 11V2h8"></path></svg>
+                      <span style="display: {{ ad }}">انسخ الكود</span><span dir="ltr" style="display: {{ ed }}">Copy the code</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">أو صوّره — هو نفس الكود</span><span dir="ltr" style="display: {{ ed }}">Or photograph it — same code</span></div>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">AMOUNT TO PAY</div>
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid {{ t.hair }}">
+                    <div style="font-size: 16px; font-weight: 700"><span style="display: {{ ad }}">أساسيات البرمجة</span><span dir="ltr" style="display: {{ ed }}">Programming Foundations</span></div>
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 22px; font-weight: 500">899 EGP</div>
+                  </div>
+                  <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">الفرع ممكن ياخد مصاريف خدمة صغيرة على الكاش — بتتحدّد عندهم مش عندنا.</span><span dir="ltr" style="display: {{ ed }}">The outlet may add a small cash service fee — that's set by them, not by us.</span></div>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 20px">
+                <div style="display: flex; flex-direction: column; gap: 16px">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">WHAT HAPPENS NEXT</div>
+                  <sc-for list="{{ cashSteps }}" as="s" hint-placeholder-count="3">
+                    <div style="display: flex; align-items: flex-start; gap: 16px">
+                      <div style="flex: 0 0 24px; height: 24px; border-radius: 50%; background: {{ s.dotBg }}; border: {{ s.dotBorder }}; display: flex; align-items: center; justify-content: center; margin-top: 4px">
+                        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ s.numColor }}">{{ s.n }}</div>
+                      </div>
+                      <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; padding-bottom: 16px; border-bottom: 1px solid {{ t.hair }}">
+                        <div style="font-size: 16px; font-weight: 700"><span style="display: {{ ad }}">{{ s.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ s.en }}</span></div>
+                        <div style="font-size: 14px; line-height: 1.9; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ s.noteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ s.noteEn }}</span></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="background: {{ t.selected }}; border-inline-start: 4px solid {{ t.accent }}; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+                  <div style="font-size: 16px; font-weight: 700; color: {{ t.accentText }}"><span style="display: {{ ad }}">مش محتاج ترجع هنا</span><span dir="ltr" style="display: {{ ed }}">You don't need to come back here</span></div>
+                  <div style="font-size: 14px; line-height: 1.9"><span style="display: {{ ad }}">أول ما الفرع يقبض، الكورس بيفتح لوحده وبيوصلك إشعار. لو قفلت الصفحة دي، الكود موجود في «طلباتي» وفي إيميلك.</span><span dir="ltr" style="display: {{ ed }}">The moment the outlet takes the money, the course opens by itself and you get a notification. If you close this page, the code is in Orders and in your email.</span></div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; border: 1px solid {{ t.hair }}; padding: 16px">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.6" style="flex: 0 0 auto"><circle cx="8" cy="8" r="5.5"></circle><polyline points="8 5 8 8 10.5 9.5"></polyline></svg>
+                  <div style="flex: 1; font-size: 14px; line-height: 1.9"><span style="display: {{ ad }}">الكود صالح لحد <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">3 سبتمبر</span>. بعد كده اطلب واحد جديد بضغطة، ومفيش أي رسوم.</span><span dir="ltr" style="display: {{ ed }}">The code is valid until 3 September. After that you can request a new one in one tap, at no cost.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">MOBILE 390 · THE CODE IS THE SCREEN</div>
+        <div dir="{{ dirAttr }}" style="width: 390px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.accentText }}">ORDER PLACED · AWAITING CASH PAYMENT</div>
+            <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 35px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">طلبك محفوظ</span><span dir="ltr" style="display: {{ ed }}">Your order is saved</span></div>
+            <div style="background: {{ t.raised }}; border: 2px solid {{ t.ink }}; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">REFERENCE CODE</div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 35px; font-weight: 500; letter-spacing: 0.08em; line-height: 1.5">74192836</div>
+              <div style="border: 1px solid {{ t.ink }}; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 700">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{ t.ink }}" stroke-width="1.6"><rect x="5" y="5" width="8" height="9"></rect><path d="M3 11V2h8"></path></svg>
+                <span style="display: {{ ad }}">انسخ الكود</span><span dir="ltr" style="display: {{ ed }}">Copy the code</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid {{ t.hair }}">
+              <div style="font-size: 14px; color: {{ t.sec }}"><span style="display: {{ ad }}">المطلوب</span><span dir="ltr" style="display: {{ ed }}">Amount</span></div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 22px; font-weight: 500">899 EGP</div>
+            </div>
+            <sc-for list="{{ cashSteps }}" as="s" hint-placeholder-count="3">
+              <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid {{ t.hair }}">
+                <div style="flex: 0 0 24px; height: 24px; border-radius: 50%; background: {{ s.dotBg }}; border: {{ s.dotBorder }}; display: flex; align-items: center; justify-content: center; margin-top: 4px">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ s.numColor }}">{{ s.n }}</div>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+                  <div style="font-size: 14px; font-weight: 700"><span style="display: {{ ad }}">{{ s.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ s.en }}</span></div>
+                  <div style="font-size: 12.5px; line-height: 1.9; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ s.noteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ s.noteEn }}</span></div>
+                </div>
+              </div>
+            </sc-for>
+            <div style="background: {{ t.selected }}; border-inline-start: 4px solid {{ t.accent }}; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+              <div style="font-size: 14px; font-weight: 700; color: {{ t.accentText }}"><span style="display: {{ ad }}">مش محتاج ترجع هنا</span><span dir="ltr" style="display: {{ ed }}">No need to come back</span></div>
+              <div style="font-size: 12.5px; line-height: 1.9"><span style="display: {{ ad }}">الكورس بيفتح لوحده أول ما الفرع يقبض.</span><span dir="ltr" style="display: {{ ed }}">The course opens by itself once the outlet takes the money.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isRecords }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; gap: 32px; align-items: flex-start">
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">{{ recordsLabel }}</div>
+        <div dir="{{ dirAttr }}" style="width: 1280px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 32px 40px 20px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 1px solid {{ t.hair }}">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 35px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">{{ recordsTitleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ recordsTitleEn }}</span></div>
+              <div style="font-size: 14px; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ recordsSubAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ recordsSubEn }}</span></div>
+            </div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ recordsCount }}</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 16px; padding: 12px 40px; background: {{ t.sunken }}; border-bottom: 1px solid {{ t.hair }}">
+            <sc-for list="{{ recordsCols }}" as="c" hint-placeholder-count="5">
+              <div style="flex: {{ c.flex }}; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}; display: flex; align-items: center; justify-content: {{ c.justify }}"><span dir="ltr" style="unicode-bidi: isolate">{{ c.label }}</span></div>
+            </sc-for>
+          </div>
+          <sc-for list="{{ recordsRows }}" as="r" hint-placeholder-count="4">
+            <div style="display: flex; align-items: center; gap: 16px; padding: 16px 40px; border-bottom: 1px solid {{ t.hair }}">
+              <div style="flex: 1.6; display: flex; flex-direction: column; gap: 4px; min-width: 0">
+                <div style="font-size: 14px; font-weight: 700"><span style="display: {{ ad }}">{{ r.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.en }}</span></div>
+                <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ r.subAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.subEn }}</span></div>
+              </div>
+              <div dir="ltr" style="flex: 1; unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 12.5px; color: {{ t.sec }}">{{ r.meta }}</div>
+              <div dir="ltr" style="flex: 0.8; unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 14px; font-variant-numeric: tabular-nums">{{ r.amount }}</div>
+              <div style="flex: 1; display: flex; align-items: center; gap: 8px">
+                <div style="width: 16px; height: 16px; border-radius: 50%; background: {{ r.dotBg }}; border: {{ r.dotBorder }}; flex: 0 0 auto; display: flex; align-items: center; justify-content: center">
+                  <sc-if value="{{ r.isDone }}" hint-placeholder-val="{{ false }}"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="{{ t.page }}" stroke-width="2.8"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg></sc-if>
+                </div>
+                <div style="font-size: 12.5px; color: {{ r.stateColor }}; font-weight: {{ r.weight }}"><span style="display: {{ ad }}">{{ r.stateAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.stateEn }}</span></div>
+              </div>
+              <div style="flex: 0 0 auto; border: 1px solid {{ t.ink }}; padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; white-space: nowrap"><span style="display: {{ ad }}">{{ r.ctaAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.ctaEn }}</span></div>
+            </div>
+          </sc-for>
+          <div style="padding: 20px 40px 32px; display: flex; align-items: center; gap: 12px">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.6" style="flex: 0 0 auto"><circle cx="8" cy="8" r="5.5"></circle><path d="M8 5.5v.01M8 7.5v3.5"></path></svg>
+            <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ recordsFootAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ recordsFootEn }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">MOBILE 390 · ROWS BECOME STACKS</div>
+        <div dir="{{ dirAttr }}" style="width: 390px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 20px 16px 16px; border-bottom: 1px solid {{ t.hair }}; display: flex; flex-direction: column; gap: 8px">
+            <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 35px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">{{ recordsTitleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ recordsTitleEn }}</span></div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ recordsCount }}</div>
+          </div>
+          <sc-for list="{{ recordsRows }}" as="r" hint-placeholder-count="4">
+            <div style="padding: 16px; border-bottom: 1px solid {{ t.hair }}; display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+                <div style="font-size: 14px; font-weight: 700; min-width: 0"><span style="display: {{ ad }}">{{ r.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.en }}</span></div>
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 14px; flex: 0 0 auto">{{ r.amount }}</div>
+              </div>
+              <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ r.subAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.subEn }}</span></div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ r.meta }}</div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <div style="width: 16px; height: 16px; border-radius: 50%; background: {{ r.dotBg }}; border: {{ r.dotBorder }}; flex: 0 0 auto"></div>
+                  <div style="font-size: 12.5px; color: {{ r.stateColor }}; font-weight: {{ r.weight }}"><span style="display: {{ ad }}">{{ r.stateAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.stateEn }}</span></div>
+                </div>
+                <div style="border: 1px solid {{ t.ink }}; min-height: 44px; box-sizing: border-box; display: flex; align-items: center; padding: 0 16px; font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">{{ r.ctaAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.ctaEn }}</span></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isLifecycle }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; gap: 32px; align-items: flex-start">
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">{{ lifeLabel }}</div>
+        <div dir="{{ dirAttr }}" style="width: 1280px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 40px 40px 32px; display: flex; flex-direction: column; gap: 24px">
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ lifeEyebrowColor }}">{{ lifeEyebrow }}</div>
+            <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 52px; font-weight: 700; line-height: 1.34; max-width: 30ch"><span style="display: {{ ad }}">{{ lifeTitleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ lifeTitleEn }}</span></div>
+            <div style="font-size: 16px; line-height: 2; color: {{ t.sec }}; max-width: 60ch"><span style="display: {{ ad }}">{{ lifeBodyAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ lifeBodyEn }}</span></div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; padding-top: 8px">
+              <div style="display: flex; flex-direction: column; gap: 16px">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">{{ keepLabel }}</div>
+                <sc-for list="{{ keepList }}" as="k" hint-placeholder-count="4">
+                  <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid {{ t.hair }}">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{ t.accentText }}" stroke-width="2.2" style="flex: 0 0 auto; margin-top: 4px"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg>
+                    <div style="flex: 1; font-size: 14px; line-height: 1.9"><span style="display: {{ ad }}">{{ k.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ k.en }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 16px">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">{{ loseLabel }}</div>
+                <sc-for list="{{ loseList }}" as="k" hint-placeholder-count="3">
+                  <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px dashed {{ t.border }}">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.6" style="flex: 0 0 auto; margin-top: 4px"><rect x="3" y="7" width="10" height="7"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>
+                    <div style="flex: 1; font-size: 14px; line-height: 1.9"><span style="display: {{ ad }}">{{ k.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ k.en }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <sc-if value="{{ lifeHasReasons }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 16px; padding-top: 8px">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">WHY FIRST · THE REMEDY MATCHES THE REASON</div>
+                <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="4">
+                  <div style="display: flex; align-items: stretch; gap: 20px; border: {{ r.border }}; background: {{ r.bg }}; padding: 20px">
+                    <div style="flex: 0 0 20px; height: 20px; border-radius: 50%; border: {{ r.markBorder }}; background: {{ r.markBg }}; display: flex; align-items: center; justify-content: center; margin-top: 4px">
+                      <sc-if value="{{ r.on }}" hint-placeholder-val="{{ false }}"><div style="width: 8px; height: 8px; border-radius: 50%; background: {{ t.onAccent }}"></div></sc-if>
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+                      <div style="font-size: 16px; font-weight: {{ r.weight }}"><span style="display: {{ ad }}">{{ r.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.en }}</span></div>
+                      <sc-if value="{{ r.on }}" hint-placeholder-val="{{ false }}">
+                        <div style="display: flex; align-items: flex-start; gap: 12px; background: {{ t.page }}; padding: 16px">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{ t.accentText }}" stroke-width="1.8" style="flex: 0 0 auto; margin-top: 4px"><path d="M2.5 8h11"></path><path d="M9.5 4.5 13.5 8l-4 3.5"></path></svg>
+                          <div style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+                            <div style="font-size: 14px; line-height: 1.9"><span style="display: {{ ad }}">{{ r.remedyAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.remedyEn }}</span></div>
+                            <div style="background: {{ t.accent }}; color: {{ t.onAccent }}; padding: 12px 20px; font-size: 14px; font-weight: 700; width: fit-content; cursor: pointer"><span style="display: {{ ad }}">{{ r.ctaAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.ctaEn }}</span></div>
+                          </div>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <div style="display: flex; align-items: center; gap: 16px; padding-top: 8px">
+              <div style="background: {{ lifeCtaBg }}; color: {{ lifeCtaFg }}; border: {{ lifeCtaBorder }}; padding: 16px 24px; font-size: 16px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">{{ lifeCtaAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ lifeCtaEn }}</span></div>
+              <div style="font-size: 14px; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ lifeCtaNoteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ lifeCtaNoteEn }}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">MOBILE 390</div>
+        <div dir="{{ dirAttr }}" style="width: 390px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ lifeEyebrowColor }}">{{ lifeEyebrow }}</div>
+            <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 35px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">{{ lifeTitleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ lifeTitleEn }}</span></div>
+            <div style="font-size: 14px; line-height: 1.9; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ lifeBodyAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ lifeBodyEn }}</span></div>
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">{{ keepLabel }}</div>
+              <sc-for list="{{ keepList }}" as="k" hint-placeholder-count="4">
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid {{ t.hair }}">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{ t.accentText }}" stroke-width="2.2" style="flex: 0 0 auto; margin-top: 4px"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg>
+                  <div style="flex: 1; font-size: 14px; line-height: 1.9"><span style="display: {{ ad }}">{{ k.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ k.en }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">{{ loseLabel }}</div>
+              <sc-for list="{{ loseList }}" as="k" hint-placeholder-count="3">
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px dashed {{ t.border }}">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.6" style="flex: 0 0 auto; margin-top: 4px"><rect x="3" y="7" width="10" height="7"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>
+                  <div style="flex: 1; font-size: 14px; line-height: 1.9"><span style="display: {{ ad }}">{{ k.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ k.en }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background: {{ lifeCtaBg }}; color: {{ lifeCtaFg }}; border: {{ lifeCtaBorder }}; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700"><span style="display: {{ ad }}">{{ lifeCtaAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ lifeCtaEn }}</span></div>
+            <div style="font-size: 12.5px; color: {{ t.sec }}; text-align: center"><span style="display: {{ ad }}">{{ lifeCtaNoteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ lifeCtaNoteEn }}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; gap: 32px; align-items: flex-start">
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">{{ settingsLabel }}</div>
+        <div dir="{{ dirAttr }}" style="width: 1280px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 32px 40px 20px; border-bottom: 1px solid {{ t.hair }}; display: flex; flex-direction: column; gap: 8px">
+            <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 35px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">{{ settingsTitleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ settingsTitleEn }}</span></div>
+            <div style="font-size: 14px; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ settingsSubAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ settingsSubEn }}</span></div>
+          </div>
+          <sc-for list="{{ settingsGroups }}" as="g" hint-placeholder-count="3">
+            <div style="padding: 24px 40px; border-bottom: 1px solid {{ t.hair }}; display: flex; flex-direction: column; gap: 16px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">{{ g.label }}</div>
+              <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+                <div style="display: flex; align-items: center; gap: 24px; padding-bottom: 16px; border-bottom: 1px solid {{ t.hair }}">
+                  <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0">
+                    <div style="font-size: 16px; font-weight: 700"><span style="display: {{ ad }}">{{ r.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.en }}</span></div>
+                    <div style="font-size: 14px; line-height: 1.9; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ r.noteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.noteEn }}</span></div>
+                  </div>
+                  <div dir="ltr" style="flex: 0 0 200px; unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 12.5px; color: {{ t.sec }}">{{ r.value }}</div>
+                  <div style="flex: 0 0 auto; border: {{ r.ctaBorder }}; background: {{ r.ctaBg }}; color: {{ r.ctaFg }}; padding: 12px 20px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap"><span style="display: {{ ad }}">{{ r.ctaAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.ctaEn }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+          <sc-if value="{{ settingsHasDanger }}" hint-placeholder-val="{{ false }}">
+            <div style="margin: 24px 40px 32px; border: 1px solid {{ t.critical }}; border-top: 2px solid {{ t.critical }}; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+              <div style="display: flex; align-items: center; gap: 12px">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{ t.critical }}" stroke-width="1.6" style="flex: 0 0 auto"><circle cx="8" cy="8" r="5.5"></circle><path d="M8 5v3.5M8 10.6v.01"></path></svg>
+                <div style="font-size: 16px; font-weight: 800"><span style="display: {{ ad }}">مسح الحساب</span><span dir="ltr" style="display: {{ ed }}">Delete your account</span></div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px">
+                <div style="display: flex; flex-direction: column; gap: 12px">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">DELETED PERMANENTLY</div>
+                  <sc-for list="{{ deleteLoses }}" as="d" hint-placeholder-count="4">
+                    <div style="display: flex; align-items: flex-start; gap: 12px; font-size: 14px; line-height: 1.9">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{ t.critical }}" stroke-width="1.8" style="flex: 0 0 auto; margin-top: 4px"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+                      <div style="flex: 1"><span style="display: {{ ad }}">{{ d.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ d.en }}</span></div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">KEPT FOR LEGAL REASONS</div>
+                  <sc-for list="{{ deleteKeeps }}" as="d" hint-placeholder-count="2">
+                    <div style="display: flex; align-items: flex-start; gap: 12px; font-size: 14px; line-height: 1.9">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.8" style="flex: 0 0 auto; margin-top: 4px"><path d="M4 2h6l2.5 2.5V14H4z"></path></svg>
+                      <div style="flex: 1"><span style="display: {{ ad }}">{{ d.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ d.en }}</span></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 16px; padding-top: 8px; border-top: 1px solid {{ t.hair }}">
+                <div style="border: 1px solid {{ t.critical }}; color: {{ t.critical }}; padding: 12px 20px; font-size: 14px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">اكتب «مسح» للتأكيد</span><span dir="ltr" style="display: {{ ed }}">Type "delete" to confirm</span></div>
+                <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">مفيش رجوع بعد التأكيد، ومفيش فترة سماح</span><span dir="ltr" style="display: {{ ed }}">No undo after confirming, and no grace period</span></div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">MOBILE 390</div>
+        <div dir="{{ dirAttr }}" style="width: 390px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 20px 16px 16px; border-bottom: 1px solid {{ t.hair }}">
+            <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 35px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">{{ settingsTitleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ settingsTitleEn }}</span></div>
+          </div>
+          <sc-for list="{{ settingsGroups }}" as="g" hint-placeholder-count="3">
+            <div style="padding: 16px; border-bottom: 1px solid {{ t.hair }}; display: flex; flex-direction: column; gap: 12px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">{{ g.label }}</div>
+              <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+                <div style="display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid {{ t.hair }}">
+                  <div style="font-size: 14px; font-weight: 700"><span style="display: {{ ad }}">{{ r.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.en }}</span></div>
+                  <div style="font-size: 12.5px; line-height: 1.9; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ r.noteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.noteEn }}</span></div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ r.value }}</div>
+                    <div style="border: {{ r.ctaBorder }}; background: {{ r.ctaBg }}; color: {{ r.ctaFg }}; min-height: 44px; box-sizing: border-box; display: flex; align-items: center; padding: 0 16px; font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">{{ r.ctaAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.ctaEn }}</span></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div dir="{{ dirAttr }}" style="max-width: 1100px; background: #EDE7DA; padding: 20px; display: flex; flex-direction: column; gap: 12px; color: #23201B">
+    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">DECISIONS · STEP 4</div>
+    <div style="font-size: 14px; line-height: 1.9"><strong style="font-weight: 800">الفلوس دايمًا بعُملتها.</strong> كل رقم فلوس مكتوب <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">EGP</span> جنبه بمونو وأرقام غربية، حتى في الصفوف الصغيرة. مفيش رقم عريان.</div>
+    <div style="font-size: 14px; line-height: 1.9; border-top: 1px solid #DCD3C1; padding-top: 12px"><strong style="font-weight: 800">الدفع مرة واحدة بالبنية مش بالتعطيل.</strong> الزر بيتبدّل بحالة «بنأكّد الدفع» — مش بيبقى زر معطّل — والطلب بمفتاح واحد فالسيرفر بيرفض التكرار.</div>
+    <div style="font-size: 14px; line-height: 1.9; border-top: 1px solid #DCD3C1; padding-top: 12px"><strong style="font-weight: 800">الكاش مطمئن مش مستعجل.</strong> الكود <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">52px</span> ومنسوخ بضغطة، وتاريخ الصلاحية مكتوب كتاريخ — مفيش عدّاد تنازلي ولا «باقي أماكن».</div>
+    <div style="font-size: 14px; line-height: 1.9; border-top: 1px solid #DCD3C1; padding-top: 12px"><strong style="font-weight: 800">الإلغاء بيسأل الأول.</strong> السبب بيحدّد العلاج: «غالي» بيجيب خطة أطول بنفس الفلوس، «مش لاقي وقت» بيجيب تمديد مجاني، «خلصت اللي عايزه» بيجيب الشهادة. مفيش خصم أعمى للكل.</div>
+    <div style="font-size: 14px; line-height: 1.9; border-top: 1px solid #DCD3C1; padding-top: 12px"><strong style="font-weight: 800">انتهاء الصلاحية بيبدأ باللي لسه ليك.</strong> التقدّم والملاحظات والشهادات كلها ظاهرة ومقروءة فوق، واللي اتقفل تحت بحدّ متقطّع وقفل. مفيش «فقدت وصولك».</div>
+    <div style="font-size: 14px; line-height: 1.9; border-top: 1px solid #DCD3C1; padding-top: 12px"><strong style="font-weight: 800">المسح بيفرّق بين اللي بيتمسح واللي بيتفضل.</strong> عمودين صريحين: اللي بيروح للأبد، واللي بنحتفظ بيه قانونًا (الفواتير). التأكيد بكتابة كلمة، مش بضغطة.</div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1800}}">
+class Component extends DCLogic {
+  state = { lang: 'ar', theme: 'light', screen: 'checkout' };
+
+  theme() {
+    return this.state.theme === 'dark'
+      ? { page: '#1D1B17', raised: '#26231D', sunken: '#141310', selected: '#2A2D20', ink: '#EDE7DA', sec: '#A79C88', accent: '#A9C57E', accentText: '#A9C57E', onAccent: '#1D1B17', border: '#7C7666', hair: '#35312A', info: '#93B4DE', attention: '#E0B060', critical: '#E8907F' }
+      : { page: '#EDE7DA', raised: '#F5F1E7', sunken: '#E4DCCB', selected: '#E4E8D8', ink: '#23201B', sec: '#635A4D', accent: '#3F5B22', accentText: '#2E4318', onAccent: '#FFFFFF', border: '#7D7364', hair: '#DCD3C1', info: '#2A4E7A', attention: '#7A4F00', critical: '#8E2A21' };
+  }
+
+  screens() {
+    return [
+      ['checkout', 'الدفع', 'Checkout'],
+      ['cash', 'كاش في فرع', 'Cash pending'],
+      ['confirmed', 'تم الشراء', 'Order confirmed'],
+      ['failed', 'الدفع مانجحش', 'Payment failed'],
+      ['orders', 'طلباتي وفواتيري', 'Orders & invoices'],
+      ['subscription', 'الاشتراك', 'Subscription'],
+      ['cancel', 'إلغاء الاشتراك', 'Cancellation'],
+      ['expired', 'انتهت الصلاحية', 'Expired access'],
+      ['reactivate', 'رجوع للمسار', 'Reactivation'],
+      ['certificates', 'شهاداتي', 'Certificates'],
+      ['certificate', 'تفاصيل الشهادة', 'Certificate detail'],
+      ['account', 'إعدادات الحساب', 'Account settings'],
+      ['devices', 'أجهزتي', 'Devices'],
+      ['help', 'مركز المساعدة', 'Help centre'],
+      ['tickets', 'تذاكري', 'My tickets'],
+      ['thread', 'محادثة تذكرة', 'Ticket thread']
+    ];
+  }
+
+  renderVals() {
+    const ar = this.state.lang === 'ar';
+    const t = this.theme();
+    const light = this.state.theme === 'light';
+    const on = '#23201B', onFg = '#EDE7DA';
+    const s = this.state.screen;
+    const A = k => (ar ? k[0] : k[1]);
+
+    const titles = {
+      checkout: ['الدفع — واللي بيفتحه بالظبط', 'Checkout — and exactly what it opens'],
+      cash: ['كاش في فرع — الطلب محفوظ', 'Cash at an outlet — order saved'],
+      confirmed: ['تم الشراء — على الدرس الأول', 'Purchased — straight into lesson one'],
+      failed: ['الدفع مانجحش — الطلب زي ما هو', "Payment didn't go through — order intact"],
+      orders: ['طلباتي وفواتيري', 'Orders and invoices'],
+      subscription: ['الاشتراك — إيه اللي شغّال', "Subscription — what's active"],
+      cancel: ['الإلغاء — بيسأل ليه الأول', 'Cancellation — it asks why first'],
+      expired: ['انتهت الصلاحية — اللي لسه ليك', "Access expired — what's still yours"],
+      reactivate: ['الرجوع — بكام ومن فين', 'Coming back — what it costs and where you resume'],
+      certificates: ['شهاداتي', 'My certificates'],
+      certificate: ['الشهادة — بكود التأكيد', 'The certificate — with its verification code'],
+      account: ['إعدادات الحساب', 'Account settings'],
+      devices: ['أجهزتي وطلب النقل', 'Devices and transfer requests'],
+      help: ['مركز المساعدة', 'Help centre'],
+      tickets: ['تذاكري', 'My tickets'],
+      thread: ['محادثة تذكرة', 'A ticket thread']
+    };
+
+    const nav = this.screens().map(([k, a, e]) => ({
+      ar: a, en: e,
+      bg: s === k ? on : 'transparent',
+      fg: s === k ? onFg : on,
+      go: () => this.setState({ screen: k })
+    }));
+
+    const radio = (a, e, sel, extra) => Object.assign({
+      ar: a, en: e, on: sel,
+      border: sel ? '1px solid ' + t.accent : '1px solid ' + t.border,
+      bg: sel ? t.selected : 'transparent',
+      weight: sel ? '700' : '400',
+      markBorder: sel ? 'none' : '1px solid ' + t.border,
+      markBg: sel ? t.accent : 'transparent'
+    }, extra || {});
+
+    // ---- records family (orders, certificates, tickets, subscription, help, devices, thread) ----
+    const recordSets = {
+      orders: {
+        label: 'DESKTOP 1280 · ORDERS AND INVOICES',
+        titleAr: 'طلباتي وفواتيري', titleEn: 'Orders and invoices',
+        subAr: 'كل طلب وإيه اللي فتحه وإيه اللي اتدفع', subEn: 'Every order, what it granted, and what was paid',
+        count: '4 ORDERS',
+        cols: [['ORDER', 1.6, 'start'], ['DATE · METHOD', 1, 'start'], ['PAID', 0.8, 'start'], ['STATE', 1, 'start'], ['', 0, 'end']],
+        footAr: 'الفواتير بتتحفظ سبع سنين — بتفضل موجودة هنا حتى لو مسحت حسابك.',
+        footEn: 'Invoices are kept for seven years — they stay here even if you delete your account.',
+        rows: [
+          ['أساسيات البرمجة بـ', 'Programming Foundations', 'وصول دائم · شهادة · 150 سؤال شهريًا', 'Lifetime access · certificate · 150 questions/month', '12 MAY 2026 · CARD', '899 EGP', 'done', 'مدفوع', 'Paid', 'الفاتورة', 'Invoice'],
+          ['تمديد المدرّس الذكي', 'AI tutor extension', '6 شهور إضافية من تاريخ الشراء', 'Six more months from purchase', '2 JUN 2026 · WALLET', '200 EGP', 'done', 'مدفوع', 'Paid', 'الفاتورة', 'Invoice'],
+          ['تطوير الويب — ', 'Web development — ', 'مستني الدفع في الفرع · كود 74192836', 'Awaiting cash at an outlet · code 74192836', '20 AUG 2026 · FAWRY', '1,800 EGP', 'pending', 'مستني الدفع', 'Awaiting payment', 'الكود', 'The code'],
+          ['قواعد البيانات العملية', 'Practical databases', 'الطلب اتلغى قبل الدفع — مفيش خصم', 'Cancelled before payment — nothing charged', '18 AUG 2026 · CARD', '1,400 EGP', 'cancelled', 'ملغي', 'Cancelled', 'اشتري تاني', 'Buy again']
+        ]
+      },
+      certificates: {
+        label: 'DESKTOP 1280 · CERTIFICATES EARNED',
+        titleAr: 'شهاداتي', titleEn: 'My certificates',
+        subAr: 'كل شهادة بكود تأكيد عام يقدر أي صاحب عمل يتحقّق منه', subEn: 'Each one carries a public code any employer can verify',
+        count: '2 EARNED · 1 IN PROGRESS',
+        cols: [['CERTIFICATE', 1.6, 'start'], ['ISSUED · CODE', 1, 'start'], ['SCORE', 0.8, 'start'], ['STATE', 1, 'start'], ['', 0, 'end']],
+        footAr: 'الشهادة بتفضل صالحة وقابلة للتأكيد للأبد، حتى لو وصولك للكورس انتهى.',
+        footEn: 'A certificate stays valid and verifiable forever, even after course access ends.',
+        rows: [
+          ['أساسيات البرمجة بـ', 'Programming Foundations', 'اختبار نهائي 88% · علامة النجاح 70%', 'Final quiz 88% · pass mark 70%', '12 MAY 2026 · JSM-4K9P', '88%', 'done', 'صالحة', 'Valid', 'شارك', 'Share'],
+          ['أساسيات الكمبيوتر', 'Computer basics', 'اختبار القسم 92% · علامة النجاح 60%', 'Section quiz 92% · pass mark 60%', '3 APR 2026 · JSM-2B7X', '92%', 'done', 'صالحة', 'Valid', 'شارك', 'Share'],
+          ['تطوير الويب — ', 'Web development — ', 'باقي 18 درس و3 اختبارات', '18 lessons and 3 quizzes remaining', '— · —', '—', 'pending', 'لسه بتشتغل عليها', 'Still earning it', 'كمّل', 'Continue']
+        ]
+      },
+      tickets: {
+        label: 'DESKTOP 1280 · MY TICKETS',
+        titleAr: 'تذاكري', titleEn: 'My tickets',
+        subAr: 'كل سؤال بعتّه للدعم، مفتوح أو مقفول', subEn: 'Every question you sent support, open or closed',
+        count: '3 TICKETS · 1 OPEN',
+        cols: [['SUBJECT', 1.6, 'start'], ['OPENED · ID', 1, 'start'], ['REPLIES', 0.8, 'start'], ['STATE', 1, 'start'], ['', 0, 'end']],
+        footAr: 'الرد المتوقّع خلال يوم عمل. لو التذكرة عدّت يومين، بتتعلّى تلقائيًا.',
+        footEn: 'Expected reply within one working day. Past two days a ticket escalates automatically.',
+        rows: [
+          ['الفيديو بيقف عند 7:45', 'Video stops at 7:45', 'جرّبت على موبايلين ونفس الحاجة', 'Tried on two phones, same thing', '19 AUG 2026 · TK-8842', '2', 'pending', 'مستني ردنا', 'Awaiting our reply', 'افتح', 'Open'],
+          ['عايز أنقل حسابي على موبايل جديد', 'Moving to a new phone', 'الطلب اتقدّم واتقبل في نفس اليوم', 'Requested and approved the same day', '2 AUG 2026 · TK-8611', '4', 'done', 'اتقفلت', 'Closed', 'افتح', 'Open'],
+          ['الفاتورة مفيهاش اسم الشركة', 'Invoice missing company name', 'اتعدّلت وابعتنا نسخة جديدة', 'Corrected and a new copy sent', '14 MAY 2026 · TK-8203', '3', 'done', 'اتقفلت', 'Closed', 'افتح', 'Open']
+        ]
+      },
+      devices: {
+        label: 'DESKTOP 1280 · DEVICES · TRANSFER REQUEST WAITING',
+        titleAr: 'أجهزتي', titleEn: 'My devices',
+        subAr: 'الحساب مربوط بجهازين. لو غيّرت موبايل، اطلب نقل', subEn: 'Your account is bound to two devices. Changed phone? Request a transfer',
+        count: '2 OF 2 SLOTS USED',
+        cols: [['DEVICE', 1.6, 'start'], ['ADDED · LAST SEEN', 1, 'start'], ['SLOT', 0.8, 'start'], ['STATE', 1, 'start'], ['', 0, 'end']],
+        footAr: 'النقل بياخد لحد 24 ساعة ومحتاج موافقة بشرية — بنعمل كده عشان الحساب مايتشاركش.',
+        footEn: 'A transfer takes up to 24 hours and needs a human approval — that is what stops accounts being shared.',
+        rows: [
+          ['موبايل — ', 'Phone — ', 'الجهاز اللي بتقرا منه دلوقتي', 'The device you are reading this on', '12 MAY 2026 · NOW', '1 / 2', 'done', 'نشط', 'Active', 'الأساسي', 'Primary'],
+          ['لابتوب — ', 'Laptop — ', 'آخر استخدام قبل 3 أيام', 'Last used three days ago', '14 MAY 2026 · 17 AUG', '2 / 2', 'done', 'نشط', 'Active', 'شيله', 'Remove'],
+          ['موبايل جديد — ', 'New phone — ', 'الطلب تحت المراجعة · اتقدّم قبل 39 دقيقة', 'Request under review · submitted 39 minutes ago', '20 AUG 2026 · PENDING', '—', 'pending', 'مستني موافقة', 'Awaiting approval', 'الطلب', 'The request']
+        ]
+      },
+      help: {
+        label: 'DESKTOP 1280 · HELP CENTRE',
+        titleAr: 'مركز المساعدة', titleEn: 'Help centre',
+        subAr: 'المقالات مرتّبة باللي بيتسأل أكتر، والبحث بيدوّر في المتن', subEn: 'Ordered by what is asked most; search covers the full text',
+        count: '24 ARTICLES',
+        cols: [['ARTICLE', 1.6, 'start'], ['UPDATED', 1, 'start'], ['READS', 0.8, 'start'], ['TOPIC', 1, 'start'], ['', 0, 'end']],
+        footAr: 'ملقيتش اللي بتدوّر عليه؟ افتح تذكرة — بتوصل لبني آدم، مش لروبوت.',
+        footEn: 'Not finding it? Open a ticket — it reaches a person, not a bot.',
+        rows: [
+          ['الفيديو واقف أو بيقطّع', 'Video stalls or stutters', 'اعمل إيه على نت بطيء، وإزاي تنزّل الدرس', 'What to do on a slow connection, and how to download', '2 AUG 2026', '1,204', 'done', 'التشغيل', 'Playback', 'اقرا', 'Read'],
+          ['نقل الحساب على موبايل جديد', 'Moving to a new phone', 'الخطوات وإيه اللي بنطلبه للتأكيد', 'The steps and what we ask for as evidence', '14 JUL 2026', '892', 'done', 'الحساب', 'Account', 'اقرا', 'Read'],
+          ['الدفع كاش من فوري', 'Paying cash at Fawry', 'الكود، الصلاحية، وإمتى بيفتح الكورس', 'The code, its validity, and when the course opens', '30 JUN 2026', '744', 'done', 'الدفع', 'Payment', 'اقرا', 'Read'],
+          ['الاسترجاع خلال 14 يوم', 'Refunds within 14 days', 'الشرط الوحيد، والمدة لحد ما الفلوس ترجع', 'The single condition, and how long the money takes', '30 JUN 2026', '512', 'done', 'الدفع', 'Payment', 'اقرا', 'Read']
+        ]
+      }
+    };
+
+    const rs = recordSets[s] || recordSets.orders;
+    const recordsRows = rs.rows.map(([a, e, sa, se, meta, amount, st, stAr, stEn, ctaAr, ctaEn]) => {
+      const done = st === 'done', pending = st === 'pending';
+      return {
+        ar: a, en: e, subAr: sa, subEn: se, meta, amount,
+        isDone: done,
+        dotBg: done ? t.accent : 'transparent',
+        dotBorder: done ? 'none' : pending ? '2px solid ' + t.attention : '1px dashed ' + t.sec,
+        stateAr: stAr, stateEn: stEn,
+        stateColor: pending ? t.attention : t.sec,
+        weight: pending ? '700' : '400',
+        ctaAr, ctaEn
+      };
+    });
+
+    // ---- lifecycle family ----
+    const lifeSets = {
+      confirmed: {
+        label: 'DESKTOP 1280 · LEADS INTO LESSON ONE',
+        eyebrow: 'PAYMENT CONFIRMED · 899 EGP · CARD',
+        eyebrowColor: t.accentText,
+        titleAr: 'تمام يا يوسف. الكورس مفتوح',
+        titleEn: 'Done, Yousef. The course is open',
+        bodyAr: 'الوصول دائم، والشهادة مستنياك آخر المسار. أول درس جاهز دلوقتي — مفيش خطوة تانية قبله.',
+        bodyEn: 'Access is permanent and the certificate is waiting at the end. Lesson one is ready now — there is no step in between.',
+        keepLabel: 'OPEN RIGHT NOW',
+        keep: [['كل الـ41 درس بمشاهدة من غير حدّ', 'All 41 lessons, unlimited replays'], ['الأربع اختبارات، 3 محاولات لكل واحد', 'All four quizzes, three attempts each'], ['المدرّس الذكي — 150 سؤال في الشهر لـ6 شهور', 'The AI tutor — 150 questions a month for six months'], ['الملفات والتمارين المرفقة', 'The attached files and exercises']],
+        loseLabel: 'YOUR RECEIPT',
+        lose: [['الفاتورة وصلت على إيميلك ومحفوظة في «طلباتي»', 'The invoice is in your email and saved in Orders'], ['لك 14 يوم ترجّع فيهم كامل من غير أسباب', 'You have 14 days for a full refund, no reason needed']],
+        ctaAr: 'ابدأ الدرس الأول', ctaEn: 'Start lesson one',
+        ctaNoteAr: 'إيه هو الكمبيوتر أصلاً · 12:40', ctaNoteEn: 'What a computer is · 12:40',
+        primary: true
+      },
+      failed: {
+        label: 'DESKTOP 1280 · ORDER KEPT · NO APOLOGY, NO ERROR CODE',
+        eyebrow: 'CARD DECLINED BY THE BANK',
+        eyebrowColor: t.attention,
+        titleAr: 'البنك رفض الكارت. طلبك محفوظ زي ما هو',
+        titleEn: 'Your bank declined the card. The order is saved as it was',
+        bodyAr: 'ده بيحصل كتير مع الكروت المحلية في الدفع أونلاين، ومش معناه إن فيه مشكلة في حسابك عندنا. مفيش أي مبلغ اتخصم.',
+        bodyEn: 'This happens often with local cards on online payments, and it does not mean anything is wrong with your account here. Nothing was charged.',
+        keepLabel: 'WHAT TO DO — PICK ONE',
+        keep: [['جرّب نفس الكارت تاني — أغلب الرفض ده مؤقت', 'Try the same card again — most declines are temporary'], ['ادفع كاش من أي فرع فوري بكود بيوصلك فورًا', 'Pay cash at any Fawry outlet with a code issued instantly'], ['ادفع من محفظة الموبايل', 'Pay from a mobile wallet'], ['كلّم البنك واسأل عن الدفع أونلاين', 'Call your bank and ask about online payments']],
+        loseLabel: 'YOUR ORDER, UNCHANGED',
+        lose: [['السعر لسه 899 EGP بعرض الافتتاح', 'The price is still 899 EGP with the launch offer'], ['العرض ماشي 11 يوم كمان — الرفض مش بيلغيه', 'The offer runs 11 more days — a decline does not cancel it']],
+        ctaAr: 'جرّب طريقة تانية', ctaEn: 'Try another method',
+        ctaNoteAr: 'الطلب محفوظ — مش محتاج تختار الكورس تاني', ctaNoteEn: 'The order is saved — no need to pick the course again',
+        primary: true
+      },
+      subscription: {
+        label: 'DESKTOP 1280 · SUBSCRIPTION · WHAT IS ACTIVE',
+        eyebrow: 'AI TUTOR EXTENSION · ACTIVE',
+        eyebrowColor: t.accentText,
+        titleAr: 'المدرّس الذكي شغّال لحد 2 ديسمبر',
+        titleEn: 'The AI tutor runs until 2 December',
+        bodyAr: 'الكورسات نفسها وصول دائم ومش محتاجة اشتراك. الاشتراك الوحيد اللي عندك هو تمديد المدرّس الذكي، وده اللي بيتجدّد.',
+        bodyEn: 'The courses themselves are permanent and need no subscription. The only subscription you have is the AI tutor extension, and that is what renews.',
+        keepLabel: 'WHAT IT INCLUDES',
+        keep: [['150 سؤال في الشهر — استخدمت 66 الشهر ده', '150 questions a month — you have used 66 this month'], ['كل الكورسات اللي عندك، بنفس الحصة', 'Every course you own, from the same allowance'], ['الأسئلة اللي مالهاش إجابة بتوصل للأستاذ نفسه', 'Questions with no answer reach the instructor himself']],
+        loseLabel: 'RENEWAL',
+        lose: [['بيتجدّد 2 ديسمبر بـ200 EGP لستة شهور', 'Renews 2 December at 200 EGP for six months'], ['بنبعت تنبيه قبلها بسبعة أيام', 'We notify you seven days before'], ['لو وقّفته، الشرح المكتوب والأسئلة القديمة بتفضل', 'If you stop it, the written notes and past answers stay']],
+        ctaAr: 'وقّف التجديد', ctaEn: 'Stop the renewal',
+        ctaNoteAr: 'مفيش خصم دلوقتي — الوقف بيسري بعد 2 ديسمبر', ctaNoteEn: 'Nothing is charged now — it takes effect after 2 December',
+        primary: false
+      },
+      cancel: {
+        label: 'DESKTOP 1280 · ASKS WHY FIRST · REMEDY MATCHES THE REASON',
+        eyebrow: 'STOPPING THE AI TUTOR RENEWAL',
+        eyebrowColor: t.sec,
+        titleAr: 'قبل ما توقّف — إيه السبب؟',
+        titleEn: 'Before you stop it — what is the reason?',
+        bodyAr: 'بنسأل عشان نعرف نساعد بجد، مش عشان نقنعك. اختار السبب وهنوريك اللي بيحلّه هو بالظبط — ولو محصلش، الوقف بضغطة.',
+        bodyEn: 'We ask so we can actually help, not to talk you out of it. Pick the reason and we will show the thing that solves it — and if it does not, stopping is one tap.',
+        keepLabel: 'WHATEVER YOU CHOOSE, YOU KEEP',
+        keep: [['الكورسات اللي دفعت فيها — وصول دائم', 'The courses you paid for — permanent access'], ['كل ملاحظاتك ومكانك في كل درس', 'Every note, and your place in every lesson'], ['شهاداتك وأكوادها للأبد', 'Your certificates and their codes, forever'], ['الشرح المكتوب لكل درس', 'The written notes for every lesson']],
+        loseLabel: 'AFTER 2 DECEMBER YOU LOSE',
+        lose: [['سؤال جديد للمدرّس الذكي', 'Asking the AI tutor anything new'], ['رفع سؤال جديد للأستاذ', 'Escalating a new question to the instructor']],
+        hasReasons: true,
+        ctaAr: 'وقّف التجديد بردو', ctaEn: 'Stop the renewal anyway',
+        ctaNoteAr: 'بيسري 2 ديسمبر · لحد ساعتها كل حاجة شغّالة', ctaNoteEn: 'Takes effect 2 December · everything works until then',
+        primary: false
+      },
+      expired: {
+        label: 'DESKTOP 1280 · LEADS WITH WHAT IS STILL THEIRS',
+        eyebrow: 'AI TUTOR EXTENSION ENDED 2 DEC 2026',
+        eyebrowColor: t.sec,
+        titleAr: 'كل تقدّمك وملاحظاتك وشهاداتك لسه هنا',
+        titleEn: 'All your progress, notes and certificates are still here',
+        bodyAr: 'اللي انتهى هو تمديد المدرّس الذكي بس. الكورسات اللي دفعت فيها وصول دائم، والمسار كامل مفتوح قدامك زي ما سيبته.',
+        bodyEn: 'What ended is only the AI tutor extension. The courses you paid for are permanent, and the whole path is open exactly as you left it.',
+        keepLabel: 'STILL YOURS · NOTHING CHANGED',
+        keep: [['الـ41 درس بمشاهدة من غير حدّ', 'All 41 lessons, unlimited replays'], ['27 ملاحظة، كل واحدة على ثانيتها', '27 notes, each stamped at its second'], ['شهادتك وكودها JSM-4K9P', 'Your certificate and its code JSM-4K9P'], ['الشرح المكتوب وأسئلة اللي قبلك على كل درس', 'The written notes and other learners questions on every lesson']],
+        loseLabel: 'PAUSED UNTIL YOU COME BACK',
+        lose: [['سؤال جديد للمدرّس الذكي', 'Asking the AI tutor anything new'], ['رفع سؤال جديد للأستاذ', 'Escalating a new question to the instructor']],
+        ctaAr: 'شوف الرجوع بكام', ctaEn: 'See what coming back costs',
+        ctaNoteAr: 'مفيش استعجال — اللي فوق مش بيروح', ctaNoteEn: 'No hurry — none of the above goes away',
+        primary: false
+      },
+      reactivate: {
+        label: 'DESKTOP 1280 · REACTIVATION · WHERE YOU RESUME',
+        eyebrow: 'REACTIVATING THE AI TUTOR EXTENSION',
+        eyebrowColor: t.accentText,
+        titleAr: 'ترجع من عند الدرس 12، عند الثانية 7:45',
+        titleEn: 'You resume at lesson 12, at 7:45',
+        bodyAr: 'مش من الأول. مكانك محفوظ بالثانية من يوم 20 أغسطس، والمسار بيكمّل من نفس النقطة.',
+        bodyEn: 'Not from the beginning. Your place has been saved to the second since 20 August, and the path continues from there.',
+        keepLabel: 'WHAT REACTIVATION OPENS',
+        keep: [['150 سؤال في الشهر تاني', '150 questions a month again'], ['رفع الأسئلة للأستاذ', 'Escalating questions to the instructor'], ['الحصة بتبدأ من يوم الدفع، مش من يوم الانتهاء', 'The allowance starts on the payment date, not the lapse date']],
+        loseLabel: 'THE COST, STATED PLAINLY',
+        lose: [['200 EGP لستة شهور — نفس سعر أول مرة', '200 EGP for six months — the same price as the first time'], ['مفيش رسوم رجوع ومفيش فرق سعر', 'No reactivation fee and no price difference']],
+        ctaAr: 'رجّع المدرّس الذكي', ctaEn: 'Reactivate the AI tutor',
+        ctaNoteAr: 'الدرس 12 · باقي 6:20 · هتخلّص 15 سبتمبر', ctaNoteEn: 'Lesson 12 · 6:20 remaining · finishing 15 September',
+        primary: true
+      },
+      certificate: {
+        label: 'DESKTOP 1280 · CERTIFICATE DETAIL · VERIFICATION AND SHARING',
+        eyebrow: 'ISSUED 12 MAY 2026 · CODE JSM-4K9P-8F2C',
+        eyebrowColor: t.accentText,
+        titleAr: 'أساسيات البرمجة بـPython — يوسف سامي عبد الله',
+        titleEn: 'Programming Foundations with Python — Yousef Samy Abdallah',
+        bodyAr: 'الشهادة دي قابلة للتأكيد من أي حد من غير حساب. أي صاحب عمل بيكتب الكود على صفحة التأكيد العامة وبيشوف الاسم والكورس والتاريخ.',
+        bodyEn: 'This certificate is verifiable by anyone, without an account. An employer enters the code on the public verification page and sees the name, the course and the date.',
+        keepLabel: 'WHAT IT STATES',
+        keep: [['اتمّ الـ41 درس والأربع اختبارات', 'Completed all 41 lessons and four quizzes'], ['اختبار نهائي 88% وعلامة النجاح 70%', 'Final quiz 88%, pass mark 70%'], ['14 ساعة و20 دقيقة محتوى معتمد', '14 hours 20 minutes of assessed content'], ['التاريخ والكود، وبيفضلوا صالحين للأبد', 'The date and the code, valid forever']],
+        loseLabel: 'HOW TO SHARE IT',
+        lose: [['رابط عام يفتح صفحة التأكيد بالكود', 'A public link that opens verification with the code'], ['نسخة PDF بالكود مطبوع عليها', 'A PDF copy with the code printed on it'], ['نص جاهز لـLinkedIn فيه الكود', 'Ready text for LinkedIn including the code']],
+        ctaAr: 'انسخ رابط التأكيد', ctaEn: 'Copy the verification link',
+        ctaNoteAr: 'josam.academy/verify/JSM-4K9P-8F2C', ctaNoteEn: 'josam.academy/verify/JSM-4K9P-8F2C',
+        primary: true
+      },
+      thread: {
+        label: 'DESKTOP 1280 · TICKET THREAD TK-8842',
+        eyebrow: 'TK-8842 · OPENED 19 AUG 2026 · AWAITING OUR REPLY',
+        eyebrowColor: t.attention,
+        titleAr: 'الفيديو بيقف عند 7:45',
+        titleEn: 'Video stops at 7:45',
+        bodyAr: 'يوسف: بحاول أكمّل الدرس 12 وكل شوية الفيديو بيقف عند نفس الثانية بالظبط. جرّبت على موبايلين ونفس الحاجة، والنت عندي شغّال عادي.',
+        bodyEn: 'Yousef: I am trying to finish lesson 12 and the video keeps stopping at exactly the same second. I tried two phones with the same result, and my connection is fine otherwise.',
+        keepLabel: 'REPLIES · 2',
+        keep: [['الدعم، 19 أغسطس: شكرًا — الحاجة اللي زي دي غالبًا في ملف الفيديو نفسه مش عندك. بنراجعه.', 'Support, 19 Aug: Thanks — this pattern is usually the video file itself, not you. We are checking it.'], ['يوسف، 20 أغسطس: تمام، مستني.', 'Yousef, 20 Aug: Alright, waiting.']],
+        loseLabel: 'WHAT HAPPENS NEXT',
+        lose: [['الرد المتوقّع خلال يوم عمل', 'Expected reply within one working day'], ['لو عدّت يومين، التذكرة بتتعلّى تلقائيًا للأستاذ', 'Past two days it escalates automatically to the instructor']],
+        ctaAr: 'اكتب رد', ctaEn: 'Write a reply',
+        ctaNoteAr: 'التذكرة مفتوحة — مفيش داعي تفتح واحدة جديدة', ctaNoteEn: 'The ticket is open — no need to open another',
+        primary: false
+      }
+    };
+    const lf = lifeSets[s] || lifeSets.confirmed;
+
+    return {
+      t,
+      dirAttr: ar ? 'rtl' : 'ltr',
+      ad: ar ? 'inline' : 'none',
+      ed: ar ? 'none' : 'inline',
+      arrowFlip: ar ? 'none' : 'scaleX(-1)',
+      arBg: ar ? on : 'transparent', arFg: ar ? onFg : on,
+      enBg: ar ? 'transparent' : on, enFg: ar ? on : onFg,
+      liBg: light ? on : 'transparent', liFg: light ? onFg : on,
+      dkBg: light ? 'transparent' : on, dkFg: light ? on : onFg,
+      setAr: () => this.setState({ lang: 'ar' }),
+      setEn: () => this.setState({ lang: 'en' }),
+      setLight: () => this.setState({ theme: 'light' }),
+      setDark: () => this.setState({ theme: 'dark' }),
+      navItems: nav,
+      screenTitle: A(titles[s]),
+
+      isCheckout: s === 'checkout',
+      isCash: s === 'cash',
+      isRecords: ['orders', 'certificates', 'tickets', 'devices', 'help'].indexOf(s) >= 0,
+      isLifecycle: ['confirmed', 'failed', 'subscription', 'cancel', 'expired', 'reactivate', 'certificate', 'thread'].indexOf(s) >= 0,
+      isSettings: s === 'account',
+
+      grants: [
+        { ar: 'الـ41 درس كلهم، بمشاهدة من غير حدّ وعلى أي جهاز من أجهزتك', en: 'All 41 lessons, unlimited replays on any of your devices' },
+        { ar: 'الأربع اختبارات، ولك 3 محاولات في كل واحد', en: 'All four quizzes, with three attempts each' },
+        { ar: 'المدرّس الذكي — 150 سؤال في الشهر، لستة شهور من تاريخ الشراء', en: 'The AI tutor — 150 questions a month, for six months from purchase' },
+        { ar: 'الملفات والتمارين المرفقة بكل درس', en: 'The files and exercises attached to every lesson' },
+        { ar: 'شهادة قابلة للتأكيد باسمك لما تخلّص', en: 'A verifiable certificate in your name when you finish' }
+      ],
+      payMethods: [
+        radio('كارت بنكي', 'Bank card', true, { noteAr: 'بيفتح الكورس فورًا · فيزا وماستركارد وميزة', noteEn: 'Opens the course instantly · Visa, Mastercard, Meeza' }),
+        radio('كاش من فرع فوري', 'Cash at a Fawry outlet', false, { noteAr: 'بناخد كود، تدفع في أي فرع، والكورس بيفتح لوحده', noteEn: 'You get a code, pay at any outlet, the course opens by itself' }),
+        radio('محفظة موبايل', 'Mobile wallet', false, { noteAr: 'فودافون كاش وأورانج كاش وإتصالات كاش', noteEn: 'Vodafone Cash, Orange Cash, Etisalat Cash' })
+      ],
+      priceLines: [
+        { ar: 'سعر الكورس', en: 'Course price', amount: '1,200 EGP', color: t.sec, weight: '400', strike: 'line-through' },
+        { ar: 'عرض الافتتاح — باقي 11 يوم', en: 'Launch offer — 11 days left', amount: '−301 EGP', color: t.accentText, weight: '700', strike: 'none' },
+        { ar: 'ضريبة', en: 'Tax', amount: 'INCLUDED', color: t.sec, weight: '400', strike: 'none' },
+        { ar: 'وصول دائم وشهادة', en: 'Lifetime access and certificate', amount: 'INCLUDED', color: t.sec, weight: '400', strike: 'none' }
+      ],
+      cashSteps: [
+        { n: '1', ar: 'روح لأي فرع فوري', en: 'Go to any Fawry outlet', noteAr: 'أكتر من 200 ألف نقطة — بقالة، صيدلية، محل موبايلات', noteEn: 'Over 200,000 points — groceries, pharmacies, phone shops', dotBg: t.accent, dotBorder: 'none', numColor: t.onAccent },
+        { n: '2', ar: 'قول الكود وادفع 899 EGP', en: 'Give the code and pay 899 EGP', noteAr: 'الكود ده بس — مش محتاج إيميلك ولا رقمك', noteEn: 'Just the code — they do not need your email or number', dotBg: 'transparent', dotBorder: '1px solid ' + t.ink, numColor: t.ink },
+        { n: '3', ar: 'الكورس بيفتح لوحده', en: 'The course opens by itself', noteAr: 'في دقايق من الدفع، وبيوصلك إشعار وإيميل', noteEn: 'Within minutes of paying, with a notification and an email', dotBg: 'transparent', dotBorder: '1px dashed ' + t.sec, numColor: t.sec }
+      ],
+
+      recordsLabel: rs.label,
+      recordsTitleAr: rs.titleAr, recordsTitleEn: rs.titleEn,
+      recordsSubAr: rs.subAr, recordsSubEn: rs.subEn,
+      recordsCount: rs.count,
+      recordsFootAr: rs.footAr, recordsFootEn: rs.footEn,
+      recordsCols: rs.cols.map(([label, flex, align]) => ({
+        label, flex: String(flex), align,
+        justify: align === 'end' ? 'flex-end' : 'flex-start'
+      })),
+      recordsRows,
+
+      lifeLabel: lf.label,
+      lifeEyebrow: lf.eyebrow,
+      lifeEyebrowColor: lf.eyebrowColor,
+      lifeTitleAr: lf.titleAr, lifeTitleEn: lf.titleEn,
+      lifeBodyAr: lf.bodyAr, lifeBodyEn: lf.bodyEn,
+      keepLabel: lf.keepLabel, loseLabel: lf.loseLabel,
+      keepList: lf.keep.map(([a, e]) => ({ ar: a, en: e })),
+      loseList: lf.lose.map(([a, e]) => ({ ar: a, en: e })),
+      lifeHasReasons: !!lf.hasReasons,
+      lifeCtaAr: lf.ctaAr, lifeCtaEn: lf.ctaEn,
+      lifeCtaNoteAr: lf.ctaNoteAr, lifeCtaNoteEn: lf.ctaNoteEn,
+      lifeCtaBg: lf.primary ? t.accent : 'transparent',
+      lifeCtaFg: lf.primary ? t.onAccent : t.ink,
+      lifeCtaBorder: lf.primary ? 'none' : '1px solid ' + t.ink,
+
+      reasons: [
+        radio('غالي عليّ دلوقتي', 'Too expensive right now', false, { remedyAr: '', remedyEn: '', ctaAr: '', ctaEn: '' }),
+        radio('مش لاقي وقت أذاكر', 'I cannot find the time', true, {
+          remedyAr: 'مش محتاج توقّف. بنمدّد لك شهرين مجانًا وبنعدّل تاريخ نهايتك من 15 سبتمبر لـ12 نوفمبر — نفس الخطة بوتيرة أهدى.',
+          remedyEn: 'You do not need to stop. We add two months at no cost and move your finish date from 15 September to 12 November — the same plan at a calmer pace.',
+          ctaAr: 'مدّد شهرين مجانًا', ctaEn: 'Add two months free' }),
+        radio('خلصت اللي كنت عايزه', 'I got what I came for', false, { remedyAr: '', remedyEn: '', ctaAr: '', ctaEn: '' }),
+        radio('المدرّس الذكي مش بيفيدني', 'The AI tutor is not helping me', false, { remedyAr: '', remedyEn: '', ctaAr: '', ctaEn: '' })
+      ],
+
+      settingsLabel: 'DESKTOP 1280 · ACCOUNT SETTINGS · DELETION STATED PLAINLY',
+      settingsTitleAr: 'إعدادات الحساب', settingsTitleEn: 'Account settings',
+      settingsSubAr: 'كل تغيير بيسري فورًا، وبنقول لك أثره قبل ما يحصل',
+      settingsSubEn: 'Every change takes effect immediately, and we state its effect before it happens',
+      settingsHasDanger: true,
+      settingsGroups: [
+        { label: 'PROFILE', rows: [
+          { ar: 'الاسم', en: 'Name', noteAr: 'ده الاسم اللي بيتطبع على الشهادة — غيّره قبل ما تخلّص الكورس', noteEn: 'This is the name printed on your certificate — change it before you finish', value: 'يوسف سامي عبد الله', ctaAr: 'غيّر', ctaEn: 'Change', ctaBorder: '1px solid ' + t.ink, ctaBg: 'transparent', ctaFg: t.ink },
+          { ar: 'الإيميل', en: 'Email', noteAr: 'بنستخدمه للدخول وللفواتير', noteEn: 'Used for signing in and for invoices', value: 'y•••••f@gmail.com', ctaAr: 'غيّر', ctaEn: 'Change', ctaBorder: '1px solid ' + t.ink, ctaBg: 'transparent', ctaFg: t.ink },
+          { ar: 'رقم الموبايل', en: 'Mobile number', noteAr: 'للدخول بكود، ولتنبيهات الدفع الكاش', noteEn: 'For code sign-in and cash payment notifications', value: '+20 10 •••• 5678', ctaAr: 'غيّر', ctaEn: 'Change', ctaBorder: '1px solid ' + t.ink, ctaBg: 'transparent', ctaFg: t.ink }
+        ] },
+        { label: 'HOW THE APP LOOKS AND SPEAKS', rows: [
+          { ar: 'اللغة', en: 'Language', noteAr: 'بتغيّر الواجهة كلها واتجاهها — المحتوى نفسه بالعربي', noteEn: 'Changes the whole interface and its direction — the content itself is in Arabic', value: 'العربية · RTL', ctaAr: 'غيّر', ctaEn: 'Change', ctaBorder: '1px solid ' + t.ink, ctaBg: 'transparent', ctaFg: t.ink },
+          { ar: 'المظهر', en: 'Theme', noteAr: 'المشغّل بيفضل غامق في الحالتين — الفيديو محتاج كده', noteEn: 'The player stays dark either way — video needs it', value: 'FOLLOW DEVICE', ctaAr: 'غيّر', ctaEn: 'Change', ctaBorder: '1px solid ' + t.ink, ctaBg: 'transparent', ctaFg: t.ink },
+          { ar: 'التنبيهات', en: 'Notifications', noteAr: 'تنبيه واحد في الأسبوع عن وتيرتك، وتنبيه لما درس جديد يفتح', noteEn: 'One weekly note on your pace, and one when a lesson opens', value: '2 OF 4 ON', ctaAr: 'اختار', ctaEn: 'Choose', ctaBorder: '1px solid ' + t.ink, ctaBg: 'transparent', ctaFg: t.ink }
+        ] },
+        { label: 'SIGNING IN', rows: [
+          { ar: 'جوجل', en: 'Google', noteAr: 'مربوط — تقدر تفصله لو عندك كلمة سر', noteEn: 'Linked — you can unlink it as long as you have a password', value: 'LINKED · y•••••f@gmail.com', ctaAr: 'افصل', ctaEn: 'Unlink', ctaBorder: '1px solid ' + t.ink, ctaBg: 'transparent', ctaFg: t.ink },
+          { ar: 'كلمة السر', en: 'Password', noteAr: 'آخر تغيير قبل 3 شهور', noteEn: 'Last changed three months ago', value: 'SET · 14 MAY 2026', ctaAr: 'غيّرها', ctaEn: 'Change', ctaBorder: '1px solid ' + t.ink, ctaBg: 'transparent', ctaFg: t.ink }
+        ] }
+      ],
+      deleteLoses: [
+        { ar: 'تقدّمك في كل الكورسات ومكانك في كل درس', en: 'Your progress in every course and your place in every lesson' },
+        { ar: 'كل ملاحظاتك — 27 ملاحظة', en: 'All 27 of your notes' },
+        { ar: 'محادثاتك مع المدرّس الذكي', en: 'Your AI tutor conversations' },
+        { ar: 'وصولك للكورسات اللي دفعت فيها — من غير استرجاع', en: 'Your access to the courses you paid for — with no refund' }
+      ],
+      deleteKeeps: [
+        { ar: 'الفواتير — القانون بيلزمنا نحتفظ بيها سبع سنين', en: 'Invoices — the law requires us to keep them for seven years' },
+        { ar: 'الشهادات وأكوادها بتفضل قابلة للتأكيد للأبد', en: 'Certificates and their codes stay verifiable forever' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

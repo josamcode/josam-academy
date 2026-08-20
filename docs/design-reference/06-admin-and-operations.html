@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+body { margin: 0; background: #DED7C7; }
+a { color: #3F5B22; text-decoration: none; }
+a:hover { color: #2E4318; text-decoration: underline; }
+</style>
+</helmet>
+<div style="width: 1960px; box-sizing: border-box; background: #DED7C7; padding: 32px 40px 56px; display: flex; flex-direction: column; gap: 24px; font-family: 'Almarai', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif">
+
+  <div dir="{{ dirAttr }}" style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid #23201B; padding-bottom: 16px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">JOSAM ACADEMY · STEP 5 · ADMIN AND OPERATIONS · DENSE MODE</div>
+      <div style="font-size: 22px; font-weight: 800; color: #23201B">{{ screenTitle }}</div>
+    </div>
+    <div style="display: flex; align-items: flex-end; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">ROLE · CHANGES WHAT EXISTS</div>
+        <div style="display: flex; border: 1px solid #23201B; width: fit-content">
+          <div onClick="{{ setOwner }}" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; background: {{ ownBg }}; color: {{ ownFg }}"><span style="display: {{ ad }}">المالك</span><span dir="ltr" style="display: {{ ed }}">Owner</span></div>
+          <div onClick="{{ setSupport }}" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ supBg }}; color: {{ supFg }}"><span style="display: {{ ad }}">دعم</span><span dir="ltr" style="display: {{ ed }}">Support</span></div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">THEME</div>
+        <div style="display: flex; border: 1px solid #23201B; width: fit-content">
+          <div onClick="{{ setLight }}" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; background: {{ liBg }}; color: {{ liFg }}"><span style="display: {{ ad }}">النهار</span><span dir="ltr" style="display: {{ ed }}">Light</span></div>
+          <div onClick="{{ setDark }}" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ dkBg }}; color: {{ dkFg }}"><span style="display: {{ ad }}">الليل</span><span dir="ltr" style="display: {{ ed }}">Dark</span></div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">LANGUAGE</div>
+        <div style="display: flex; border: 1px solid #23201B; width: fit-content">
+          <div onClick="{{ setAr }}" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; background: {{ arBg }}; color: {{ arFg }}">العربية</div>
+          <div onClick="{{ setEn }}" dir="ltr" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ enBg }}; color: {{ enFg }}">English</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div dir="{{ dirAttr }}" style="display: flex; flex-wrap: wrap; gap: 8px">
+    <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="18">
+      <div onClick="{{ n.go }}" style="padding: 8px 16px; border: 1px solid #23201B; background: {{ n.bg }}; color: {{ n.fg }}; font-size: 12.5px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">{{ n.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ n.en }}</span></div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ isOps }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; gap: 32px; align-items: flex-start">
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">DESKTOP 1440 · ATTENTION QUEUE IS THE FIRST AND HEAVIEST BLOCK</div>
+        <div dir="{{ dirAttr }}" style="width: 1440px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 12px 24px; border-bottom: 1px solid {{ t.hair }}; background: {{ t.raised }}">
+            <div style="display: flex; align-items: center; gap: 20px">
+              <div style="font-size: 14px; font-weight: 800">جوسام · إدارة</div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; border: 1px solid {{ t.attention }}; color: {{ t.attention }}; padding: 4px 8px">REFERENCE DATA · PRE-LAUNCH</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">20 AUG 2026 · 09:12 · {{ roleTag }}</div>
+              <div style="width: 24px; height: 24px; border-radius: 50%; background: {{ t.ink }}; color: {{ t.page }}; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700">ج س</div>
+            </div>
+          </div>
+
+          <div style="padding: 20px 24px 12px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="font-size: 22px; font-weight: 800"><span style="display: {{ ad }}">محتاج قرار منك</span><span dir="ltr" style="display: {{ ed }}">Needs a decision from you</span></div>
+              <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">مرتّبة بالأقدم أولاً — كل واحدة بتتقفل بضغطة واحدة</span><span dir="ltr" style="display: {{ ed }}">Oldest first — each one closes in a single click</span></div>
+            </div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ queueTotal }}</div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; padding: 8px 24px; background: {{ t.sunken }}; border-block: 1px solid {{ t.hair }}">
+            <div style="flex: 0 0 40px; display: flex; align-items: center; justify-content: flex-start"><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">AGE</span></div>
+            <div style="flex: 0 0 132px; display: flex; align-items: center; justify-content: flex-start"><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">KIND</span></div>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-start"><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">WHAT IT IS</span></div>
+            <div style="flex: 0 0 148px; display: flex; align-items: center; justify-content: flex-start"><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">ENTITY ID</span></div>
+            <div style="flex: 0 0 236px; display: flex; align-items: center; justify-content: flex-end"><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">ONE-CLICK RESOLUTION</span></div>
+          </div>
+
+          <sc-for list="{{ queue }}" as="q" hint-placeholder-count="6">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 24px; border-bottom: 1px solid {{ t.hair }}; background: {{ q.bg }}">
+              <div style="flex: 0 0 40px; display: flex; align-items: center; justify-content: flex-start"><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ q.ageColor }}; font-weight: {{ q.weight }}">{{ q.age }}</span></div>
+              <div style="flex: 0 0 132px; display: flex; align-items: center; gap: 8px">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: {{ q.dotBg }}; border: {{ q.dotBorder }}; flex: 0 0 auto"></div>
+                <div style="font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">{{ q.kindAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ q.kindEn }}</span></div>
+              </div>
+              <div style="flex: 1; font-size: 12.5px; line-height: 1.45; min-width: 0"><span style="display: {{ ad }}">{{ q.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ q.en }}</span></div>
+              <div style="flex: 0 0 148px; display: flex; align-items: center; justify-content: flex-start; gap: 8px">
+                <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ q.id }}</span>
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.6" style="flex: 0 0 auto; cursor: pointer"><rect x="5" y="5" width="8" height="9"></rect><path d="M3 11V2h8"></path></svg>
+              </div>
+              <div style="flex: 0 0 236px; display: flex; gap: 8px; justify-content: flex-end">
+                <sc-for list="{{ q.actions }}" as="a" hint-placeholder-count="2">
+                  <div style="border: {{ a.border }}; background: {{ a.bg }}; color: {{ a.fg }}; padding: 4px 12px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap"><span style="display: {{ ad }}">{{ a.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ a.en }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+
+          <div style="padding: 16px 24px 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-top: 1px solid {{ t.hair }}">
+            <div style="font-size: 14px; font-weight: 800"><span style="display: {{ ad }}">أرقام التشغيل</span><span dir="ltr" style="display: {{ ed }}">Operating numbers</span></div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">EVERY WIDGET STATES ITS PERIOD AND LOADS ON ITS OWN</div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: {{ t.hair }}; margin: 0 24px 20px">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="8">
+              <div style="background: {{ t.page }}; padding: 12px; display: flex; flex-direction: column; gap: 4px; min-height: 96px">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">{{ k.label }}</div>
+                <sc-if value="{{ k.failed }}" hint-placeholder-val="{{ false }}">
+                  <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center">
+                    <div style="display: flex; align-items: center; gap: 8px">
+                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="{{ t.attention }}" stroke-width="1.6" style="flex: 0 0 auto"><circle cx="8" cy="8" r="5.5"></circle><path d="M8 5v3.5M8 10.6v.01"></path></svg>
+                      <div style="font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">مجابش</span><span dir="ltr" style="display: {{ ed }}">Didn't load</span></div>
+                    </div>
+                    <div style="border: 1px solid {{ t.ink }}; padding: 4px 12px; font-size: 11px; font-weight: 700; width: fit-content; cursor: pointer"><span style="display: {{ ad }}">اطلبه تاني</span><span dir="ltr" style="display: {{ ed }}">Retry this one</span></div>
+                    <div style="font-size: 11px; color: {{ t.sec }}"><span style="display: {{ ad }}">باقي الأرقام سليمة</span><span dir="ltr" style="display: {{ ed }}">The rest are fine</span></div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ k.ok }}" hint-placeholder-val="{{ true }}">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 22px; font-weight: 500; line-height: 1.4; font-variant-numeric: tabular-nums; color: {{ k.valueColor }}">{{ k.value }}</div>
+                  <div style="font-size: 11px; line-height: 1.45; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ k.noteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ k.noteEn }}</span></div>
+                  <div style="margin-top: auto; display: flex; align-items: center; gap: 8px">
+                    <div style="width: 8px; height: 8px; background: {{ k.trendColor }}; flex: 0 0 auto"></div>
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: {{ k.trendColor }}">{{ k.basis }}</div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">MOBILE 390 · APPROVING FROM A PHONE</div>
+        <div dir="{{ dirAttr }}" style="width: 390px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="padding: 12px 16px; background: {{ t.raised }}; border-bottom: 1px solid {{ t.hair }}; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+              <div style="font-size: 14px; font-weight: 800">جوسام · إدارة</div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ roleTag }}</div>
+            </div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; border: 1px solid {{ t.attention }}; color: {{ t.attention }}; padding: 4px 8px; width: fit-content">REFERENCE DATA · PRE-LAUNCH</div>
+          </div>
+          <div style="padding: 16px 16px 8px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+            <div style="font-size: 22px; font-weight: 800"><span style="display: {{ ad }}">محتاج قرار</span><span dir="ltr" style="display: {{ ed }}">Needs a decision</span></div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ queueTotal }}</div>
+          </div>
+          <sc-for list="{{ queue }}" as="q" hint-placeholder-count="6">
+            <div style="padding: 12px 16px; border-bottom: 1px solid {{ t.hair }}; background: {{ q.bg }}; display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <div style="width: 12px; height: 12px; border-radius: 50%; background: {{ q.dotBg }}; border: {{ q.dotBorder }}; flex: 0 0 auto"></div>
+                  <div style="font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">{{ q.kindAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ q.kindEn }}</span></div>
+                </div>
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ q.ageColor }}; font-weight: {{ q.weight }}">{{ q.age }}</div>
+              </div>
+              <div style="font-size: 12.5px; line-height: 1.45"><span style="display: {{ ad }}">{{ q.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ q.en }}</span></div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: {{ t.sec }}">{{ q.id }}</div>
+              <div style="display: flex; gap: 8px">
+                <sc-for list="{{ q.actions }}" as="a" hint-placeholder-count="2">
+                  <div style="flex: 1; border: {{ a.border }}; background: {{ a.bg }}; color: {{ a.fg }}; min-height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">{{ a.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ a.en }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 1px; background: {{ t.hair }}">
+            <sc-for list="{{ kpisMobile }}" as="k" hint-placeholder-count="4">
+              <div style="background: {{ t.page }}; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">{{ k.label }}</div>
+                  <div style="font-size: 11px; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ k.noteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ k.noteEn }}</span></div>
+                </div>
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 22px; font-weight: 500; color: {{ k.valueColor }}; flex: 0 0 auto">{{ k.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isTable }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; gap: 32px; align-items: flex-start">
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">{{ tbl.label }}</div>
+        <div dir="{{ dirAttr }}" style="width: 1440px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 12px 24px; border-bottom: 1px solid {{ t.hair }}; background: {{ t.raised }}">
+            <div style="display: flex; align-items: center; gap: 16px">
+              <div style="font-size: 14px; font-weight: 800"><span style="display: {{ ad }}">{{ tbl.titleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ tbl.titleEn }}</span></div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; border: 1px solid {{ t.attention }}; color: {{ t.attention }}; padding: 4px 8px">REFERENCE DATA</div>
+            </div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ tbl.url }}</div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; padding: 8px 24px; border-bottom: 1px solid {{ t.hair }}">
+            <div dir="ltr" style="flex: 0 0 200px; border: 1px solid {{ t.border }}; background: {{ t.sunken }}; padding: 4px 8px; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ tbl.search }}</div>
+            <sc-for list="{{ tbl.filters }}" as="f" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 4px; border: 1px solid {{ f.border }}; background: {{ f.bg }}; padding: 4px 8px">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: {{ f.fg }}">{{ f.label }}</div>
+                <sc-if value="{{ f.on }}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="{{ f.fg }}" stroke-width="2"><path d="M4 4l8 8M12 4l-8 8"></path></svg></sc-if>
+              </div>
+            </sc-for>
+            <div style="flex: 1"></div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ tbl.count }}</div>
+            <div style="border: 1px solid {{ t.ink }}; padding: 4px 12px; font-size: 11px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">صدّر بالفلاتر دي</span><span dir="ltr" style="display: {{ ed }}">Export with these filters</span></div>
+          </div>
+
+          <sc-if value="{{ tbl.hasBulk }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: center; gap: 16px; padding: 8px 24px; background: {{ t.selected }}; border-bottom: 1px solid {{ t.hair }}">
+              <div style="font-size: 12.5px; font-weight: 700; color: {{ t.accentText }}"><span style="display: {{ ad }}">مختار <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">3</span> من الصفحة دي</span><span dir="ltr" style="display: {{ ed }}">3 selected on this page</span></div>
+              <div style="font-size: 12.5px; color: {{ t.sec }}"><span style="display: {{ ad }}">·</span><span dir="ltr" style="display: {{ ed }}">·</span></div>
+              <div style="font-size: 12.5px; text-decoration: underline; cursor: pointer"><span style="display: {{ ad }}">اختار كل <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">312</span> اللي مطابقين الفلتر</span><span dir="ltr" style="display: {{ ed }}">Select all 312 matching the filter</span></div>
+              <div style="flex: 1"></div>
+              <div style="border: 1px solid {{ t.ink }}; padding: 4px 12px; font-size: 11px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">ابعت إيميل لـ<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">3</span></span><span dir="ltr" style="display: {{ ed }}">Email 3 learners</span></div>
+              <div style="border: 1px solid {{ t.ink }}; padding: 4px 12px; font-size: 11px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">مدّد وصول <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">3</span></span><span dir="ltr" style="display: {{ ed }}">Extend access for 3</span></div>
+            </div>
+          </sc-if>
+
+          <div style="display: flex; align-items: center; gap: 12px; padding: 6px 24px; background: {{ t.sunken }}; border-bottom: 1px solid {{ t.hair }}; position: sticky; top: 0">
+            <sc-for list="{{ tbl.cols }}" as="c" hint-placeholder-count="7">
+              <div style="flex: {{ c.flex }}; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ c.color }}; display: flex; align-items: center; gap: 4px; justify-content: {{ c.justify }}">
+                <span dir="ltr" style="unicode-bidi: isolate">{{ c.label }}</span>
+                <sc-if value="{{ c.sorted }}" hint-placeholder-val="{{ false }}"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="{{ t.ink }}" stroke-width="2.4" style="transform: {{ sortFlip }}"><polyline points="4 6 8 10 12 6"></polyline></svg></sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-for list="{{ tbl.rows }}" as="r" hint-placeholder-count="8">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 6px 24px; border-bottom: 1px solid {{ t.hair }}; background: {{ r.bg }}">
+              <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="7">
+                <div style="flex: {{ c.flex }}; min-width: 0; display: flex; align-items: center; gap: 6px; justify-content: {{ c.justify }}">
+                  <sc-if value="{{ c.hasDot }}" hint-placeholder-val="{{ false }}">
+                    <div style="width: 10px; height: 10px; border-radius: 50%; background: {{ c.dotBg }}; border: {{ c.dotBorder }}; flex: 0 0 auto"></div>
+                  </sc-if>
+                  <div dir="{{ c.dir }}" style="unicode-bidi: {{ c.bidi }}; font-family: {{ c.font }}; font-size: 12.5px; color: {{ c.color }}; font-weight: {{ c.weight }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums">{{ c.text }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 8px 24px; border-top: 1px solid {{ t.hair }}; background: {{ t.raised }}">
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ tbl.pageInfo }}</div>
+            <div style="display: flex; align-items: center; gap: 4px">
+              <div style="border: 1px solid {{ t.border }}; padding: 4px 8px; display: flex; align-items: center; cursor: pointer"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="{{ t.ink }}" stroke-width="1.8" style="transform: {{ arrowFlip }}"><polyline points="10 3 5 8 10 13"></polyline></svg></div>
+              <div dir="ltr" style="border: 1px solid {{ t.ink }}; background: {{ t.ink }}; color: {{ t.page }}; padding: 4px 12px; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px">1</div>
+              <div dir="ltr" style="border: 1px solid {{ t.border }}; padding: 4px 12px; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; cursor: pointer">2</div>
+              <div dir="ltr" style="border: 1px solid {{ t.border }}; padding: 4px 12px; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; cursor: pointer">3</div>
+              <div style="border: 1px solid {{ t.border }}; padding: 4px 8px; display: flex; align-items: center; cursor: pointer"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="{{ t.ink }}" stroke-width="1.8" style="transform: {{ arrowFlip }}"><polyline points="6 3 11 8 6 13"></polyline></svg></div>
+            </div>
+          </div>
+
+          <div style="padding: 12px 24px 20px; display: flex; align-items: center; gap: 12px">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.6" style="flex: 0 0 auto"><circle cx="8" cy="8" r="5.5"></circle><path d="M8 5.5v.01M8 7.5v3.5"></path></svg>
+            <div style="font-size: 11px; line-height: 1.45; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ tbl.footAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ tbl.footEn }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ tbl.hasMobile }}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+          <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">MOBILE 390</div>
+          <div dir="{{ dirAttr }}" style="width: 390px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+            <div style="padding: 12px 16px; background: {{ t.raised }}; border-bottom: 1px solid {{ t.hair }}; display: flex; flex-direction: column; gap: 8px">
+              <div style="font-size: 14px; font-weight: 800"><span style="display: {{ ad }}">{{ tbl.titleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ tbl.titleEn }}</span></div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; border: 1px solid {{ t.attention }}; color: {{ t.attention }}; padding: 4px 8px; width: fit-content">REFERENCE DATA</div>
+            </div>
+            <sc-for list="{{ tbl.mobileRows }}" as="m" hint-placeholder-count="4">
+              <div style="padding: 12px 16px; border-bottom: 1px solid {{ t.hair }}; display: flex; flex-direction: column; gap: 6px">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                  <div style="font-size: 12.5px; font-weight: 700; min-width: 0"><span style="display: {{ ad }}">{{ m.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ m.en }}</span></div>
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}; flex: 0 0 auto">{{ m.right }}</div>
+                </div>
+                <div style="font-size: 11px; line-height: 1.45; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ m.subAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ m.subEn }}</span></div>
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: {{ t.sec }}">{{ m.id }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isPanel }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; gap: 32px; align-items: flex-start">
+      <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">{{ pnl.label }}</div>
+        <div dir="{{ dirAttr }}" style="width: 1440px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 12px 24px; border-bottom: 1px solid {{ t.hair }}; background: {{ t.raised }}">
+            <div style="display: flex; align-items: center; gap: 16px">
+              <div style="font-size: 14px; font-weight: 800"><span style="display: {{ ad }}">{{ pnl.titleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ pnl.titleEn }}</span></div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; border: 1px solid {{ t.attention }}; color: {{ t.attention }}; padding: 4px 8px">REFERENCE DATA</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ t.sec }}">{{ pnl.entityId }}</div>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.6" style="flex: 0 0 auto; cursor: pointer"><rect x="5" y="5" width="8" height="9"></rect><path d="M3 11V2h8"></path></svg>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 16px; padding: 6px 24px; background: {{ t.sunken }}; border-bottom: 1px solid {{ t.hair }}">
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: {{ t.sec }}">CREATED {{ pnl.created }}</div>
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: {{ t.sec }}">· LAST CHANGED {{ pnl.changed }}</div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: {{ pnl.grid }}; gap: 1px; background: {{ t.hair }}">
+            <sc-for list="{{ pnl.panes }}" as="p" hint-placeholder-count="3">
+              <div style="background: {{ t.page }}; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid {{ t.ink }}">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">{{ p.label }}</div>
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: {{ t.sec }}">{{ p.meta }}</div>
+                </div>
+                <sc-for list="{{ p.rows }}" as="r" hint-placeholder-count="5">
+                  <div style="display: flex; align-items: flex-start; gap: 8px; padding-bottom: 6px; border-bottom: 1px solid {{ t.hair }}">
+                    <sc-if value="{{ r.hasDot }}" hint-placeholder-val="{{ false }}">
+                      <div style="width: 10px; height: 10px; border-radius: 50%; background: {{ r.dotBg }}; border: {{ r.dotBorder }}; flex: 0 0 auto; margin-top: 4px"></div>
+                    </sc-if>
+                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                      <div style="font-size: 12.5px; font-weight: {{ r.weight }}; line-height: 1.45"><span style="display: {{ ad }}">{{ r.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.en }}</span></div>
+                      <sc-if value="{{ r.hasNote }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size: 11px; line-height: 1.45; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ r.noteAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.noteEn }}</span></div>
+                      </sc-if>
+                    </div>
+                    <div dir="ltr" style="flex: 0 0 auto; unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ r.valueColor }}; font-variant-numeric: tabular-nums">{{ r.value }}</div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ p.hasActions }}" hint-placeholder-val="{{ false }}">
+                  <div style="display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-top: 8px; border-top: 1px solid {{ t.ink }}">
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">EACH ACTION STATES ITS CONSEQUENCE</div>
+                    <sc-for list="{{ p.actions }}" as="a" hint-placeholder-count="3">
+                      <div style="border: 1px solid {{ t.border }}; padding: 8px; display: flex; flex-direction: column; gap: 4px; cursor: pointer">
+                        <div style="font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">{{ a.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ a.en }}</span></div>
+                        <div style="font-size: 11px; line-height: 1.45; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ a.effectAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ a.effectEn }}</span></div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{ p.hasAbsentNote }}" hint-placeholder-val="{{ false }}">
+                      <div style="display: flex; align-items: flex-start; gap: 8px; border-top: 1px dashed {{ t.border }}; padding-top: 8px">
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="{{ t.sec }}" stroke-width="1.6" style="flex: 0 0 auto; margin-top: 4px"><circle cx="8" cy="8" r="5.5"></circle><path d="M8 5.5v.01M8 7.5v3.5"></path></svg>
+                        <div style="flex: 1; font-size: 11px; line-height: 1.45; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ p.absentAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ p.absentEn }}</span></div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ pnl.hasConfirm }}" hint-placeholder-val="{{ false }}">
+            <div style="margin: 16px 24px 20px; border: 1px solid {{ t.critical }}; border-top: 2px solid {{ t.critical }}; padding: 16px; display: flex; align-items: flex-start; gap: 16px">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{ t.critical }}" stroke-width="1.6" style="flex: 0 0 auto; margin-top: 4px"><circle cx="8" cy="8" r="5.5"></circle><path d="M8 5v3.5M8 10.6v.01"></path></svg>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+                <div style="font-size: 12.5px; font-weight: 800"><span style="display: {{ ad }}">{{ pnl.confirmTitleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ pnl.confirmTitleEn }}</span></div>
+                <div style="font-size: 12.5px; line-height: 1.45"><span style="display: {{ ad }}">{{ pnl.confirmBodyAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ pnl.confirmBodyEn }}</span></div>
+                <div style="display: flex; align-items: center; gap: 8px; padding-top: 4px">
+                  <div style="background: {{ t.critical }}; color: {{ t.page }}; padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">{{ pnl.confirmCtaAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ pnl.confirmCtaEn }}</span></div>
+                  <div style="border: 1px solid {{ t.ink }}; padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">إلغاء</span><span dir="ltr" style="display: {{ ed }}">Cancel</span></div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <sc-if value="{{ pnl.hasMobile }}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+          <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">MOBILE 390</div>
+          <div dir="{{ dirAttr }}" style="width: 390px; box-sizing: border-box; background: {{ t.page }}; color: {{ t.ink }}; display: flex; flex-direction: column">
+            <div style="padding: 12px 16px; background: {{ t.raised }}; border-bottom: 1px solid {{ t.hair }}; display: flex; flex-direction: column; gap: 8px">
+              <div style="font-size: 14px; font-weight: 800"><span style="display: {{ ad }}">{{ pnl.titleAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ pnl.titleEn }}</span></div>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: {{ t.sec }}">{{ pnl.entityId }} · CHANGED {{ pnl.changed }}</div>
+            </div>
+            <sc-for list="{{ pnl.panes }}" as="p" hint-placeholder-count="3">
+              <div style="padding: 12px 16px; border-bottom: 1px solid {{ t.hair }}; display: flex; flex-direction: column; gap: 8px">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: {{ t.sec }}">{{ p.label }}</div>
+                <sc-for list="{{ p.rows }}" as="r" hint-placeholder-count="4">
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 6px; border-bottom: 1px solid {{ t.hair }}">
+                    <div style="font-size: 12.5px; font-weight: {{ r.weight }}; min-width: 0"><span style="display: {{ ad }}">{{ r.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ r.en }}</span></div>
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ r.valueColor }}; flex: 0 0 auto">{{ r.value }}</div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ p.hasActions }}" hint-placeholder-val="{{ false }}">
+                  <sc-for list="{{ p.actions }}" as="a" hint-placeholder-count="3">
+                    <div style="border: 1px solid {{ t.border }}; min-height: 44px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; gap: 4px; justify-content: center">
+                      <div style="font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">{{ a.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ a.en }}</span></div>
+                      <div style="font-size: 11px; line-height: 1.45; color: {{ t.sec }}"><span style="display: {{ ad }}">{{ a.effectAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ a.effectEn }}</span></div>
+                    </div>
+                  </sc-for>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <div dir="{{ dirAttr }}" style="max-width: 1100px; background: #EDE7DA; padding: 20px; display: flex; flex-direction: column; gap: 12px; color: #23201B">
+    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">DECISIONS · STEP 5</div>
+    <div style="font-size: 14px; line-height: 1.9"><strong style="font-weight: 800">الوضع الكثيف هو الافتراضي هنا.</strong> صف <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">12.5px</span> بتباعد <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">1.45</span> وحشو <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">6px</span>، ومفيش نقط قيادة ولا أميري في أي مكان — أميري ممنوع في الكثيف.</div>
+    <div style="font-size: 14px; line-height: 1.9; border-top: 1px solid #DCD3C1; padding-top: 12px"><strong style="font-weight: 800">الصلاحية بتشيل، مش بتعطّل.</strong> بدّل الدور فوق: «مدّد الوصول» و«امنح كورس» و«رجّع فلوس» بيختفوا تمامًا من شاشة الدعم — مفيش زر رمادي ولا شرح ليه.</div>
+    <div style="font-size: 14px; line-height: 1.9; border-top: 1px solid #DCD3C1; padding-top: 12px"><strong style="font-weight: 800">كل سجل بيقول تاريخه.</strong> <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">CREATED</span> و<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">LAST CHANGED</span> بالاسم والوقت في شريط تحت العنوان، والمعرّف منسوخ بضغطة جنب الاسم البشري.</div>
+    <div style="font-size: 14px; line-height: 1.9; border-top: 1px solid #DCD3C1; padding-top: 12px"><strong style="font-weight: 800">الأرقام المرجعية معلّمة.</strong> شارة <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">REFERENCE DATA · PRE-LAUNCH</span> في قشرة كل شاشة إدارة — عشان محدش يقرا الأرقام دي بعدين كأنها حقيقية.</div>
+    <div style="font-size: 14px; line-height: 1.9; border-top: 1px solid #DCD3C1; padding-top: 12px"><strong style="font-weight: 800">الموبايل لأربع شاشات بس.</strong> لوحة التشغيل، والطوابير، وملف المتعلّم، وطلبات الاسترجاع — دي اللي المالك فعلاً هيفتحها من موبايله. الباقي سطح مكتب، وده مكتوب مش مسكوت عنه.</div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1960}}">
+class Component extends DCLogic {
+  state = { lang: 'ar', theme: 'light', screen: 'ops', role: 'owner' };
+
+  theme() {
+    return this.state.theme === 'dark'
+      ? { page: '#1D1B17', raised: '#26231D', sunken: '#141310', selected: '#2A2D20', ink: '#EDE7DA', sec: '#A79C88', accent: '#A9C57E', accentText: '#A9C57E', onAccent: '#1D1B17', border: '#7C7666', hair: '#35312A', info: '#93B4DE', attention: '#E0B060', critical: '#E8907F' }
+      : { page: '#EDE7DA', raised: '#F5F1E7', sunken: '#E4DCCB', selected: '#E4E8D8', ink: '#23201B', sec: '#635A4D', accent: '#3F5B22', accentText: '#2E4318', onAccent: '#FFFFFF', border: '#7D7364', hair: '#DCD3C1', info: '#2A4E7A', attention: '#7A4F00', critical: '#8E2A21' };
+  }
+
+  screens() {
+    return [
+      ['ops', 'لوحة التشغيل', 'Operations'],
+      ['students', 'دليل المتعلّمين', 'Student directory'],
+      ['student', 'ملف متعلّم', 'Student profile'],
+      ['queues', 'الطوابير', 'Queues'],
+      ['courses', 'الكورسات', 'Course list'],
+      ['courseEditor', 'محرّر الكورس', 'Course editor'],
+      ['curriculum', 'باني المنهج', 'Curriculum builder'],
+      ['lessonEditor', 'محرّر الدرس', 'Lesson editor'],
+      ['media', 'مكتبة الوسائط', 'Media library'],
+      ['quiz', 'بنك الأسئلة', 'Quiz & question bank'],
+      ['products', 'المنتجات والصلاحيات', 'Products & entitlements'],
+      ['orders', 'الطلبات', 'Orders'],
+      ['refunds', 'طلبات الاسترجاع', 'Refund requests'],
+      ['reports', 'التقارير', 'Reports'],
+      ['aiGaps', 'أسئلة بلا إجابة', 'Unanswered questions'],
+      ['roles', 'الأدوار والصلاحيات', 'Roles & permissions'],
+      ['audit', 'سجل التغييرات', 'Audit log'],
+      ['health', 'صحة النظام', 'System health']
+    ];
+  }
+
+  renderVals() {
+    const ar = this.state.lang === 'ar';
+    const t = this.theme();
+    const light = this.state.theme === 'light';
+    const owner = this.state.role === 'owner';
+    const on = '#23201B', onFg = '#EDE7DA';
+    const s = this.state.screen;
+    const A = k => (ar ? k[0] : k[1]);
+    const M = "'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace";
+    const S = "'Almarai', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif";
+
+    const titles = {
+      ops: ['لوحة التشغيل — أول شاشة في اليوم', 'Operations — the first screen of the day'],
+      students: ['دليل المتعلّمين — نمط الجدول المرجعي', 'Student directory — the reference table pattern'],
+      student: ['ملف متعلّم — كل حاجة في مكان واحد', 'Student profile — everything in one place'],
+      queues: ['الطوابير — مبنية للشغل مش للتفحيص', 'Queues — built to be worked, not browsed'],
+      courses: ['قائمة الكورسات', 'Course list'],
+      courseEditor: ['محرّر الكورس — باللغتين', 'Course editor — in both languages'],
+      curriculum: ['باني المنهج — الشجرة وقواعد الفتح', 'Curriculum builder — the tree and its unlock rules'],
+      lessonEditor: ['محرّر الدرس — الفيديو والفصول والشرح', 'Lesson editor — video, chapters, notes'],
+      media: ['مكتبة الوسائط — واللي بيستخدمها', 'Media library — and what references each file'],
+      quiz: ['بنك الأسئلة — والمفهوم اللي كل سؤال بيقيسه', 'Question bank — and the concept each question maps to'],
+      products: ['المنتجات ومؤلّف الصلاحيات', 'Products and the entitlement composer'],
+      orders: ['الطلبات', 'Orders'],
+      refunds: ['طلبات الاسترجاع — وإيه اللي هتسحبه', 'Refund requests — and what approving revokes'],
+      reports: ['التقارير — كل رسم بيجاوب سؤال', 'Reports — every chart answers a stated question'],
+      aiGaps: ['أسئلة مفيش درس بيجاوبها — ده باكلوج محتوى', 'Questions no lesson answers — this is a content backlog'],
+      roles: ['الأدوار والصلاحيات', 'Roles and permissions'],
+      audit: ['سجل التغييرات — إضافة فقط', 'Audit log — append only'],
+      health: ['صحة النظام', 'System health']
+    };
+
+    const nav = this.screens().map(([k, a, e]) => ({
+      ar: a, en: e, bg: s === k ? on : 'transparent', fg: s === k ? onFg : on,
+      go: () => this.setState({ screen: k })
+    }));
+
+    const act = (a, e, primary) => ({
+      ar: a, en: e,
+      border: primary ? 'none' : '1px solid ' + t.ink,
+      bg: primary ? t.accent : 'transparent',
+      fg: primary ? t.onAccent : t.ink
+    });
+
+    // ---------- operations dashboard ----------
+    const queueRaw = [
+      ['44 h', 'سؤال مرفوع', 'Escalated Q', 'المدرّس الذكي مالقاش إجابة في الدرس 12 — «الحلقة مش بتقف»', 'The AI tutor found no answer in lesson 12 — "my loop never stops"', 'QA-4471', 'critical', [['جاوب', 'Answer', true], ['حوّل', 'Reassign', false]]],
+      ['39 min', 'نقل جهاز', 'Device transfer', 'يوسف سامي — موبايل جديد، نفس رقم الموبايل ونفس الكارت', 'Yousef Samy — new phone, same number and same card', 'DT-2218', 'attention', [['وافق', 'Approve', true], ['اسأل', 'Ask', false]]],
+      ['26 h', 'تذكرة متأخرة', 'Overdue ticket', 'الفيديو بيقف عند 7:45 — الرد المتوقّع فات', 'Video stops at 7:45 — reply is past due', 'TK-8842', 'critical', [['رد', 'Reply', true], ['علّي', 'Escalate', false]]],
+      ['5 d', 'تصحيح', 'Grading', 'خمس إجابات مكتوبة على تمرين الحلقات مستنية تصحيح', 'Five written answers on the loops exercise await grading', 'GR-0912', 'attention', [['صحّح', 'Grade', true], ['وزّع', 'Assign', false]]],
+      ['2 d', 'استرجاع', 'Refund', 'طلب استرجاع خلال المدة — 899 EGP · السبب: مش لاقي وقت', 'In-window refund — 899 EGP · reason: no time', 'RF-0338', 'attention', [['راجع', 'Review', true]]],
+      ['1 d', 'نشر محتوى', 'Publish approval', 'الدرس 14 «اختبار القسم الأول» جاهز للنشر', 'Lesson 14 "Section quiz 1" is ready to publish', 'LS-1140', 'info', [['وافق', 'Approve', true], ['شوف', 'View', false]]]
+    ];
+    const queue = queueRaw
+      .filter(r => owner || ['DT-2218', 'TK-8842', 'QA-4471'].indexOf(r[5]) >= 0)
+      .map(([age, ka, ke, a, e, id, sev, actions]) => ({
+        age, kindAr: ka, kindEn: ke, ar: a, en: e, id,
+        ageColor: sev === 'critical' ? t.critical : sev === 'attention' ? t.attention : t.sec,
+        weight: sev === 'critical' ? '700' : '400',
+        bg: sev === 'critical' ? t.selected : 'transparent',
+        dotBg: sev === 'critical' ? t.critical : 'transparent',
+        dotBorder: sev === 'critical' ? 'none' : sev === 'attention' ? '2px solid ' + t.attention : '1px solid ' + t.border,
+        actions: actions.filter(x => owner || x[1] !== 'Reassign').map(([aa, ee, p]) => act(aa, ee, p))
+      }));
+
+    const kpiRaw = [
+      ['REVENUE TODAY', '3,600 EGP', '3 أوردرات النهارده', '3 orders today', 'VS 2,400 YESTERDAY', 'up', false],
+      ['REVENUE THIS MONTH', '74,700 EGP', 'من 1 أغسطس لحد النهارده', '1 August to date', '+9.2% VS JULY', 'up', false],
+      ['LEARNERS', '312', '118 نشطوا آخر 7 أيام · 6 جداد النهارده', '118 active in 7 days · 6 new today', '7-DAY WINDOW', 'flat', false],
+      ['COMPLETION', '34.8%', 'مقابل هدف 35% — فرق 0.2 نقطة', 'against a 35% target — 0.2 points off', 'TARGET 35%', 'flat', false],
+      ['AI COST', '6.90 / 15.00 USD', 'شهر أغسطس · 46% من الميزانية', 'August · 46% of budget', 'MONTH TO DATE', 'up', false],
+      ['AI DEFLECTION', '68.4%', 'أسئلة اتحلّت من غير بني آدم', 'questions resolved without a human', 'LAST 30 DAYS', 'up', false],
+      ['UPTIME', '99.96%', 'نسخة احتياطية متأكّدة 04:00', 'backup verified 04:00', 'LAST 30 DAYS', 'up', false],
+      ['EMAIL QUOTA', '', '', '', '', 'flat', true]
+    ];
+    const kpis = kpiRaw.map(([label, value, na, ne, basis, trend, failed]) => ({
+      label, value, noteAr: na, noteEn: ne, basis,
+      failed, ok: !failed,
+      valueColor: t.ink,
+      trendColor: trend === 'up' ? t.accentText : t.sec
+    }));
+
+    // ---------- tables ----------
+    const cell = (text, flex, opts) => Object.assign({
+      text, flex: String(flex), dir: 'auto', bidi: 'plaintext', font: S,
+      color: t.ink, weight: '400', justify: 'flex-start',
+      hasDot: false, dotBg: 'transparent', dotBorder: 'none'
+    }, opts || {});
+    const mono = (text, flex, opts) => cell(text, flex, Object.assign({ dir: 'ltr', bidi: 'isolate', font: "'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace", color: t.sec }, opts || {}));
+
+    // Every cell is explicit: one entry per column, as [ar, en] (or a bare string when the
+    // value is language-neutral). Nothing is inferred from position or content any more.
+    // R() asserts the cell count against the column count and logs loudly on drift.
+    const R = (kind, ...cells) => ({ kind, cells: cells.map(c => (Array.isArray(c) ? c : [c, c])) });
+    // cols: [label, flex, align, mono, dot]
+    const tables = {
+      students: {
+        label: 'DESKTOP 1440 · REFERENCE TABLE · URL-DRIVEN SORT AND PAGE · AWKWARD ROWS ON PURPOSE',
+        titleAr: 'دليل المتعلّمين', titleEn: 'Student directory',
+        url: '/admin/students?q=&status=active&sort=-lastSeen&page=1',
+        search: 'SEARCH NAME, EMAIL, PHONE, ID',
+        count: '312 TOTAL · 118 MATCH FILTER',
+        filters: [['STATUS: ACTIVE', true], ['OWNS: FOUNDATIONS', true], ['+ FILTER', false]],
+        hasBulk: true, hasMobile: false,
+        cols: [['LEARNER', 2.2, 'start', false, false], ['CONTACT', 1.8, 'start', false, false], ['OWNS', 1, 'start', true, false], ['PROGRESS', 1, 'start', true, false], ['LAST SEEN', 1, 'start', true, false, 'lastSeen'], ['STATE', 1.2, 'start', false, true], ['ID', 1, 'start', true, false]],
+        footAr: 'أولوية الأعمدة: الاسم والحالة بيفضلوا، وآخر ظهور ثم المعرّف أول اللي بيتشالوا لما العرض يقلّ.',
+        footEn: 'Column priority: name and state always stay; last seen then ID are the first to collapse as width drops.',
+        rows: [
+          R('ok', 'يوسف سامي عبد الله', 'y•••••f@gmail.com · +20 10 •••• 5678', '2 courses', '11 / 41', '2 min ago', ['نشط', 'Active'], 'ST-10233'),
+          R('warn', 'عبد الرحمن محمد الشاذلي حسنين', ['مفيش إيميل · دخول بالموبايل', 'No email · signs in by phone'], '1 course', '0 / 41', '14 d ago', ['مابدأش', 'Never started'], 'ST-10871'),
+          R('ok', 'منة الله ط', 'm•••@outlook.com', '1 course', '41 / 41', '1 h ago', ['خلّص', 'Completed'], 'ST-10004'),
+          R('ok', 'أحمد ع', 'a•••@gmail.com · +20 12 •••• 1102', '3 courses', '38 / 41', '3 h ago', ['نشط', 'Active'], 'ST-10552'),
+          R('warn', 'سارة ف', 's•••@yahoo.com', '1 course', '4 / 41', '31 d ago', ['انتهى وصوله', 'Access expired'], 'ST-10119'),
+          R('ok', 'كريم ب', 'k•••@gmail.com · +20 11 •••• 8890', '1 course', '22 / 41', '2 d ago', ['نشط', 'Active'], 'ST-10640'),
+          R('ok', 'نور ح', 'n•••@gmail.com', '2 courses', '19 / 41', '5 h ago', ['نشط', 'Active'], 'ST-10388'),
+          R('warn', 'مصطفى ز', 'm•••@hotmail.com · +20 10 •••• 4471', '1 course', '7 / 41', '9 d ago', ['مستني دفع', 'Awaiting payment'], 'ST-10902')
+        ],
+        pageInfo: 'SHOWING 1–8 OF 118 · SERVER-SORTED BY LAST SEEN, DESCENDING'
+      },
+      courses: {
+        label: 'DESKTOP 1440 · COURSE LIST',
+        titleAr: 'الكورسات', titleEn: 'Courses',
+        url: '/admin/courses?state=all&sort=order&page=1',
+        search: 'SEARCH TITLE OR ID',
+        count: '4 COURSES · 1 PUBLISHED',
+        filters: [['STATE: ALL', false], ['+ FILTER', false]],
+        hasBulk: false, hasMobile: false,
+        cols: [['COURSE', 2.4, 'start', false, false, 'order'], ['LEVEL', 1, 'start', false, false], ['LESSONS', 1.2, 'start', true, false], ['PRICE', 1.2, 'start', true, false], ['STATE', 1.2, 'start', false, true], ['CHANGED BY', 1.6, 'start', false, false], ['ID', 1, 'start', true, false]],
+        footAr: 'الكورس المنشور مش بيتغيّر سعره من هنا — لازم من محرّر المنتج، عشان السعر مربوط بالصلاحيات.',
+        footEn: 'A published price cannot be changed here — only in the product editor, because price is bound to entitlements.',
+        rows: [
+          R('ok', ['أساسيات البرمجة بـPython', 'Programming Foundations'], ['مبتدئ', 'Beginner'], '41 · 4 quizzes', '1,200 → 899 EGP', ['منشور', 'Published'], 'جو سام · 18 AUG 11:04', 'CR-0001'),
+          R('warn', ['تطوير الويب — Frontend', 'Web development — Frontend'], ['متوسّط', 'Intermediate'], '58 · 6 quizzes', '1,800 EGP', ['مسوّدة', 'Draft'], 'جو سام · 19 AUG 22:40', 'CR-0002'),
+          R('warn', ['قواعد البيانات العملية', 'Practical databases'], ['متوسّط', 'Intermediate'], '34 · 4 quizzes', '1,400 EGP', ['مسوّدة', 'Draft'], 'جو سام · 12 AUG 09:15', 'CR-0003'),
+          R('muted', ['أول شغلانة — portfolio', 'Getting hired — portfolio'], ['متقدّم', 'Advanced'], '22 · 2 quizzes', '—', ['مخطّط', 'Planned'], 'جو سام · 2 AUG 17:22', 'CR-0004')
+        ],
+        pageInfo: 'SHOWING 1–4 OF 4'
+      },
+      media: {
+        label: 'DESKTOP 1440 · MEDIA LIBRARY · NOTHING DELETED WHILE REFERENCED',
+        titleAr: 'مكتبة الوسائط', titleEn: 'Media library',
+        url: '/admin/media?type=all&sort=-uploaded&page=1',
+        search: 'SEARCH FILENAME',
+        count: '148 FILES · 412 GB',
+        filters: [['TYPE: VIDEO', true], ['STATE: ALL', false], ['+ FILTER', false]],
+        hasBulk: false, hasMobile: false,
+        cols: [['FILE', 2.4, 'start', true, false], ['SIZE · DURATION', 1.4, 'start', true, false], ['PROCESSING', 1.4, 'start', false, true], ['USED IN', 2, 'start', true, false], ['UPLOADED BY', 1.6, 'start', false, false, 'uploaded'], ['ID', 1, 'start', true, false]],
+        footAr: 'الملف اللي مستخدم مفيش عنده زر مسح خالص — الزر يظهر بس لما «مستخدم في» تبقى صفر.',
+        footEn: 'A referenced file has no delete action at all — it appears only once "used in" reads zero.',
+        rows: [
+          R('ok', 'loops-lesson-12-1080.mp4', '842 MB · 14:05', ['خلص · 4 دقات', 'Ready · 4 renditions'], 'CR-0001 / LS-0012', 'جو سام · 18 AUG', 'MD-4402'),
+          R('warn', 'functions-lesson-13-1080.mp4', '1.1 GB · 15:30', ['بيحوّل · 62%', 'Transcoding · 62%'], 'CR-0001 / LS-0013', 'جو سام · 20 AUG', 'MD-4418'),
+          R('ok', 'loops-exercise.pdf', '210 KB · —', ['خلص', 'Ready'], 'CR-0001 / LS-0012', 'جو سام · 18 AUG', 'MD-4403'),
+          R('muted', 'old-intro-draft.mp4', '620 MB · 08:12', ['خلص', 'Ready'], ['مش مستخدم', 'Not used'], 'جو سام · 2 JUL', 'MD-3901'),
+          R('ok', 'cover-foundations.png', '1.8 MB · —', ['خلص', 'Ready'], 'CR-0001 cover', 'جو سام · 14 MAY', 'MD-2210')
+        ],
+        pageInfo: 'SHOWING 1–5 OF 148'
+      },
+      quiz: {
+        label: 'DESKTOP 1440 · QUESTION BANK · CONCEPT MAPPING POWERS THE REVIEW LINKS',
+        titleAr: 'بنك الأسئلة', titleEn: 'Question bank',
+        url: '/admin/questions?concept=loops&type=all&page=1',
+        search: 'SEARCH QUESTION TEXT',
+        count: '186 QUESTIONS · 12 CONCEPTS',
+        filters: [['CONCEPT: LOOPS', true], ['TYPE: ALL', false], ['+ FILTER', false]],
+        hasBulk: false, hasMobile: false,
+        cols: [['QUESTION', 2.6, 'start', false, false], ['TYPE', 1.2, 'start', false, false], ['CONCEPT', 1.4, 'start', true, false], ['TEACHES AT', 1.4, 'start', true, false], ['USED IN', 1.2, 'start', true, false], ['P(CORRECT)', 1, 'start', true, false], ['ID', 0.9, 'start', true, false]],
+        footAr: 'ربط السؤال بمفهوم هو اللي بيولّد لينك «راجع الدرس والثانية» في نتيجة المتعلّم — سؤال بلا مفهوم مش بيتنشر.',
+        footEn: 'The concept mapping is what generates the "review the lesson and the second" link in a learner result — a question with no concept cannot be published.',
+        rows: [
+          R('ok', ['إيه اللي بيطبعه range(5)؟', 'What does range(5) print?'], ['اختيار واحد', 'Single choice'], 'loops · range', 'LS-0012 @ 03:12', '2 quizzes', '0.72', 'QN-1104'),
+          R('warn', ['اختار كل الحلقات اللي بتقف لوحدها', 'Select every loop that terminates'], ['اختيار متعدّد', 'Multi choice'], 'loops · termination', 'LS-0012 @ 06:48', '1 quiz', '0.48', 'QN-1105'),
+          R('ok', ['الحلقة اللانهائية دايمًا غلط', 'An infinite loop is always a bug'], ['صح أو غلط', 'True / false'], 'loops · termination', 'LS-0012 @ 06:48', '1 quiz', '0.61', 'QN-1106'),
+          R('ok', ['كمّل: for i in ____(1, 6)', 'Complete: for i in ____(1, 6)'], ['كمّل الناقص', 'Fill in the blank'], 'loops · range', 'LS-0012 @ 03:12', '2 quizzes', '0.83', 'QN-1107'),
+          R('ok', ['اشرح بكلامك فرق for وwhile', 'Explain for vs while in your own words'], ['إجابة مكتوبة', 'Written'], 'loops · choosing', 'LS-0012 @ 06:48', '1 quiz', 'graded', 'QN-1108')
+        ],
+        pageInfo: 'SHOWING 1–5 OF 24 IN THIS CONCEPT'
+      },
+      orders: {
+        label: 'DESKTOP 1440 · ORDERS',
+        titleAr: 'الطلبات', titleEn: 'Orders',
+        url: '/admin/orders?state=all&method=all&sort=-created&page=1',
+        search: 'SEARCH ORDER, LEARNER, REFERENCE',
+        count: '412 ORDERS · 3 TODAY',
+        filters: [['STATE: ALL', false], ['METHOD: ALL', false], ['+ FILTER', false]],
+        hasBulk: false, hasMobile: false,
+        cols: [['ORDER', 1.6, 'start', true, false, 'created'], ['LEARNER', 1.6, 'start', false, false], ['GRANTED', 1.8, 'start', true, false], ['PAID', 1.2, 'start', true, false], ['METHOD', 1.2, 'start', true, false], ['STATE', 1.6, 'start', false, true], ['ID', 1, 'start', true, false]],
+        footAr: 'الأوردر المستني كاش بيفضل مفتوح لحد ما الكود يتدفع أو يقع — والاتنين بيتسجّلوا في سجل التغييرات.',
+        footEn: 'An order awaiting cash stays open until the code is paid or lapses — both are written to the audit log.',
+        rows: [
+          R('ok', '20 AUG 09:04', 'يوسف سامي', 'Foundations · lifetime', '899 EGP', 'CARD', ['مدفوع', 'Paid'], 'OR-4412'),
+          R('ok', '20 AUG 08:41', 'نور ح', 'Foundations · lifetime', '899 EGP', 'WALLET', ['مدفوع', 'Paid'], 'OR-4411'),
+          R('warn', '20 AUG 07:58', 'مصطفى ز', 'Web development', '1,800 EGP', 'FAWRY', ['مستني كاش · 74192836', 'Awaiting cash · 74192836'], 'OR-4410'),
+          R('muted', '19 AUG 22:12', 'سارة ف', 'Foundations · lifetime', '899 EGP', 'CARD', ['اترجع', 'Refunded'], 'OR-4402'),
+          R('ok', '19 AUG 19:30', 'كريم ب', 'AI extension · 6 mo', '200 EGP', 'CARD', ['مدفوع', 'Paid'], 'OR-4398')
+        ],
+        pageInfo: 'SHOWING 1–5 OF 412'
+      },
+      aiGaps: {
+        label: 'DESKTOP 1440 · QUESTIONS NO LESSON ANSWERS · THIS IS THE CONTENT BACKLOG',
+        titleAr: 'أسئلة مفيش درس بيجاوبها', titleEn: 'Questions no lesson answers',
+        url: '/admin/reports/ai-gaps?window=30d&sort=-asks&page=1',
+        search: 'SEARCH QUESTION TEXT',
+        count: '38 TOPICS · 412 ASKS IN 30 DAYS',
+        filters: [['WINDOW: 30 DAYS', true], ['MIN ASKS: 5', true], ['+ FILTER', false]],
+        hasBulk: false, hasMobile: false,
+        cols: [['WHAT LEARNERS ASKED', 2.8, 'start', false, false], ['ASKS', 0.8, 'start', true, false, 'asks'], ['ASKED FROM', 1.6, 'start', true, false], ['NEAREST LESSON', 1.8, 'start', false, true], ['ESCALATED', 1, 'start', true, false], ['SUGGESTED', 1.4, 'start', false, false]],
+        footAr: 'الجدول ده مرتّب بعدد اللي سألوا — أعلى صف هو أقرب درس مفروض يتعمل. ده مش تقرير، ده قائمة شغل.',
+        footEn: 'Ordered by how many asked — the top row is the next lesson that should exist. This is not a report, it is a work list.',
+        rows: [
+          R('critical', ['إزاي أنشر مشروعي على الإنترنت؟', 'How do I publish my project online?'], '64', 'LS-0012 · LS-0031', ['مفيش درس قريب', 'No near lesson'], '18', ['درس جديد', 'New lesson']),
+          R('warn', ['إيه الفرق بين list وtuple؟', 'What is the difference between list and tuple?'], '41', 'LS-0022 · LS-0023', ['LS-0022 @ 18:40', 'LS-0022 @ 18:40'], '6', ['وسّع الدرس', 'Extend lesson']),
+          R('critical', ['إزاي أقرا ملف Excel بالكود؟', 'How do I read an Excel file in code?'], '33', 'LS-0022', ['مفيش درس قريب', 'No near lesson'], '11', ['درس جديد', 'New lesson']),
+          R('warn', ['بيقول لي ModuleNotFoundError', 'I keep getting ModuleNotFoundError'], '29', 'LS-0004 · LS-0016', ['LS-0016 @ 11:30', 'LS-0016 @ 11:30'], '2', ['وسّع الدرس', 'Extend lesson']),
+          R('muted', ['أشتغل فريلانس منين وأنا لسه بتعلّم؟', 'Where do I freelance while still learning?'], '22', ['خارج المنهج', 'Outside curriculum'], ['مفيش درس قريب', 'No near lesson'], '9', ['مقال مساعدة', 'Help article'])
+        ],
+        pageInfo: 'SHOWING 1–5 OF 38'
+      },
+      audit: {
+        label: 'DESKTOP 1440 · AUDIT LOG · APPEND ONLY, NO EDIT AND NO DELETE',
+        titleAr: 'سجل التغييرات', titleEn: 'Audit log',
+        url: '/admin/audit?actor=all&entity=all&sort=-at&page=1',
+        search: 'SEARCH ACTOR, ENTITY, ACTION',
+        count: '18,402 ENTRIES · RETAINED 7 YEARS',
+        filters: [['ACTOR: ALL', false], ['ENTITY: ALL', false], ['+ FILTER', false]],
+        hasBulk: false, hasMobile: false,
+        cols: [['WHEN', 1.4, 'start', true, false, 'at'], ['WHO', 1.4, 'start', false, false], ['DID WHAT', 2.6, 'start', false, false], ['TO WHICH ENTITY', 1.6, 'start', true, false], ['FROM → TO', 2, 'start', true, false], ['IP', 1, 'start', true, false]],
+        footAr: 'مفيش تعديل ومفيش مسح للسجل ده — ولا للمالك. أي تصحيح بيتكتب كسطر جديد.',
+        footEn: 'No edit and no delete on this log — not even for the owner. Any correction is written as a new line.',
+        rows: [
+          R('ok', '20 AUG 09:12:04', ['جو سام (مالك)', 'Jo Sam (owner)'], ['وافق على نقل جهاز', 'Approved a device transfer'], 'DT-2218 · ST-10233', 'pending → approved', '41.•••.•••.18'),
+          R('ok', '20 AUG 09:04:31', 'system', ['فتح كورس بعد دفع كارت', 'Granted course after card payment'], 'OR-4412 · ST-10233', 'unpaid → paid', '—'),
+          R('warn', '19 AUG 22:41:07', ['جو سام (مالك)', 'Jo Sam (owner)'], ['عدّل سعر كورس', 'Changed a course price'], 'CR-0002', '2,000 → 1,800 EGP', '41.•••.•••.18'),
+          R('warn', '19 AUG 22:12:55', ['ندى (دعم)', 'Nada (support)'], ['رجّعت فلوس أوردر', 'Refunded an order'], 'OR-4402 · ST-10119', 'paid → refunded', '156.•••.•••.72'),
+          R('ok', '19 AUG 18:03:12', ['جو سام (مالك)', 'Jo Sam (owner)'], ['أضاف دور جديد', 'Created a role'], 'RL-0004 "grader"', '— → created', '41.•••.•••.18')
+        ],
+        pageInfo: 'SHOWING 1–5 OF 18,402'
+      },
+      refunds: {
+        label: 'DESKTOP 1440 · REFUND REQUESTS · APPROVING STATES WHAT IT REVOKES',
+        titleAr: 'طلبات الاسترجاع', titleEn: 'Refund requests',
+        url: '/admin/refunds?state=pending&sort=-created&page=1',
+        search: 'SEARCH LEARNER OR ORDER',
+        count: '2 PENDING · 14 THIS MONTH',
+        filters: [['STATE: PENDING', true], ['+ FILTER', false]],
+        hasBulk: false, hasMobile: true,
+        cols: [['REQUESTED', 1.2, 'start', true, false, 'created'], ['LEARNER', 1.4, 'start', false, false], ['ORDER · AMOUNT', 1.6, 'start', true, false], ['REASON GIVEN', 2, 'start', false, false], ['IN WINDOW', 1.4, 'start', false, true], ['WILL REVOKE', 2.2, 'start', false, false], ['ID', 1, 'start', true, false]],
+        footAr: 'الموافقة بتسحب الوصول والشهادة لو كانت اتصدرت — الرقم والأثر مكتوبين في التأكيد قبل الضغط.',
+        footEn: 'Approving revokes access and the certificate if one was issued — the amount and the effect are stated in the confirmation before the click.',
+        rows: [
+          R('warn', '18 AUG · 2 d ago', 'سارة ف', 'OR-4402 · 899 EGP', ['مش لاقية وقت أذاكر', 'Cannot find the time'], ['أيوة · يوم 4 من 14', 'Yes · day 4 of 14'], ['وصول الأساسيات · مفيش شهادة لسه', 'Foundations access · no certificate yet'], 'RF-0338'),
+          R('warn', '16 AUG · 4 d ago', 'مصطفى ز', 'OR-4310 · 200 EGP', ['المدرّس الذكي مش مفيد', 'The AI tutor is not useful'], ['أيوة · يوم 6 من 14', 'Yes · day 6 of 14'], ['تمديد المدرّس بس · الكورسات بتفضل', 'AI extension only · courses stay'], 'RF-0335')
+        ],
+        mobileRows: [
+          ['سارة ف', 'Sara F', 'OR-4402 · 899 EGP · مش لاقية وقت · يوم 4 من 14', 'OR-4402 · 899 EGP · no time · day 4 of 14', '2 d', 'RF-0338'],
+          ['مصطفى ز', 'Mostafa Z', 'OR-4310 · 200 EGP · المدرّس مش مفيد · يوم 6', 'OR-4310 · 200 EGP · tutor not useful · day 6', '4 d', 'RF-0335']
+        ],
+        pageInfo: 'SHOWING 1–2 OF 2 PENDING'
+      },
+      queues: {
+        label: 'DESKTOP 1440 · THE FOUR QUEUES · EACH BUILT TO BE WORKED THROUGH',
+        titleAr: 'الطوابير', titleEn: 'Queues',
+        url: '/admin/queues?kind=all&sort=age&page=1',
+        search: 'SEARCH ACROSS QUEUES',
+        count: '13 ITEMS ACROSS 4 QUEUES',
+        filters: [['KIND: ALL', false], ['OLDEST FIRST', true], ['+ FILTER', false]],
+        hasBulk: false, hasMobile: true,
+        cols: [['AGE', 0.8, 'start', true, false, 'age'], ['QUEUE', 1.4, 'start', false, true], ['ITEM', 2.4, 'start', false, false], ['EVIDENCE TO DECIDE ON', 2.6, 'start', false, false], ['ASSIGNED', 1.2, 'start', false, false], ['ID', 1, 'start', true, false]],
+        footAr: 'كل طابور له عمود «الدليل» — الحاجة اللي محتاج تشوفها عشان تقرر، جوّه الصف نفسه مش في شاشة تانية.',
+        footEn: 'Every queue has an evidence column — the thing you need in order to decide, in the row itself rather than one screen away.',
+        rows: [
+          R('critical', '44 h', ['سؤال مرفوع', 'Escalated Q&A'], ['«الحلقة مش بتقف» · الدرس 12', '"My loop never stops" · lesson 12'], ['3 متعلّمين سألوا نفس الحاجة', 'Three learners asked the same thing'], ['مفيش', 'Unassigned'], 'QA-4471'),
+          R('attention', '39 min', ['نقل جهاز', 'Device transfer'], ['موبايل جديد ليوسف سامي', 'A new phone for Yousef Samy'], ['نفس الرقم ونفس آخر 4 أرقام كارت ونفس المحافظة', 'Same number, same card last-4, same governorate'], 'جو سام', 'DT-2218'),
+          R('attention', '5 d', ['تصحيح', 'Grading'], ['تمرين الحلقات · 5 إجابات مكتوبة', 'Loops exercise · 5 written answers'], ['الروبريك جنب كل إجابة', 'The rubric sits beside each answer'], ['مفيش', 'Unassigned'], 'GR-0912'),
+          R('info', '1 d', ['نشر', 'Publish approval'], ['الدرس 14 — اختبار القسم الأول', 'Lesson 14 — Section quiz 1'], ['فيديو خلص التحويل · شرح مكتوب · 4 فصول', 'Transcoded · notes written · 4 chapters'], 'جو سام', 'LS-1140'),
+          R('info', '3 d', ['تصحيح', 'Grading'], ['تمرين الدوال · إجابتين', 'Functions exercise · two answers'], ['الروبريك جنب كل إجابة', 'The rubric sits beside each answer'], ['مفيش', 'Unassigned'], 'GR-0908')
+        ],
+        mobileRows: [
+          ['سؤال مرفوع · 44 ساعة', 'Escalated · 44 h', '«الحلقة مش بتقف» · الدرس 12 · 3 سألوا نفس الحاجة', 'Lesson 12 · three asked the same', '44 h', 'QA-4471'],
+          ['نقل جهاز · 39 دقيقة', 'Device transfer · 39 min', 'نفس الرقم ونفس الكارت ونفس المحافظة', 'Same number, card and governorate', '39 min', 'DT-2218'],
+          ['تصحيح · 5 أيام', 'Grading · 5 d', '5 إجابات مكتوبة والروبريك جنبها', '5 written answers with the rubric', '5 d', 'GR-0912'],
+          ['نشر · يوم', 'Publish · 1 d', 'الدرس 14 جاهز — فيديو وشرح وفصول', 'LS-1140 ready — video, notes, chapters', '1 d', 'LS-1140']
+        ],
+        pageInfo: 'SHOWING 1–5 OF 13 · OLDEST FIRST'
+      },
+      roles: {
+        label: 'DESKTOP 1440 · PERMISSION MATRIX · READABLE AT REAL SCALE',
+        titleAr: 'الأدوار والصلاحيات', titleEn: 'Roles and permissions',
+        url: '/admin/roles',
+        search: 'SEARCH PERMISSION',
+        count: '4 ROLES · 22 PERMISSIONS',
+        filters: [['GROUP: MONEY', true], ['+ FILTER', false]],
+        hasBulk: false, hasMobile: false,
+        cols: [['PERMISSION', 2.6, 'start', false, false], ['OWNER', 1, 'center', false, false], ['SUPPORT', 1, 'center', false, false], ['GRADER', 1, 'center', false, false], ['VIEWER', 1, 'center', false, false], ['TOUCHES', 1.6, 'start', true, false], ['ID', 1, 'start', true, false]],
+        footAr: 'الصلاحية اللي بتلمس فلوس أو وصول معلّمة في عمود «بتلمس» — ودي اللي لازم تأكيد بأثرها مكتوب قبل التنفيذ.',
+        footEn: 'A permission that touches money or access is marked in the "touches" column — those are the ones that require a consequence-stating confirmation.',
+        rows: [
+          R('ok', ['يشوف الطلبات', 'View orders'], ['أيوة', 'Yes'], ['أيوة', 'Yes'], ['لأ', 'No'], ['أيوة', 'Yes'], 'money · read', 'PM-0101'),
+          R('warn', ['يرجّع فلوس', 'Refund an order'], ['أيوة', 'Yes'], ['أيوة', 'Yes'], ['لأ', 'No'], ['لأ', 'No'], 'money · write', 'PM-0102'),
+          R('warn', ['يعدّل سعر', 'Change a price'], ['أيوة', 'Yes'], ['لأ', 'No'], ['لأ', 'No'], ['لأ', 'No'], 'money · write', 'PM-0103'),
+          R('warn', ['يمنح كورس', 'Grant a course'], ['أيوة', 'Yes'], ['لأ', 'No'], ['لأ', 'No'], ['لأ', 'No'], 'access · write', 'PM-0104'),
+          R('warn', ['يوافق على نقل جهاز', 'Approve device transfer'], ['أيوة', 'Yes'], ['أيوة', 'Yes'], ['لأ', 'No'], ['لأ', 'No'], 'access · write', 'PM-0105'),
+          R('ok', ['يصحّح إجابات', 'Grade answers'], ['أيوة', 'Yes'], ['لأ', 'No'], ['أيوة', 'Yes'], ['لأ', 'No'], 'content · write', 'PM-0106')
+        ],
+        pageInfo: 'SHOWING 6 OF 22 · GROUP: MONEY AND ACCESS'
+      },
+      health: {
+        label: 'DESKTOP 1440 · SYSTEM HEALTH',
+        titleAr: 'صحة النظام', titleEn: 'System health',
+        url: '/admin/health',
+        search: 'SEARCH SERVICE',
+        count: '9 SERVICES · 1 DEGRADED',
+        filters: [['WINDOW: 24 H', true], ['+ FILTER', false]],
+        hasBulk: false, hasMobile: false,
+        cols: [['SERVICE', 2.2, 'start', false, false], ['STATE', 1.4, 'start', false, true], ['LATENCY p95', 1.2, 'start', true, false], ['ERRORS 24 H', 1.2, 'start', true, false], ['LAST INCIDENT', 1.6, 'start', false, false], ['OWNER', 1.4, 'start', false, false], ['ID', 1, 'start', true, false]],
+        footAr: 'التحويل بطيء دلوقتي وده السبب إن الدرس 13 لسه بيحوّل — الصف ده مربوط بالطابور مش منفصل عنه.',
+        footEn: 'Transcoding is slow right now, which is why lesson 13 is still processing — this row is linked to that queue item, not separate from it.',
+        rows: [
+          R('ok', 'Web app', ['شغّال', 'Operational'], '180 ms', '0', '—', 'جو سام', 'SV-01'),
+          R('ok', 'Video delivery', ['شغّال', 'Operational'], '240 ms', '2', ['14 أغسطس · 11 دقيقة', '14 Aug · 11 min'], 'جو سام', 'SV-02'),
+          R('warn', 'Transcoding', ['بطيء', 'Degraded'], '9.4 min', '0', ['جاري دلوقتي', 'Ongoing now'], 'جو سام', 'SV-03'),
+          R('ok', 'Payments — card', ['شغّال', 'Operational'], '1.2 s', '1', ['2 أغسطس · 4 دقايق', '2 Aug · 4 min'], 'جو سام', 'SV-04'),
+          R('ok', 'Payments — Fawry', ['شغّال', 'Operational'], '2.8 s', '0', '—', 'جو سام', 'SV-05'),
+          R('ok', 'AI tutor', ['شغّال', 'Operational'], '3.1 s', '4', ['19 أغسطس · 6 دقايق', '19 Aug · 6 min'], 'جو سام', 'SV-06'),
+          R('ok', 'Email', ['شغّال', 'Operational'], '820 ms', '0', '—', 'جو سام', 'SV-07'),
+          R('ok', 'Backups', ['شغّال', 'Operational'], '—', '0', ['متأكّد 04:00', 'Verified 04:00'], 'جو سام', 'SV-08')
+        ],
+        pageInfo: 'SHOWING 8 OF 9'
+      }
+    };
+
+    const tblKey = tables[s] ? s : null;
+    const rawTbl = tables[tblKey || 'students'];
+    // The table's URL is the single source of truth for sorting. A table whose URL declares no
+    // sort gets no chevron at all; a table that declares one must have a column carrying that key.
+    const sortMatch = /sort=(-?)([A-Za-z]+)/.exec(rawTbl.url || '');
+    const sortKey = sortMatch ? sortMatch[2] : null;
+    const sortDesc = sortMatch ? sortMatch[1] === '-' : false;
+    if (sortKey && !rawTbl.cols.some(c => c[5] === sortKey)) {
+      console.error('[josam] table "' + (tblKey || 'students') + '" declares sort=' + sortKey +
+        ' but no column carries that key');
+    }
+    const stateColour = k => (k === 'critical' ? t.critical : k === 'warn' ? t.attention : k === 'muted' ? t.sec : t.accentText);
+    const tbl = {
+      label: rawTbl.label, titleAr: rawTbl.titleAr, titleEn: rawTbl.titleEn,
+      url: rawTbl.url, search: rawTbl.search, count: rawTbl.count,
+      footAr: rawTbl.footAr, footEn: rawTbl.footEn, pageInfo: rawTbl.pageInfo,
+      hasBulk: !!rawTbl.hasBulk && owner,
+      hasMobile: !!rawTbl.hasMobile,
+      filters: rawTbl.filters.map(([label, active]) => ({
+        label, on: active,
+        border: active ? t.ink : t.border,
+        bg: active ? t.selected : 'transparent',
+        fg: active ? t.ink : t.sec
+      })),
+      cols: rawTbl.cols.map(c => {
+        const label = c[0], flex = c[1], align = c[2], key = c[5];
+        const isSorted = !!sortKey && key === sortKey;
+        return {
+          label, flex: String(flex), align,
+          justify: align === 'center' ? 'center' : 'flex-start',
+          color: isSorted ? t.ink : t.sec,
+          sorted: isSorted
+        };
+      }),
+      mobileRows: (rawTbl.mobileRows || []).map(([a, e, sa, se, right, id]) => ({ ar: a, en: e, subAr: sa, subEn: se, right, id })),
+      rows: rawTbl.rows.map((r, ri) => {
+        // Hard assertion: a row must carry exactly one cell per column. Silent drift is what
+        // shifted four tables before, so a mismatch now fails loudly instead of rendering wrong.
+        if (r.cells.length !== rawTbl.cols.length) {
+          console.error('[josam] table "' + (tblKey || 'students') + '" row ' + ri +
+            ' has ' + r.cells.length + ' cells but ' + rawTbl.cols.length + ' columns');
+        }
+        const cells = rawTbl.cols.map((c, ci) => {
+          const label = c[0], flex = c[1], align = c[2], isMono = !!c[3], wantsDot = !!c[4];
+          const pair = r.cells[ci] || ['—', '—'];
+          const text = ar ? pair[0] : pair[1];
+          return cell(text, flex, {
+            dir: isMono ? 'ltr' : 'auto',
+            bidi: isMono ? 'isolate' : 'plaintext',
+            font: isMono ? M : S,
+            color: wantsDot ? stateColour(r.kind) : (isMono ? t.sec : t.ink),
+            weight: ci === 0 ? '700' : '400',
+            justify: align === 'center' ? 'center' : 'flex-start',
+            hasDot: wantsDot,
+            dotBg: r.kind === 'ok' ? t.accent : 'transparent',
+            dotBorder: r.kind === 'ok' ? 'none'
+              : r.kind === 'critical' ? '2px solid ' + t.critical
+              : (r.kind === 'warn' || r.kind === 'attention') ? '2px solid ' + t.attention
+              : '1px dashed ' + t.sec
+          });
+        });
+        return { cells, bg: r.kind === 'critical' ? t.selected : 'transparent' };
+      })
+    };
+
+    // ---------- panels ----------
+    const prow = (a, e, value, opts) => Object.assign({
+      ar: a, en: e, value, weight: '400', valueColor: t.sec,
+      hasDot: false, dotBg: 'transparent', dotBorder: 'none',
+      hasNote: false, noteAr: '', noteEn: ''
+    }, opts || {});
+
+    const panels = {
+      student: {
+        label: 'DESKTOP 1440 · STUDENT PROFILE · SUPPORT ACTIONS STATE THEIR EFFECT',
+        titleAr: 'يوسف سامي عبد الله', titleEn: 'Yousef Samy Abdallah',
+        entityId: 'ST-10233', created: 'JO SAM · 12 MAY 2026 11:04', changed: 'SYSTEM · 20 AUG 2026 09:04',
+        grid: '1.2fr 1fr 1fr', hasMobile: true,
+        panes: [
+          { label: 'OWNS AND UNTIL WHEN', meta: '2 ENTITLEMENTS', rows: [
+            prow('أساسيات البرمجة بـPython', 'Programming Foundations', 'LIFETIME', { weight: '700', hasDot: true, dotBg: t.accent, hasNote: true, noteAr: 'اتشترى 12 مايو · 899 EGP · كارت', noteEn: 'Bought 12 May · 899 EGP · card' }),
+            prow('تمديد المدرّس الذكي', 'AI tutor extension', 'TO 2 DEC 2026', { hasDot: true, dotBorder: '2px solid ' + t.attention, hasNote: true, noteAr: '150 سؤال شهريًا · استخدم 66 الشهر ده', noteEn: '150/month · 66 used this month' }),
+            prow('تطوير الويب', 'Web development', 'NOT OWNED', { hasDot: true, dotBorder: '1px dashed ' + t.sec }),
+            prow('التقدّم', 'Progress', '11 / 41 · 15 SEP', { hasNote: true, noteAr: 'الدرس 12 عند 7:45 · 5 ساعات/أسبوع', noteEn: 'Lesson 12 at 7:45 · 5 h/week' }),
+            prow('آخر ظهور', 'Last seen', '2 MIN AGO')
+          ] },
+          { label: 'DEVICES · ORDERS · TICKETS', meta: '2 / 2 SLOTS', rows: [
+            prow('موبايل', 'Phone', 'PRIMARY · NOW', { hasDot: true, dotBg: t.accent }),
+            prow('لابتوب', 'Laptop', 'SLOT 2 · 17 AUG', { hasDot: true, dotBg: t.accent }),
+            prow('طلب نقل لموبايل جديد', 'Transfer to a new phone', 'PENDING 39 MIN', { weight: '700', valueColor: t.attention, hasDot: true, dotBorder: '2px solid ' + t.attention }),
+            prow('الطلبات', 'Orders', '2 PAID · 1,099 EGP'),
+            prow('التذاكر', 'Tickets', '1 OPEN · 2 CLOSED'),
+            prow('الشهادات', 'Certificates', '1 · JSM-4K9P')
+          ] },
+          { label: 'WHAT YOU CAN DO', meta: '', hasActions: true, hasAbsentNote: !owner,
+            absentAr: 'الأفعال اللي بتلمس فلوس أو وصول مش موجودة في دورك — مش معطّلة، مش ظاهرة.',
+            absentEn: 'Actions touching money or access do not exist in your role — not disabled, not shown.',
+            rows: [
+              prow('الدور الحالي', 'Your role', owner ? 'OWNER' : 'SUPPORT', { weight: '700', valueColor: t.ink })
+            ],
+            actions: [
+              { ar: 'وافق على نقل الجهاز', en: 'Approve the device transfer', effectAr: 'بيفصل اللابتوب فورًا ويربط الموبايل الجديد. المتعلّم بيتبعت له إشعار.', effectEn: 'Unbinds the laptop immediately and binds the new phone. The learner is notified.' },
+              owner ? { ar: 'مدّد الوصول', en: 'Extend access', effectAr: 'بيزوّد تمديد المدرّس الذكي شهرين مجانًا لحد 2 فبراير. مفيش خصم.', effectEn: 'Adds two free months to the AI extension, to 2 February. Nothing is charged.' } : null,
+              owner ? { ar: 'امنح كورس', en: 'Grant a course', effectAr: 'بيفتح تطوير الويب من غير دفع. بيتسجّل في سجل التغييرات باسمك.', effectEn: 'Opens Web development with no payment. Written to the audit log under your name.' } : null
+            ].filter(Boolean) }
+        ]
+      },
+      courseEditor: {
+        label: 'DESKTOP 1440 · COURSE EDITOR · CREATE vs EDIT vs VIEW vs READ-ONLY',
+        titleAr: 'أساسيات البرمجة بـPython', titleEn: 'Programming Foundations with Python',
+        entityId: 'CR-0001', created: 'JO SAM · 14 MAY 2026 09:20', changed: 'JO SAM · 18 AUG 2026 11:04',
+        grid: '1fr 1fr 1fr', hasMobile: false,
+        panes: [
+          { label: 'METADATA · BOTH LANGUAGES', meta: 'AR + EN', rows: [
+            prow('العنوان — عربي', 'Title — Arabic', '38 / 60 CHARS', { weight: '700', hasNote: true, noteAr: 'أساسيات البرمجة بـPython', noteEn: 'أساسيات البرمجة بـPython' }),
+            prow('العنوان — إنجليزي', 'Title — English', '44 / 60 CHARS', { hasNote: true, noteAr: 'Programming Foundations with Python', noteEn: 'Programming Foundations with Python' }),
+            prow('الوصف — عربي', 'Description — Arabic', '218 / 400', { hasNote: true, noteAr: 'الفرق في الطول بين اللغتين لحد 40% — الحقل بيقيس الاتنين', noteEn: 'Up to 40% length difference — the field measures both' }),
+            prow('المستوى', 'Level', 'BEGINNER'),
+            prow('الغلاف', 'Cover', 'MD-2210 · 1.8 MB'),
+            prow('حالة النشر', 'Publication state', 'PUBLISHED', { weight: '700', valueColor: t.accentText, hasDot: true, dotBg: t.accent })
+          ] },
+          { label: 'PRICING · BOUND TO THE PRODUCT', meta: 'PR-0001', rows: [
+            prow('السعر الأساسي', 'List price', '1,200 EGP', { weight: '700', valueColor: t.ink }),
+            prow('عرض الافتتاح', 'Launch offer', '899 EGP · 11 D LEFT', { valueColor: t.accentText }),
+            prow('الوصول', 'Access', 'LIFETIME'),
+            prow('الشهادة', 'Certificate', 'INCLUDED'),
+            prow('المدرّس الذكي', 'AI tutor', '150/MO · 6 MONTHS')
+          ] },
+          { label: 'MODE', meta: owner ? 'EDIT' : 'READ-ONLY', hasActions: true,
+            hasAbsentNote: !owner,
+            absentAr: 'دورك بيشوف الكورس ومايعدّلوش — فمفيش حقول قابلة للكتابة ومفيش زر حفظ على الشاشة.',
+            absentEn: 'Your role views a course and does not edit it — so there are no writable fields and no save action on screen.',
+            rows: [
+              prow('الوضع الحالي', 'Current mode', owner ? 'EDIT' : 'READ-ONLY', { weight: '700', valueColor: t.ink }),
+              prow('آخر نشر', 'Last published', '18 AUG 11:04'),
+              prow('مسوّدة غير منشورة', 'Unpublished draft', owner ? 'YES · 2 CHANGES' : 'HIDDEN')
+            ],
+            actions: owner ? [
+              { ar: 'انشر التغييرات', en: 'Publish the changes', effectAr: 'التغييرين هيبانوا للمتعلّمين فورًا — العنوان الإنجليزي والوصف.', effectEn: 'Both changes become visible to learners immediately — the English title and the description.' },
+              { ar: 'ارجع للمنشور', en: 'Revert to published', effectAr: 'بيلغي المسوّدة. مفيش رجوع للمسوّدة بعد كده.', effectEn: 'Discards the draft. The draft cannot be recovered afterwards.' }
+            ] : [] }
+        ]
+      },
+      curriculum: {
+        label: 'DESKTOP 1440 · CURRICULUM BUILDER · TREE, READINESS, UNLOCK RULES',
+        titleAr: 'باني المنهج — أساسيات البرمجة', titleEn: 'Curriculum builder — Foundations',
+        entityId: 'CR-0001', created: 'JO SAM · 14 MAY 2026 09:20', changed: 'JO SAM · 20 AUG 2026 08:02',
+        grid: '1.4fr 1fr', hasMobile: false,
+        panes: [
+          { label: 'SECTION 03 · PYTHON · DRAG TO REORDER', meta: '6 ITEMS · 1:22:40', rows: [
+            prow('10 · أول برنامج', '10 · Your first program', 'VIDEO 10:20 · READY', { hasDot: true, dotBg: t.accent }),
+            prow('11 · المتغيّرات', '11 · Variables', 'VIDEO 08:40 · READY', { hasDot: true, dotBg: t.accent }),
+            prow('12 · الحلقات', '12 · Loops', 'VIDEO 14:05 · READY', { weight: '700', hasDot: true, dotBg: t.accent, hasNote: true, noteAr: '4 فصول · شرح مكتوب · ملفين مرفقين', noteEn: '4 chapters · notes written · 2 files' }),
+            prow('13 · الدوال', '13 · Functions', 'VIDEO 15:30 · TRANSCODING', { valueColor: t.attention, hasDot: true, dotBorder: '2px solid ' + t.attention, hasNote: true, noteAr: 'مش جاهز للنشر — الفيديو لسه بيحوّل 62%', noteEn: 'Not publishable — video is 62% transcoded' }),
+            prow('14 · اختبار القسم الأول', '14 · Section quiz 1', 'QUIZ 10 Q · READY', { hasDot: true, dotBg: t.accent, hasNote: true, noteAr: 'علامة النجاح 60% · 3 محاولات', noteEn: 'Pass mark 60% · 3 attempts' }),
+            prow('15 · المصفوفات', '15 · Arrays', 'VIDEO 18:05 · NO NOTES', { valueColor: t.attention, hasDot: true, dotBorder: '2px solid ' + t.attention })
+          ] },
+          { label: 'UNLOCK RULES ON THIS SECTION', meta: '3 RULES', hasActions: true, rows: [
+            prow('12 بيفتح بعد 11', '12 opens after 11', 'SEQUENTIAL'),
+            prow('14 بيفتح بعد 13', '14 opens after 13', 'SEQUENTIAL'),
+            prow('15 بيفتح بعد نجاح 14', '15 opens after passing 14', 'QUIZ ≥ 60%', { weight: '700' })
+          ],
+            actions: owner ? [
+              { ar: 'انشر القسم', en: 'Publish this section', effectAr: 'مش متاح دلوقتي: الدرس 13 لسه بيحوّل والدرس 15 مفيهوش شرح. الزر بيرجع لوحده لما يجهزوا.', effectEn: 'Not possible yet: lesson 13 is transcoding and lesson 15 has no notes. This returns by itself once both are ready.' }
+            ] : [] }
+        ]
+      },
+      lessonEditor: {
+        label: 'DESKTOP 1440 · LESSON EDITOR · VIDEO, CHAPTERS, TIMESTAMPED NOTE BLOCKS',
+        titleAr: 'الدرس 12 — الحلقات', titleEn: 'Lesson 12 — Loops',
+        entityId: 'LS-0012', created: 'JO SAM · 16 AUG 2026 14:10', changed: 'JO SAM · 18 AUG 2026 11:04',
+        grid: '1fr 1fr 1fr', hasMobile: false,
+        panes: [
+          { label: 'VIDEO AND UPLOAD STATE', meta: 'MD-4402', rows: [
+            prow('الملف', 'File', 'loops-lesson-12-1080.mp4'),
+            prow('الحجم والمدة', 'Size and duration', '842 MB · 14:05'),
+            prow('التحويل', 'Transcoding', 'DONE · 4 RENDITIONS', { hasDot: true, dotBg: t.accent }),
+            prow('العلامة المائية', 'Watermark', 'PER-LEARNER · ON', { hasDot: true, dotBg: t.accent }),
+            prow('التنزيل', 'Download', 'ALLOWED')
+          ] },
+          { label: 'CHAPTERS · 4', meta: 'NAVIGABLE', rows: [
+            prow('إيه هي الحلقة', 'What a loop is', '00:00'),
+            prow('حلقة for', 'The for loop', '03:12'),
+            prow('حلقة while', 'The while loop', '06:48'),
+            prow('الخروج بـbreak', 'Breaking out with break', '10:05'),
+            prow('تمرين على الاتنين', 'Exercise on both', '12:20')
+          ] },
+          { label: 'NOTE BLOCKS · TIMESTAMPED', meta: '4 BLOCKS · 2 WITH CODE', hasActions: true, rows: [
+            prow('بلوك 1', 'Block 1', '00:00 · TEXT'),
+            prow('بلوك 2', 'Block 2', '03:12 · TEXT + CODE', { hasNote: true, noteAr: 'كتلة كود Python · 2 سطور', noteEn: 'Python code block · 2 lines' }),
+            prow('بلوك 3', 'Block 3', '06:48 · TEXT'),
+            prow('بلوك 4', 'Block 4', '10:05 · TEXT + CODE'),
+            prow('المرفقات', 'Attachments', '2 FILES')
+          ],
+            actions: owner ? [
+              { ar: 'اربط البلوكات بالفيديو', en: 'Re-sync blocks to the video', effectAr: 'بيعيد حساب توقيت البلوكات لو الفيديو اتغيّر. الملاحظات اللي المتعلّمين كتبوها مش بتتأثر.', effectEn: 'Recomputes block timings if the video changed. Learner-written notes are untouched.' }
+            ] : [] }
+        ]
+      },
+      products: {
+        label: 'DESKTOP 1440 · ENTITLEMENT COMPOSER · PREVIEWED AS THE BUYER SEES IT',
+        titleAr: 'المنتجات ومؤلّف الصلاحيات', titleEn: 'Products and entitlement composer',
+        entityId: 'PR-0001', created: 'JO SAM · 14 MAY 2026 09:22', changed: 'JO SAM · 18 AUG 2026 11:04',
+        grid: '1fr 1fr 1fr', hasMobile: false,
+        panes: [
+          { label: 'WHAT THIS PRODUCT GRANTS', meta: '5 GRANTS', rows: [
+            prow('كل دروس CR-0001', 'All lessons in CR-0001', '41 · UNLIMITED', { hasDot: true, dotBg: t.accent }),
+            prow('كل اختبارات CR-0001', 'All quizzes in CR-0001', '4 · 3 ATTEMPTS', { hasDot: true, dotBg: t.accent }),
+            prow('المدرّس الذكي', 'AI tutor', '150/MO · 6 MONTHS', { hasDot: true, dotBg: t.accent }),
+            prow('المرفقات', 'Attachments', 'ALL · DOWNLOADABLE', { hasDot: true, dotBg: t.accent }),
+            prow('الشهادة', 'Certificate', 'ON COMPLETION', { hasDot: true, dotBg: t.accent })
+          ] },
+          { label: 'AS THE BUYER SEES IT · SAME SOURCE', meta: 'PUBLIC COURSE PAGE', rows: [
+            prow('الـ41 درس كلهم، بمشاهدة من غير حدّ', 'All 41 lessons, unlimited replays', 'LINE 1'),
+            prow('الأربع اختبارات، 3 محاولات لكل واحد', 'All four quizzes, three attempts each', 'LINE 2'),
+            prow('مدرّس ذكي — 150 سؤال شهريًا لـ6 شهور', 'AI tutor — 150 questions a month for six months', 'LINE 3'),
+            prow('الملفات والتمارين المرفقة', 'The attached files and exercises', 'LINE 4'),
+            prow('شهادة قابلة للتأكيد', 'A verifiable certificate', 'LINE 5')
+          ] },
+          { label: 'COUPONS ON THIS PRODUCT', meta: '2 ACTIVE', hasActions: true, rows: [
+            prow('LAUNCH25', 'LAUNCH25', '−301 EGP · 11 D', { weight: '700', valueColor: t.accentText, hasNote: true, noteAr: 'مفتوح للكل · استُخدم 84 من غير حدّ', noteEn: 'Public · used 84 times, uncapped' }),
+            prow('SEP20', 'SEP20', 'EXHAUSTED', { valueColor: t.sec, hasDot: true, dotBorder: '1px dashed ' + t.sec, hasNote: true, noteAr: '100 من 100 · بيرفض بسطر داخلي مش بصفحة غلط', noteEn: '100 of 100 · refused inline, not on an error page' }),
+            prow('الخصم الأقصى المسموح', 'Maximum stackable discount', 'ONE COUPON ONLY')
+          ],
+            actions: owner ? [
+              { ar: 'اعمل كوبون', en: 'Create a coupon', effectAr: 'الكوبون الجديد بيسري على المنتج ده بس، وبيظهر في صفحة الكورس فورًا لو مفتوح للكل.', effectEn: 'A new coupon applies to this product only, and appears on the course page immediately if it is public.' }
+            ] : [] }
+        ]
+      },
+      reports: {
+        label: 'DESKTOP 1440 · REPORTS · EVERY CHART ANSWERS A STATED QUESTION',
+        titleAr: 'التقارير', titleEn: 'Reports',
+        entityId: 'RP-AUG-2026', created: 'SYSTEM · 1 AUG 2026 00:00', changed: 'SYSTEM · 20 AUG 2026 09:00',
+        grid: '1fr 1fr 1fr', hasMobile: false,
+        panes: [
+          { label: 'Q: IS REVENUE GROWING, AND FROM WHAT?', meta: 'AUG vs JUL', rows: [
+            prow('إيراد أغسطس لحد النهارده', 'August to date', '74,700 EGP', { weight: '700', valueColor: t.ink }),
+            prow('يوليو بالكامل', 'July, full month', '68,400 EGP'),
+            prow('الفرق', 'Change', '+9.2%', { valueColor: t.accentText }),
+            prow('من كورسات جديدة', 'From new course sales', '61,300 EGP'),
+            prow('من تمديدات المدرّس', 'From AI extensions', '13,400 EGP'),
+            prow('متوسط الأوردر', 'Average order', '821 EGP')
+          ] },
+          { label: 'Q: WHERE DO LEARNERS STOP?', meta: 'DROP-OFF BY LESSON', rows: [
+            prow('الدرس 4 — تجهيز الجهاز', 'Lesson 4 — machine setup', '−18% HERE', { weight: '700', valueColor: t.critical, hasDot: true, dotBorder: '2px solid ' + t.critical, hasNote: true, noteAr: 'أكبر تسريب في المسار — 56 متعلّم وقفوا هنا', noteEn: 'The largest leak in the path — 56 learners stopped here' }),
+            prow('الدرس 12 — الحلقات', 'Lesson 12 — Loops', '−9%', { valueColor: t.attention, hasDot: true, dotBorder: '2px solid ' + t.attention }),
+            prow('الدرس 14 — الاختبار', 'Lesson 14 — the quiz', '−7%', { valueColor: t.attention, hasDot: true, dotBorder: '2px solid ' + t.attention }),
+            prow('الدرس 22 — القوائم', 'Lesson 22 — Lists', '−4%'),
+            prow('اللي خلّصوا', 'Completed the track', '34.8%')
+          ] },
+          { label: 'Q: WHAT IS AI COSTING, AND WHAT IS IT MISSING?', meta: 'AUG · 30-DAY', hasActions: true, rows: [
+            prow('تكلفة أغسطس', 'August cost', '6.90 / 15.00 USD'),
+            prow('نسبة الحلّ بلا بني آدم', 'Deflection rate', '68.4%', { valueColor: t.accentText }),
+            prow('أسئلة بلا إجابة في المنهج', 'Questions no lesson answers', '38 TOPICS · 412 ASKS', { weight: '700', valueColor: t.attention, hasDot: true, dotBorder: '2px solid ' + t.attention }),
+            prow('أعلى موضوع مطلوب', 'Top requested topic', 'PUBLISHING A PROJECT · 64')
+          ],
+            actions: [
+              { ar: 'افتح باكلوج المحتوى', en: 'Open the content backlog', effectAr: 'بيوديك لجدول الأسئلة اللي مفيش درس بيجاوبها، مرتّب بعدد اللي سألوا.', effectEn: 'Takes you to the table of questions no lesson answers, ordered by how many asked.' }
+            ] }
+        ]
+      }
+    };
+    const pnlKey = panels[s] ? s : null;
+    const rawPnl = panels[pnlKey || 'student'];
+    const pnl = Object.assign({}, rawPnl, {
+      hasConfirm: s === 'student' && owner,
+      confirmTitleAr: 'قبل ما توافق على نقل الجهاز',
+      confirmTitleEn: 'Before you approve this device transfer',
+      confirmBodyAr: 'اللابتوب هيتفصل فورًا ومش هيشتغل تاني إلا بطلب نقل جديد. الموبايل الجديد هياخد الخانة. المتعلّم هيوصله إشعار وإيميل، والحركة هتتسجّل باسمك في سجل التغييرات.',
+      confirmBodyEn: 'The laptop is unbound immediately and will not work again without a new transfer request. The new phone takes the slot. The learner gets a notification and an email, and this is written to the audit log under your name.',
+      confirmCtaAr: 'وافق واسحب اللابتوب',
+      confirmCtaEn: 'Approve and unbind the laptop',
+      panes: rawPnl.panes.map(p => Object.assign({}, p, {
+        hasActions: !!p.hasActions,
+        hasAbsentNote: !!p.hasAbsentNote,
+        actions: p.actions || [],
+        absentAr: p.absentAr || '', absentEn: p.absentEn || ''
+      }))
+    });
+
+    return {
+      t,
+      dirAttr: ar ? 'rtl' : 'ltr',
+      ad: ar ? 'inline' : 'none',
+      ed: ar ? 'none' : 'inline',
+      arrowFlip: ar ? 'none' : 'scaleX(-1)',
+      sortFlip: sortDesc ? 'none' : 'scaleY(-1)',
+      arBg: ar ? on : 'transparent', arFg: ar ? onFg : on,
+      enBg: ar ? 'transparent' : on, enFg: ar ? on : onFg,
+      liBg: light ? on : 'transparent', liFg: light ? onFg : on,
+      dkBg: light ? 'transparent' : on, dkFg: light ? on : onFg,
+      ownBg: owner ? on : 'transparent', ownFg: owner ? onFg : on,
+      supBg: owner ? 'transparent' : on, supFg: owner ? on : onFg,
+      setAr: () => this.setState({ lang: 'ar' }),
+      setEn: () => this.setState({ lang: 'en' }),
+      setLight: () => this.setState({ theme: 'light' }),
+      setDark: () => this.setState({ theme: 'dark' }),
+      setOwner: () => this.setState({ role: 'owner' }),
+      setSupport: () => this.setState({ role: 'support' }),
+      navItems: nav,
+      screenTitle: A(titles[s]),
+      roleTag: owner ? 'JO SAM · OWNER' : 'NADA · SUPPORT',
+      isOps: s === 'ops',
+      isTable: !!tblKey,
+      isPanel: !!pnlKey,
+      queue, queueTotal: owner ? '13 ITEMS · OLDEST 44 H' : '3 ITEMS IN YOUR ROLE',
+      kpis, kpisMobile: kpis.slice(0, 4),
+      tbl, pnl
+    };
+  }
+}
+</script>
+</body>
+</html>

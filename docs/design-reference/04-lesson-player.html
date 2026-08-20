@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+<style>
+body { margin: 0; background: #DED7C7; }
+a { color: #3F5B22; text-decoration: none; }
+a:hover { color: #2E4318; text-decoration: underline; }
+@keyframes jos-spin { to { transform: rotate(360deg); } }
+@keyframes jos-shimmer { 0%, 100% { opacity: 0.55; } 50% { opacity: 0.28; } }
+</style>
+</helmet>
+<div style="width: 1800px; box-sizing: border-box; background: #DED7C7; padding: 34px 40px 56px; display: flex; flex-direction: column; gap: 24px; font-family: 'Almarai', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif">
+
+  <div dir="{{ dirAttr }}" style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid #23201B; padding-bottom: 14px">
+    <div style="display: flex; flex-direction: column; gap: 7px">
+      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.2em; color: #635A4D">JOSAM ACADEMY · LESSON PLAYER · STEP 2</div>
+      <div style="font-size: 25px; font-weight: 800; color: #23201B"><span style="display: {{ ad }}">مشغّل الدرس — والتلات لوحات</span><span dir="ltr" style="display: {{ ed }}">The lesson player — and its three panels</span></div>
+    </div>
+    <div style="display: flex; align-items: flex-end; gap: 18px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 9px; letter-spacing: 0.16em; color: #635A4D">PLAYBACK STATE</div>
+        <div style="display: flex; border: 1px solid #23201B">
+          <div onClick="{{ goPlaying }}" style="padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; background: {{ pBg }}; color: {{ pFg }}"><span style="display: {{ ad }}">بيشتغل</span><span dir="ltr" style="display: {{ ed }}">Playing</span></div>
+          <div onClick="{{ goBuffering }}" style="padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ bBg }}; color: {{ bFg }}"><span style="display: {{ ad }}">بيحمّل</span><span dir="ltr" style="display: {{ ed }}">Buffering</span></div>
+          <div onClick="{{ goError }}" style="padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ eBg }}; color: {{ eFg }}"><span style="display: {{ ad }}">وقف</span><span dir="ltr" style="display: {{ ed }}">Failed</span></div>
+          <div onClick="{{ goOffline }}" style="padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ oBg }}; color: {{ oFg }}"><span style="display: {{ ad }}">أوفلاين</span><span dir="ltr" style="display: {{ ed }}">Offline</span></div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 9px; letter-spacing: 0.16em; color: #635A4D">PANEL</div>
+        <div style="display: flex; border: 1px solid #23201B">
+          <div onClick="{{ goNotes }}" style="padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; background: {{ nBg }}; color: {{ nFg }}"><span style="display: {{ ad }}">الشرح</span><span dir="ltr" style="display: {{ ed }}">Notes</span></div>
+          <div onClick="{{ goTutor }}" style="padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ tuBg }}; color: {{ tuFg }}"><span style="display: {{ ad }}">المدرّس</span><span dir="ltr" style="display: {{ ed }}">Tutor</span></div>
+          <div onClick="{{ goLimit }}" style="padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ lmBg }}; color: {{ lmFg }}"><span style="display: {{ ad }}">الحصة خلصت</span><span dir="ltr" style="display: {{ ed }}">Quota spent</span></div>
+          <div onClick="{{ goScope }}" style="padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ scBg }}; color: {{ scFg }}"><span style="display: {{ ad }}">برّه الدرس</span><span dir="ltr" style="display: {{ ed }}">Out of scope</span></div>
+          <div onClick="{{ goQuestions }}" style="padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ qBg }}; color: {{ qFg }}"><span style="display: {{ ad }}">الأسئلة</span><span dir="ltr" style="display: {{ ed }}">Questions</span></div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 9px; letter-spacing: 0.16em; color: #635A4D">LANG</div>
+        <div style="display: flex; border: 1px solid #23201B">
+          <div onClick="{{ setAr }}" style="padding: 8px 13px; font-size: 12px; font-weight: 700; cursor: pointer; background: {{ arBg }}; color: {{ arFg }}">العربية</div>
+          <div onClick="{{ setEn }}" dir="ltr" style="padding: 8px 13px; font-size: 12px; font-weight: 700; cursor: pointer; border-inline-start: 1px solid #23201B; background: {{ enBg }}; color: {{ enFg }}">EN</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 28px; align-items: flex-start">
+
+    <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">DESKTOP 1280 · DARK IS THE PLAYER'S HOME</div>
+      <div dir="{{ dirAttr }}" style="width: 1280px; box-sizing: border-box; background: #1D1B17; color: #EDE7DA; display: flex; flex-direction: column">
+
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 11px 24px; border-bottom: 1px solid #35312A">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6" style="flex: 0 0 auto; transform: {{ arrowFlip }}"><polyline points="10 3 5 8 10 13"></polyline></svg>
+            <div style="font-size: 13px; color: #A79C88; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span style="display: {{ ad }}">أساسيات البرمجة · الوحدة <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">3</span> · الدرس <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">12</span> من <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">41</span></span><span dir="ltr" style="display: {{ ed }}">Programming Foundations · Module 3 · Lesson 12 of 41</span></div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px">
+            <div style="display: flex; align-items: center; gap: 7px; border: 1px solid #35312A; padding: 5px 9px">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#A79C88" stroke-width="1.5"><path d="M3 3h10v7H8l-3 3v-3H3z"></path></svg>
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: #A79C88">{{ quotaLabel }}</div>
+            </div>
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: #EDE7DA; color: #1D1B17; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700">ي س</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.55fr 1fr; gap: 0">
+
+          <div style="display: flex; flex-direction: column; border-inline-end: 1px solid #35312A">
+
+            <div style="position: relative; background: #141310; height: 400px; display: flex; align-items: center; justify-content: center">
+              <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 40px; box-sizing: border-box">
+                <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none" style="opacity: 0.16"><defs><pattern id="jos-stripe" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="14" stroke="#A79C88" stroke-width="3"></line></pattern></defs><rect width="400" height="200" fill="url(#jos-stripe)"></rect></svg>
+              </div>
+              <div dir="ltr" style="position: absolute; top: 14px; inset-inline-end: 16px; unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10.5px; color: #A79C88; opacity: 0.75">YOUSEF SAMY · 8F2C-4K9P · 20 AUG 23:58</div>
+
+              <sc-if value="{{ isPlaying }}" hint-placeholder-val="{{ true }}">
+                <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; letter-spacing: 0.16em; color: #A79C88">VIDEO · 1080P · WATERMARKED PER LEARNER</div>
+                  <div style="width: 54px; height: 54px; border: 2px solid #EDE7DA; border-radius: 50%; display: flex; align-items: center; justify-content: center"><div style="display: flex; gap: 5px"><div style="width: 5px; height: 18px; background: #EDE7DA"></div><div style="width: 5px; height: 18px; background: #EDE7DA"></div></div></div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ isBuffering }}" hint-placeholder-val="{{ false }}">
+                <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px">
+                  <div style="width: 30px; height: 30px; border: 3px solid #A9C57E; border-top-color: transparent; border-radius: 50%; animation: jos-spin 750ms linear infinite"></div>
+                  <div style="font-size: 13.5px"><span style="display: {{ ad }}">بيحمّل الجزء الجاي</span><span dir="ltr" style="display: {{ ed }}">Buffering the next part</span></div>
+                  <div style="font-size: 12px; color: #A79C88"><span style="display: {{ ad }}">النت بطيء دلوقتي — التشغيل هيكمّل من <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">7:45</span> لوحده</span><span dir="ltr" style="display: {{ ed }}">Slow connection — playback resumes itself at 7:45</span></div>
+                  <div style="display: flex; align-items: center; gap: 9px; border: 1px solid #EDE7DA; padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer">
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6"><path d="M8 3v7"></path><path d="M5 7l3 3 3-3"></path><path d="M3 13h10"></path></svg>
+                    <span style="display: {{ ad }}">نزّله وشوفه بعدين</span><span dir="ltr" style="display: {{ ed }}">Download and watch later</span>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+                <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 13px; max-width: 420px; text-align: center">
+                  <svg width="26" height="26" viewBox="0 0 16 16" fill="none" stroke="#E8907F" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"></circle><path d="M8 5v3.5M8 10.6v.01"></path></svg>
+                  <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 30px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">الفيديو وقف عند <span dir="ltr" style="unicode-bidi: isolate">7:45</span></span><span dir="ltr" style="display: {{ ed }}">Playback stopped at 7:45</span></div>
+                  <div style="font-size: 13px; line-height: 1.85; color: #A79C88"><span style="display: {{ ad }}">الاتصال بالسيرفر اتقطع في نص التحميل. مكانك محفوظ بالثانية، والتشغيل هيرجع من نفس اللحظة.</span><span dir="ltr" style="display: {{ ed }}">The connection to the server dropped mid-buffer. Your place is saved to the second and playback resumes from the same moment.</span></div>
+                  <div style="display: flex; align-items: center; gap: 11px">
+                    <div style="background: #A9C57E; color: #1D1B17; padding: 12px 22px; font-size: 14.5px; font-weight: 700; display: flex; align-items: center; gap: 9px; cursor: pointer">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#1D1B17" stroke-width="1.6"><path d="M13 8a5 5 0 1 1-1.6-3.7"></path><polyline points="13 2.5 13 5 10.5 5"></polyline></svg>
+                      <span style="display: {{ ad }}">جرّب تشغيل تاني</span><span dir="ltr" style="display: {{ ed }}">Try playing again</span>
+                    </div>
+                    <div style="border: 1px solid #EDE7DA; padding: 11px 18px; font-size: 13.5px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">نزّل الدرس</span><span dir="ltr" style="display: {{ ed }}">Download the lesson</span></div>
+                  </div>
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: #7C7666">RETRIES THIS SEGMENT ONLY · NOT THE PAGE</div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ isOffline }}" hint-placeholder-val="{{ false }}">
+                <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 13px; max-width: 430px; text-align: center">
+                  <svg width="26" height="26" viewBox="0 0 16 16" fill="none" stroke="#93B4DE" stroke-width="1.5"><path d="M2 5.5c3.5-3 8.5-3 12 0"></path><path d="M4.5 8.5c2.2-1.9 4.8-1.9 7 0"></path><path d="M8 12v.01"></path></svg>
+                  <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 30px; font-weight: 700; line-height: 1.5"><span style="display: {{ ad }}">بتتفرّج على النسخة اللي نزّلتها</span><span dir="ltr" style="display: {{ ed }}">You're watching your downloaded copy</span></div>
+                  <div style="font-size: 13px; line-height: 1.85; color: #A79C88"><span style="display: {{ ad }}">مفيش نت، والدرس ده نازل على الجهاز فبيشتغل عادي. وقت المشاهدة والملاحظات بيتسجّلوا ويتزامنوا لوحدهم أول ما النت يرجع.</span><span dir="ltr" style="display: {{ ed }}">You're offline, and this lesson is on your device so it plays normally. Watch time and notes are recorded and sync themselves when the connection returns.</span></div>
+                  <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #93B4DE; padding: 7px 12px">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#93B4DE" stroke-width="1.6"><path d="M8 3v7"></path><path d="M5 7l3 3 3-3"></path><path d="M3 13h10"></path></svg>
+                    <div style="font-size: 11.5px; font-weight: 700; color: #93B4DE"><span style="display: {{ ad }}">نازل على الجهاز · <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">86 MB</span></span><span dir="ltr" style="display: {{ ed }}">On this device · 86 MB</span></div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+
+            <div dir="ltr" style="background: #141310; padding: 12px 20px 14px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #35312A">
+              <div style="display: flex; align-items: center; gap: 4px">
+                <div style="flex: 2.1; height: 6px; background: #A9C57E"></div>
+                <div style="flex: 1.4; height: 6px; background: #A9C57E"></div>
+                <div style="flex: 2.2; height: 6px; background: #35312A; display: flex"><div style="width: 44%; background: #A9C57E"></div></div>
+                <div style="flex: 1.6; height: 6px; background: #35312A"></div>
+                <div style="flex: 1.3; height: 6px; background: #35312A"></div>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 18px">
+                <div style="display: flex; align-items: center; gap: 16px">
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6"><polyline points="10 3 5 8 10 13"></polyline><line x1="4" y1="3" x2="4" y2="13"></line></svg>
+                  <div style="width: 34px; height: 34px; border-radius: 50%; background: #EDE7DA; display: flex; align-items: center; justify-content: center"><div style="display: flex; gap: 3px"><div style="width: 3.5px; height: 13px; background: #141310"></div><div style="width: 3.5px; height: 13px; background: #141310"></div></div></div>
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6"><polyline points="6 3 11 8 6 13"></polyline><line x1="12" y1="3" x2="12" y2="13"></line></svg>
+                  <div style="font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 12px; color: #A79C88; font-variant-numeric: tabular-nums">7:45 / 14:05</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 14px">
+                  <div style="font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11.5px; border: 1px solid #35312A; padding: 4px 8px; cursor: pointer">1.0×</div>
+                  <div style="font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11.5px; border: 1px solid #35312A; padding: 4px 8px; cursor: pointer">CC</div>
+                  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"></path></svg>
+                </div>
+              </div>
+              <div dir="{{ dirAttr }}" style="font-size: 11px; color: #7C7666"><span style="display: {{ ad }}">أزرار التشغيل بتفضل من الشمال لليمين في اللغتين — زي أي مشغّل فيديو</span><span dir="ltr" style="display: {{ ed }}">Transport controls stay left-to-right in both languages — like any video player</span></div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0; padding: 18px 20px 4px">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding-bottom: 8px; border-bottom: 1px solid #EDE7DA">
+                <div style="font-size: 14.5px; font-weight: 800"><span style="display: {{ ad }}">فصول الدرس</span><span dir="ltr" style="display: {{ ed }}">Chapters in this lesson</span></div>
+                <div style="font-size: 11.5px; color: #A79C88"><span style="display: {{ ad }}">دوس على أي فصل يودّيك عليه</span><span dir="ltr" style="display: {{ ed }}">Tap a chapter to jump there</span></div>
+              </div>
+              <sc-for list="{{ chapters }}" as="c" hint-placeholder-count="5">
+                <div style="display: flex; align-items: center; gap: 12px; padding: {{ c.pad }}; border-bottom: 1px solid #35312A; background: {{ c.bg }}; border-inline-start: {{ c.rule }}; cursor: pointer">
+                  <div style="flex: 0 0 17px; height: 17px; border-radius: 50%; background: {{ c.dotBg }}; border: {{ c.dotBorder }}; display: flex; align-items: center; justify-content: center">
+                    <sc-if value="{{ c.isDone }}" hint-placeholder-val="{{ false }}"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#1D1B17" stroke-width="2.6"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg></sc-if>
+                    <sc-if value="{{ c.isCurrent }}" hint-placeholder-val="{{ false }}"><div style="width: 6px; height: 6px; border-radius: 50%; background: #A9C57E"></div></sc-if>
+                  </div>
+                  <div style="flex: 1; font-size: 13.5px; font-weight: {{ c.weight }}; color: {{ c.color }}; min-width: 0"><span style="display: {{ ad }}">{{ c.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ c.en }}</span><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">{{ c.term }}</span></div>
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11.5px; color: {{ c.color }}; font-variant-numeric: tabular-nums">{{ c.at }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 22px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.14em; color: #A79C88">ATTACHED TO THIS LESSON</div>
+              <div style="display: flex; gap: 10px">
+                <div style="flex: 1; display: flex; align-items: center; gap: 10px; border: 1px solid #35312A; padding: 11px 13px; cursor: pointer">
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.5" style="flex: 0 0 auto"><path d="M4 2h6l2.5 2.5V14H4z"></path><path d="M6 8h4M6 10.5h4"></path></svg>
+                  <div style="flex: 1; min-width: 0">
+                    <div style="font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">كود الدرس</span><span dir="ltr" style="display: {{ ed }}">Lesson code</span></div>
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: #A79C88">loops.py · 4 KB</div>
+                  </div>
+                </div>
+                <div style="flex: 1; display: flex; align-items: center; gap: 10px; border: 1px solid #35312A; padding: 11px 13px; cursor: pointer">
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.5" style="flex: 0 0 auto"><path d="M4 2h6l2.5 2.5V14H4z"></path><path d="M6 8h4M6 10.5h4"></path></svg>
+                  <div style="flex: 1; min-width: 0">
+                    <div style="font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">تمرين الحلقات</span><span dir="ltr" style="display: {{ ed }}">Loops exercise</span></div>
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: #A79C88">exercise.pdf · 210 KB</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column">
+            <div style="display: flex; align-items: stretch; border-bottom: 1px solid #35312A">
+              <div onClick="{{ goNotes }}" style="flex: 1; padding: 13px 10px; text-align: center; font-size: 13px; font-weight: 700; cursor: pointer; color: {{ tabNotesFg }}; border-bottom: {{ tabNotesRule }}"><span style="display: {{ ad }}">الشرح المكتوب</span><span dir="ltr" style="display: {{ ed }}">Written notes</span></div>
+              <div onClick="{{ goTutor }}" style="flex: 1; padding: 13px 10px; text-align: center; font-size: 13px; font-weight: 700; cursor: pointer; color: {{ tabTutorFg }}; border-bottom: {{ tabTutorRule }}"><span style="display: {{ ad }}">المدرّس الذكي</span><span dir="ltr" style="display: {{ ed }}">AI tutor</span></div>
+              <div onClick="{{ goQuestions }}" style="flex: 1; padding: 13px 10px; text-align: center; font-size: 13px; font-weight: 700; cursor: pointer; color: {{ tabQFg }}; border-bottom: {{ tabQRule }}"><span style="display: {{ ad }}">أسئلة الدرس</span><span dir="ltr" style="display: {{ ed }}">Questions</span></div>
+            </div>
+
+            <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; flex: 1">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; background: #26231D; border-bottom: 1px solid #35312A">
+                  <div style="font-size: 12px; color: #A79C88"><span style="display: {{ ad }}">ماشي مع الفيديو — الفقرة الحالية متعلّمة</span><span dir="ltr" style="display: {{ ed }}">Synced to playback — the current block is marked</span></div>
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: #A9C57E">07:45</div>
+                </div>
+                <div style="display: flex; flex-direction: column; padding: 6px 18px 0">
+                  <sc-for list="{{ noteBlocks }}" as="n" hint-placeholder-count="4">
+                    <div style="display: flex; gap: 12px; padding: 13px 0; border-bottom: 1px solid #35312A; background: {{ n.bg }}; border-inline-start: {{ n.rule }}; padding-inline-start: {{ n.pad }}; cursor: pointer">
+                      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: {{ n.stampColor }}; flex: 0 0 42px; padding-top: 2px">{{ n.at }}</div>
+                      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px">
+                        <div style="font-size: 13.5px; line-height: 1.85; color: {{ n.color }}"><span style="display: {{ ad }}">{{ n.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ n.en }}</span></div>
+                        <sc-if value="{{ n.hasCode }}" hint-placeholder-val="{{ false }}">
+                          <div dir="ltr" style="unicode-bidi: isolate; text-align: left; background: #141310; border-inline-start: 3px solid #A9C57E; padding: 10px 12px; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 12px; line-height: 1.7">
+                            <div><span style="color: #C79BE0">for</span> <span style="color: #EDE7DA">i</span> <span style="color: #C79BE0">in</span> <span style="color: #93B4DE">range</span><span style="color: #EDE7DA">(</span><span style="color: #E8907F">1</span><span style="color: #EDE7DA">, </span><span style="color: #E8907F">6</span><span style="color: #EDE7DA">):</span></div>
+                            <div><span style="color: #EDE7DA">    </span><span style="color: #93B4DE">print</span><span style="color: #EDE7DA">(i)</span></div>
+                          </div>
+                        </sc-if>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="margin-top: auto; display: flex; align-items: center; gap: 11px; padding: 14px 18px; border-top: 1px solid #35312A; background: #26231D">
+                  <div style="flex: 1; display: flex; align-items: center; gap: 9px; background: #141310; border: 1px solid #7C7666; padding: 11px 12px">
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: #A9C57E; flex: 0 0 auto">07:45</div>
+                    <div style="font-size: 12.5px; color: #7C7666"><span style="display: {{ ad }}">اكتب ملاحظتك — هتتسجّل على اللحظة دي</span><span dir="ltr" style="display: {{ ed }}">Write your note — it's stamped at this moment</span></div>
+                  </div>
+                  <div style="flex: 0 0 auto; background: #A9C57E; color: #1D1B17; padding: 11px 18px; font-size: 13px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">احفظ</span><span dir="ltr" style="display: {{ ed }}">Save</span></div>
+                </div>
+                <div style="padding: 0 18px 14px; background: #26231D; font-size: 11px; color: #A79C88"><span style="display: {{ ad }}">الفيديو ما بيقفش وانت بتكتب، ومكانك ما بيتغيّرش</span><span dir="ltr" style="display: {{ ed }}">The video keeps playing while you type, and your place doesn't move</span></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showTutor }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; flex: 1">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; background: #26231D; border-bottom: 1px solid #35312A">
+                  <div style="font-size: 12px; color: #A79C88"><span style="display: {{ ad }}">بيجاوب من الدرس ده بس</span><span dir="ltr" style="display: {{ ed }}">Answers from this lesson only</span></div>
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: #A79C88">{{ quotaLabel }}</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 14px; padding: 16px 18px">
+                  <div style="display: flex; justify-content: flex-end">
+                    <div style="max-width: 84%; background: #26231D; padding: 12px 14px; font-size: 13.5px; line-height: 1.8"><span style="display: {{ ad }}">مش فاهم الفرق بين <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">for</span> و<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">while</span></span><span dir="ltr" style="display: {{ ed }}">I don't get the difference between <span style="font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">for</span> and <span style="font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">while</span></span></div>
+                  </div>
+                  <sc-if value="{{ tutorNormal }}" hint-placeholder-val="{{ true }}">
+                    <div style="display: flex; flex-direction: column; gap: 11px">
+                      <div style="border-inline-start: 3px solid #A9C57E; padding-inline-start: 13px; display: flex; flex-direction: column; gap: 10px">
+                        <div style="font-size: 13.5px; line-height: 1.9"><span style="display: {{ ad }}"><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">for</span> بتستخدمها لما تكون عارف عدد المرات مقدّمًا، و<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">while</span> لما تكون مستني شرط يتحقّق. في الدرس ده الأستاذ ضرب مثال العدّ من <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">1</span> لـ<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">5</span> بـ<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">for</span>، وبعده مثال «استنى لحد ما المستخدم يكتب كلمة صح» بـ<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">while</span>.</span><span dir="ltr" style="display: {{ ed }}">Use <span style="font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">for</span> when you know the number of repetitions up front, and <span style="font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">while</span> when you're waiting for a condition. In this lesson he counts 1 to 5 with a for loop, then waits for correct input with a while loop.</span></div>
+                        <div style="display: flex; flex-direction: column; gap: 7px">
+                          <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #A79C88">FROM</div>
+                          <div style="display: flex; align-items: center; gap: 9px; border: 1px solid #35312A; padding: 8px 11px; cursor: pointer">
+                            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: #A9C57E">03:12</div>
+                            <div style="flex: 1; font-size: 12.5px; min-width: 0"><span style="display: {{ ad }}">الدرس <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">12</span> · فصل حلقة <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">for</span></span><span dir="ltr" style="display: {{ ed }}">Lesson 12 · the for-loop chapter</span></div>
+                            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6" style="transform: {{ arrowFlip }}"><polyline points="10 3 5 8 10 13"></polyline></svg>
+                          </div>
+                          <div style="display: flex; align-items: center; gap: 9px; border: 1px solid #35312A; padding: 8px 11px; cursor: pointer">
+                            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: #A9C57E">06:48</div>
+                            <div style="flex: 1; font-size: 12.5px; min-width: 0"><span style="display: {{ ad }}">الدرس <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">12</span> · فصل حلقة <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">while</span></span><span dir="ltr" style="display: {{ ed }}">Lesson 12 · the while-loop chapter</span></div>
+                            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6" style="transform: {{ arrowFlip }}"><polyline points="10 3 5 8 10 13"></polyline></svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ tutorScope }}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; flex-direction: column; gap: 12px; border: 1px solid #E0B060; padding: 15px">
+                      <div style="display: flex; align-items: center; gap: 9px">
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#E0B060" stroke-width="1.6" style="flex: 0 0 auto"><circle cx="8" cy="8" r="5.5"></circle><path d="M8 5.5v.01M8 7.5v3.5"></path></svg>
+                        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.14em; color: #E0B060">OUTSIDE THIS LESSON</div>
+                      </div>
+                      <div style="font-size: 13.5px; line-height: 1.9"><span style="display: {{ ad }}">السؤال ده عن قواعد البيانات، والدرس ده عن الحلقات — فمش عندي إجابة من الدرس أقدر أوريك مكانها. اللي أعرفه: الموضوع ده مش في الكورس ده أصلاً.</span><span dir="ltr" style="display: {{ ed }}">That question is about databases and this lesson is about loops, so I have no answer in it that I can point you to. What I do know: the topic isn't in this course at all.</span></div>
+                      <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #35312A; padding-top: 12px">
+                        <div style="display: flex; align-items: center; gap: 9px; border: 1px solid #EDE7DA; padding: 10px 13px; font-size: 12.5px; font-weight: 700; cursor: pointer">
+                          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6"><path d="M3 3h10v7H8l-3 3v-3H3z"></path></svg>
+                          <span style="display: {{ ad }}">ابعت السؤال للأستاذ</span><span dir="ltr" style="display: {{ ed }}">Send it to the instructor</span>
+                        </div>
+                        <div style="font-size: 11.5px; color: #A79C88"><span style="display: {{ ad }}">السؤال ده اتسجّل في قايمة «مواضيع مطلوبة» — لو اتكرر كفاية بنعمله درس</span><span dir="ltr" style="display: {{ ed }}">Logged as a requested topic — if enough learners ask, it becomes a lesson</span></div>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ tutorLimit }}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; flex-direction: column; gap: 12px; border: 1px solid #E0B060; padding: 15px">
+                      <div style="display: flex; align-items: center; gap: 9px">
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#E0B060" stroke-width="1.6" style="flex: 0 0 auto"><circle cx="8" cy="8" r="5.5"></circle><polyline points="8 5 8 8 10.5 9.5"></polyline></svg>
+                        <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.14em; color: #E0B060">200 / 200 THIS MONTH · RESETS 1 SEP</div>
+                      </div>
+                      <div style="font-size: 13.5px; line-height: 1.9"><span style="display: {{ ad }}">خلصت حصتك الشهرية <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">200</span> سؤال. بترجع تاني <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">1 سبتمبر</span> — يعني بعد <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">12</span> يوم.</span><span dir="ltr" style="display: {{ ed }}">You've used all 200 questions this month. Your quota returns on 1 September — 12 days from now.</span></div>
+                      <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #35312A; padding-top: 12px">
+                        <div style="font-size: 12px; color: #A79C88"><span style="display: {{ ad }}">لحد ما ترجع، التلات حاجات دول شغّالين زي ما هما:</span><span dir="ltr" style="display: {{ ed }}">Until it returns, these three still work exactly as before:</span></div>
+                        <div style="display: flex; align-items: center; gap: 9px; font-size: 12.5px"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#A9C57E" stroke-width="1.8" style="flex: 0 0 auto"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg><span style="display: {{ ad }}">الشرح المكتوب لكل فصل</span><span dir="ltr" style="display: {{ ed }}">The written notes for every chapter</span></div>
+                        <div style="display: flex; align-items: center; gap: 9px; font-size: 12.5px"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#A9C57E" stroke-width="1.8" style="flex: 0 0 auto"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg><span style="display: {{ ad }}">أسئلة اللي قبلك على نفس الدرس</span><span dir="ltr" style="display: {{ ed }}">Questions other learners asked on this lesson</span></div>
+                        <div style="display: flex; align-items: center; gap: 9px; font-size: 12.5px"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#A9C57E" stroke-width="1.8" style="flex: 0 0 auto"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg><span style="display: {{ ad }}">تبعت سؤالك للأستاذ نفسه</span><span dir="ltr" style="display: {{ ed }}">Sending your question to the instructor</span></div>
+                        <div style="background: #A9C57E; color: #1D1B17; padding: 11px 16px; font-size: 13px; font-weight: 700; text-align: center; margin-top: 4px; cursor: pointer"><span style="display: {{ ad }}">اسأل الأستاذ</span><span dir="ltr" style="display: {{ ed }}">Ask the instructor</span></div>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+                <div style="margin-top: auto; display: flex; align-items: center; gap: 11px; padding: 14px 18px; border-top: 1px solid #35312A; background: #26231D">
+                  <div style="flex: 1; background: #141310; border: 1px solid {{ inputBorder }}; padding: 11px 12px; font-size: 12.5px; color: #7C7666"><span style="display: {{ ad }}">{{ inputHintAr }}</span><span dir="ltr" style="display: {{ ed }}">{{ inputHintEn }}</span></div>
+                  <div style="flex: 0 0 auto; background: {{ sendBg }}; color: {{ sendFg }}; border: {{ sendBorder }}; padding: 11px 18px; font-size: 13px; font-weight: 700"><span style="display: {{ ad }}">اسأل</span><span dir="ltr" style="display: {{ ed }}">Ask</span></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showQuestions }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; flex: 1">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; background: #26231D; border-bottom: 1px solid #35312A">
+                  <div style="font-size: 12px; color: #A79C88"><span style="display: {{ ad }}">أسئلة اتسألت على الدرس ده</span><span dir="ltr" style="display: {{ ed }}">Questions asked on this lesson</span></div>
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: #A79C88">3</div>
+                </div>
+                <div style="display: flex; flex-direction: column; padding: 6px 18px 0">
+                  <div style="display: flex; flex-direction: column; gap: 9px; padding: 14px 0; border-bottom: 1px solid #35312A">
+                    <div style="font-size: 13.5px; line-height: 1.8"><span style="display: {{ ad }}">لو حطّيت <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">range(5)</span> بدل <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">range(1, 6)</span> هيطلع إيه؟</span><span dir="ltr" style="display: {{ ed }}">What happens if I write range(5) instead of range(1, 6)?</span></div>
+                    <div style="display: flex; align-items: center; gap: 10px">
+                      <div style="display: flex; align-items: center; gap: 6px; border: 1px solid #A9C57E; padding: 3px 8px">
+                        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#A9C57E" stroke-width="2"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg>
+                        <div style="font-size: 10.5px; font-weight: 700; color: #A9C57E"><span style="display: {{ ad }}">الأستاذ صحّح الإجابة</span><span dir="ltr" style="display: {{ ed }}">Instructor-verified answer</span></div>
+                      </div>
+                      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: #A79C88">04:20 · 2 ANSWERS</div>
+                    </div>
+                    <div style="font-size: 12.5px; line-height: 1.85; color: #A79C88; border-inline-start: 2px solid #35312A; padding-inline-start: 11px"><span style="display: {{ ad }}">هيبدأ من صفر ويوقف عند أربعة، فبتطبع <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">0 1 2 3 4</span>.</span><span dir="ltr" style="display: {{ ed }}">It starts at zero and stops at four, so it prints 0 1 2 3 4.</span></div>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-bottom: 1px solid #35312A">
+                    <div style="font-size: 13.5px; line-height: 1.8"><span style="display: {{ ad }}">الحلقة بتاعتي مش بتقف خالص، إيه اللي حصل؟</span><span dir="ltr" style="display: {{ ed }}">My loop never stops — what's going on?</span></div>
+                    <div style="display: flex; align-items: center; gap: 10px">
+                      <div style="display: flex; align-items: center; gap: 6px; border: 1px solid #E0B060; padding: 3px 8px">
+                        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#E0B060" stroke-width="1.6"><circle cx="8" cy="8" r="5.5"></circle><polyline points="8 5 8 8 10.5 9.5"></polyline></svg>
+                        <div style="font-size: 10.5px; font-weight: 700; color: #E0B060"><span style="display: {{ ad }}">رفعناه للأستاذ</span><span dir="ltr" style="display: {{ ed }}">Escalated to the instructor</span></div>
+                      </div>
+                      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: #A79C88">09:05 · 19 AUG</div>
+                    </div>
+                    <div style="font-size: 12px; color: #A79C88"><span style="display: {{ ad }}">المدرّس الذكي مالقاش إجابة في الدرس، فالسؤال مشي للأستاذ — الرد المتوقّع خلال <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">24</span> ساعة</span><span dir="ltr" style="display: {{ ed }}">The AI tutor found no answer in the lesson, so it went to the instructor — reply expected within 24 hours</span></div>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 0">
+                    <div style="font-size: 13.5px; line-height: 1.8"><span style="display: {{ ad }}">ينفع أستخدم <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">break</span> جوّه حلقة جوّه حلقة؟</span><span dir="ltr" style="display: {{ ed }}">Can I use break inside a nested loop?</span></div>
+                    <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; color: #A79C88">10:40 · 1 ANSWER</div>
+                  </div>
+                </div>
+                <div style="margin-top: auto; display: flex; align-items: center; gap: 11px; padding: 14px 18px; border-top: 1px solid #35312A; background: #26231D">
+                  <div style="flex: 1; background: #141310; border: 1px solid #7C7666; padding: 11px 12px; font-size: 12.5px; color: #7C7666"><span style="display: {{ ad }}">اسأل سؤالك على الدرس ده</span><span dir="ltr" style="display: {{ ed }}">Ask your own question on this lesson</span></div>
+                  <div style="flex: 0 0 auto; background: #A9C57E; color: #1D1B17; padding: 11px 18px; font-size: 13px; font-weight: 700; cursor: pointer"><span style="display: {{ ad }}">ابعت</span><span dir="ltr" style="display: {{ ed }}">Post</span></div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px">
+      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">MOBILE 390 · THE THREE PANELS STAY</div>
+      <div dir="{{ dirAttr }}" style="width: 390px; box-sizing: border-box; background: #1D1B17; color: #EDE7DA; display: flex; flex-direction: column">
+        <div style="position: relative; background: #141310; height: 220px; display: flex; align-items: center; justify-content: center">
+          <div dir="ltr" style="position: absolute; top: 10px; inset-inline-end: 12px; unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 9px; color: #A79C88; opacity: 0.75">YOUSEF SAMY · 8F2C</div>
+          <div style="width: 44px; height: 44px; border: 2px solid #EDE7DA; border-radius: 50%; display: flex; align-items: center; justify-content: center"><div style="display: flex; gap: 4px"><div style="width: 4px; height: 15px; background: #EDE7DA"></div><div style="width: 4px; height: 15px; background: #EDE7DA"></div></div></div>
+        </div>
+        <div dir="ltr" style="background: #141310; padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 9px">
+          <div style="display: flex; align-items: center; gap: 3px">
+            <div style="flex: 2.1; height: 5px; background: #A9C57E"></div>
+            <div style="flex: 1.4; height: 5px; background: #A9C57E"></div>
+            <div style="flex: 2.2; height: 5px; background: #35312A; display: flex"><div style="width: 44%; background: #A9C57E"></div></div>
+            <div style="flex: 1.6; height: 5px; background: #35312A"></div>
+            <div style="flex: 1.3; height: 5px; background: #35312A"></div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+            <div style="display: flex; align-items: center; gap: 14px">
+              <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6"><polyline points="10 3 5 8 10 13"></polyline><line x1="4" y1="3" x2="4" y2="13"></line></svg>
+              <div style="width: 44px; height: 44px; border-radius: 50%; background: #EDE7DA; display: flex; align-items: center; justify-content: center"><div style="display: flex; gap: 3px"><div style="width: 4px; height: 15px; background: #141310"></div><div style="width: 4px; height: 15px; background: #141310"></div></div></div>
+              <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6"><polyline points="6 3 11 8 6 13"></polyline><line x1="12" y1="3" x2="12" y2="13"></line></svg>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11.5px; color: #A79C88; font-variant-numeric: tabular-nums">7:45 / 14:05</div>
+          </div>
+        </div>
+        <div style="padding: 14px 16px 0; display: flex; flex-direction: column; gap: 10px">
+          <div style="font-family: 'Amiri', 'Noto Naskh Arabic', serif; font-size: 28px; font-weight: 700; line-height: 1.55"><span style="display: {{ ad }}">الحلقات في <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.74em">Python</span></span><span dir="ltr" style="display: {{ ed }}">Loops in Python</span></div>
+          <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #35312A; padding: 9px 11px">
+            <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: #A9C57E">06:48</div>
+            <div style="flex: 1; font-size: 12.5px; font-weight: 700"><span style="display: {{ ad }}">الفصل الحالي: حلقة <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">while</span></span><span dir="ltr" style="display: {{ ed }}">Current chapter: the while loop</span></div>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#A79C88" stroke-width="1.6"><polyline points="4 6.5 8 10.5 12 6.5"></polyline></svg>
+          </div>
+        </div>
+        <div style="display: flex; align-items: stretch; margin-top: 14px; border-top: 1px solid #35312A; border-bottom: 1px solid #35312A">
+          <div onClick="{{ goNotes }}" style="flex: 1; min-height: 46px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; cursor: pointer; color: {{ tabNotesFg }}; border-bottom: {{ tabNotesRule }}"><span style="display: {{ ad }}">الشرح</span><span dir="ltr" style="display: {{ ed }}">Notes</span></div>
+          <div onClick="{{ goTutor }}" style="flex: 1; min-height: 46px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; cursor: pointer; color: {{ tabTutorFg }}; border-bottom: {{ tabTutorRule }}"><span style="display: {{ ad }}">المدرّس</span><span dir="ltr" style="display: {{ ed }}">Tutor</span></div>
+          <div onClick="{{ goQuestions }}" style="flex: 1; min-height: 46px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; cursor: pointer; color: {{ tabQFg }}; border-bottom: {{ tabQRule }}"><span style="display: {{ ad }}">الأسئلة</span><span dir="ltr" style="display: {{ ed }}">Questions</span></div>
+        </div>
+        <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 12px">
+          <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 0">
+              <sc-for list="{{ noteBlocks }}" as="n" hint-placeholder-count="4">
+                <div style="display: flex; gap: 10px; padding: 11px 0; border-bottom: 1px solid #35312A; background: {{ n.bg }}; border-inline-start: {{ n.rule }}; padding-inline-start: {{ n.pad }}">
+                  <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10.5px; color: {{ n.stampColor }}; flex: 0 0 38px; padding-top: 2px">{{ n.at }}</div>
+                  <div style="flex: 1; font-size: 13px; line-height: 1.8; color: {{ n.color }}; min-width: 0"><span style="display: {{ ad }}">{{ n.ar }}</span><span dir="ltr" style="display: {{ ed }}">{{ n.en }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; align-items: center; gap: 9px; background: #26231D; border: 1px solid #7C7666; padding: 12px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: #A9C57E">07:45</div>
+              <div style="flex: 1; font-size: 12.5px; color: #7C7666"><span style="display: {{ ad }}">اكتب ملاحظتك على اللحظة دي</span><span dir="ltr" style="display: {{ ed }}">Note at this moment</span></div>
+            </div>
+            <div style="background: #A9C57E; color: #1D1B17; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 14.5px; font-weight: 700"><span style="display: {{ ad }}">احفظ الملاحظة</span><span dir="ltr" style="display: {{ ed }}">Save the note</span></div>
+          </sc-if>
+          <sc-if value="{{ showTutor }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.14em; color: #A79C88">{{ quotaLabel }} · THIS LESSON ONLY</div>
+              <div style="border-inline-start: 3px solid #A9C57E; padding-inline-start: 12px; font-size: 13px; line-height: 1.85"><span style="display: {{ ad }}"><span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">for</span> لما تعرف عدد المرات، و<span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">while</span> لما تستنى شرط.</span><span dir="ltr" style="display: {{ ed }}">for when you know the count, while when you're waiting on a condition.</span></div>
+              <div style="display: flex; align-items: center; gap: 9px; border: 1px solid #35312A; padding: 9px 11px">
+                <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 11px; color: #A9C57E">03:12</div>
+                <div style="flex: 1; font-size: 12px"><span style="display: {{ ad }}">من الدرس <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">12</span> · فصل <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">for</span></span><span dir="ltr" style="display: {{ ed }}">From lesson 12 · for chapter</span></div>
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#EDE7DA" stroke-width="1.6" style="transform: {{ arrowFlip }}"><polyline points="10 3 5 8 10 13"></polyline></svg>
+              </div>
+              <div style="background: #26231D; border: 1px solid #7C7666; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; padding: 0 12px; font-size: 12.5px; color: #7C7666"><span style="display: {{ ad }}">اسأل عن أي حاجة في الدرس ده</span><span dir="ltr" style="display: {{ ed }}">Ask anything in this lesson</span></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showQuestions }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <div style="display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid #35312A">
+                <div style="font-size: 13px; line-height: 1.8"><span style="display: {{ ad }}">لو حطّيت <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 0.86em">range(5)</span> هيطلع إيه؟</span><span dir="ltr" style="display: {{ ed }}">What happens with range(5)?</span></div>
+                <div style="display: flex; align-items: center; gap: 6px; border: 1px solid #A9C57E; padding: 3px 8px; width: fit-content">
+                  <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#A9C57E" stroke-width="2"><polyline points="3 8.5 6.5 12 13 4.5"></polyline></svg>
+                  <div style="font-size: 10.5px; font-weight: 700; color: #A9C57E"><span style="display: {{ ad }}">الأستاذ صحّحها</span><span dir="ltr" style="display: {{ ed }}">Verified</span></div>
+                </div>
+              </div>
+              <div style="font-size: 13px; line-height: 1.8"><span style="display: {{ ad }}">الحلقة مش بتقف، إيه اللي حصل؟</span><span dir="ltr" style="display: {{ ed }}">My loop never stops — why?</span></div>
+              <div style="background: #26231D; border: 1px solid #7C7666; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; padding: 0 12px; font-size: 12.5px; color: #7C7666"><span style="display: {{ ad }}">اسأل سؤالك</span><span dir="ltr" style="display: {{ ed }}">Ask your question</span></div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; max-width: 1100px">
+      <div dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace; font-size: 10px; letter-spacing: 0.16em; color: #635A4D">DECISIONS</div>
+      <div dir="{{ dirAttr }}" style="background: #EDE7DA; padding: 16px 18px; display: flex; flex-direction: column; gap: 11px; color: #23201B">
+        <div style="font-size: 12.5px; line-height: 1.8"><strong style="font-weight: 800">الليل هو بيت المشغّل.</strong> ده السطح الوحيد اللي الوضع الغامق فيه هو الافتراضي — الفيديو محتاج محيط مظلم، والنهار متاح من الإعدادات.</div>
+        <div style="font-size: 12.5px; line-height: 1.8; border-top: 1px solid #DCD3C1; padding-top: 10px"><strong style="font-weight: 800">أزرار التشغيل ما بتتقلبش.</strong> الشريط كله <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">dir=ltr</span> جوّه واجهة عربية، والسهم اللي بيرجع للكورس هو اللي بيتقلب.</div>
+        <div style="font-size: 12.5px; line-height: 1.8; border-top: 1px solid #DCD3C1; padding-top: 10px"><strong style="font-weight: 800">كل إجابة بتقول مصدرها.</strong> الدرس والثانية، وبالضغط بتودّيك هناك. إجابة من غير مصدر مش بتتعرض.</div>
+        <div style="font-size: 12.5px; line-height: 1.8; border-top: 1px solid #DCD3C1; padding-top: 10px"><strong style="font-weight: 800">الحدّ مش حيطة.</strong> لما الحصة تخلص، الشاشة بتعرض التلات بدائل الشغّالة وبتقول تاريخ الرجوع — الطلب للأستاذ بيفضل مفتوح.</div>
+        <div style="font-size: 12.5px; line-height: 1.8; border-top: 1px solid #DCD3C1; padding-top: 10px"><strong style="font-weight: 800">برّه الدرس مش رفض.</strong> بيقول إن الموضوع مش في الكورس، ويحوّل للأستاذ، ويسجّل السؤال في قايمة المواضيع المطلوبة — وهي مصدر شغل المحتوى في الإدارة.</div>
+        <div style="font-size: 12.5px; line-height: 1.8; border-top: 1px solid #DCD3C1; padding-top: 10px"><strong style="font-weight: 800">الموبايل بالتلات لوحات.</strong> تبويبات بارتفاع <span dir="ltr" style="unicode-bidi: isolate; font-family: 'IBM Plex Mono', 'Noto Sans Mono', 'Noto Sans Arabic', monospace">46px</span> تحت الفيديو، والفصل الحالي في سطر واحد قابل للفتح — مفيش حاجة اتشالت.</div>
+      </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1800}}">
+class Component extends DCLogic {
+  state = { lang: 'ar', play: 'playing', panel: 'notes' };
+
+  chapters() {
+    const base = [
+      ['إيه هي الحلقة', 'What a loop is', '', '00:00', 'done'],
+      ['حلقة ', 'The ', 'for', '03:12', 'done'],
+      ['حلقة ', 'The ', 'while', '06:48', 'current'],
+      ['الخروج بـ', 'Breaking out with ', 'break', '10:05', 'available'],
+      ['تمرين على الاتنين', 'Exercise on both', '', '12:20', 'available']
+    ];
+    return base.map(([ar, en, term, at, st]) => {
+      const done = st === 'done', cur = st === 'current';
+      return {
+        ar, en, term, at, isDone: done, isCurrent: cur,
+        pad: cur ? '11px 10px' : '9px 0',
+        bg: cur ? '#2A2D20' : 'transparent',
+        rule: cur ? '3px solid #A9C57E' : 'none',
+        dotBg: done ? '#EDE7DA' : 'transparent',
+        dotBorder: done ? 'none' : cur ? '2px solid #A9C57E' : '1px solid #7C7666',
+        weight: cur ? '700' : '400',
+        color: cur ? '#A9C57E' : done ? '#EDE7DA' : '#A79C88'
+      };
+    });
+  }
+
+  noteBlocks() {
+    const base = [
+      ['00:00', 'الحلقة معناها إنك تكرّر نفس الخطوات كذا مرة من غير ما تكتبها كذا مرة.', 'A loop means repeating the same steps many times without writing them many times.', false, 'past'],
+      ['03:12', 'حلقة for بتاخد مدى وتلفّ عليه. المدى بيبدأ من أول رقم وبيوقف قبل التاني.', 'A for loop takes a range and walks it. The range starts at the first number and stops before the second.', true, 'past'],
+      ['06:48', 'حلقة while بتفضل شغّالة طول ما الشرط صح. لازم يكون فيه حاجة جوّاها بتغيّر الشرط، وإلا مش هتقف.', 'A while loop keeps running as long as the condition is true. Something inside it must change the condition, or it never stops.', false, 'current'],
+      ['10:05', 'break بتخرّجك من الحلقة فورًا، حتى لو الشرط لسه صح.', 'break exits the loop immediately, even if the condition is still true.', false, 'future']
+    ];
+    return base.map(([at, ar, en, hasCode, pos]) => {
+      const cur = pos === 'current';
+      return {
+        at, ar, en, hasCode, isCurrent: cur,
+        bg: cur ? '#2A2D20' : 'transparent',
+        rule: cur ? '3px solid #A9C57E' : 'none',
+        pad: cur ? '13px' : '0',
+        color: pos === 'future' ? '#A79C88' : '#EDE7DA',
+        stampColor: cur ? '#A9C57E' : '#A79C88'
+      };
+    });
+  }
+
+  renderVals() {
+    const ar = this.state.lang === 'ar';
+    const p = this.state.play, pn = this.state.panel;
+    const on = '#23201B', onFg = '#EDE7DA';
+    const pt = k => ({ bg: p === k ? on : 'transparent', fg: p === k ? onFg : on });
+    const pnt = k => ({ bg: pn === k ? on : 'transparent', fg: pn === k ? onFg : on });
+    const activeTab = t => (pn === t || (t === 'tutor' && (pn === 'limit' || pn === 'scope')));
+    const tabFg = t => (activeTab(t) ? '#A9C57E' : '#A79C88');
+    const tabRule = t => (activeTab(t) ? '2px solid #A9C57E' : '2px solid transparent');
+    const limit = pn === 'limit';
+    return {
+      dirAttr: ar ? 'rtl' : 'ltr',
+      ad: ar ? 'inline' : 'none',
+      ed: ar ? 'none' : 'inline',
+      arrowFlip: ar ? 'none' : 'scaleX(-1)',
+      arBg: ar ? on : 'transparent', arFg: ar ? onFg : on,
+      enBg: ar ? 'transparent' : on, enFg: ar ? on : onFg,
+      setAr: () => this.setState({ lang: 'ar' }),
+      setEn: () => this.setState({ lang: 'en' }),
+      pBg: pt('playing').bg, pFg: pt('playing').fg,
+      bBg: pt('buffering').bg, bFg: pt('buffering').fg,
+      eBg: pt('error').bg, eFg: pt('error').fg,
+      oBg: pt('offline').bg, oFg: pt('offline').fg,
+      goPlaying: () => this.setState({ play: 'playing' }),
+      goBuffering: () => this.setState({ play: 'buffering' }),
+      goError: () => this.setState({ play: 'error' }),
+      goOffline: () => this.setState({ play: 'offline' }),
+      isPlaying: p === 'playing',
+      isBuffering: p === 'buffering',
+      isError: p === 'error',
+      isOffline: p === 'offline',
+      nBg: pnt('notes').bg, nFg: pnt('notes').fg,
+      tuBg: pnt('tutor').bg, tuFg: pnt('tutor').fg,
+      lmBg: pnt('limit').bg, lmFg: pnt('limit').fg,
+      scBg: pnt('scope').bg, scFg: pnt('scope').fg,
+      qBg: pnt('questions').bg, qFg: pnt('questions').fg,
+      goNotes: () => this.setState({ panel: 'notes' }),
+      goTutor: () => this.setState({ panel: 'tutor' }),
+      goLimit: () => this.setState({ panel: 'limit' }),
+      goScope: () => this.setState({ panel: 'scope' }),
+      goQuestions: () => this.setState({ panel: 'questions' }),
+      showNotes: pn === 'notes',
+      showTutor: pn === 'tutor' || pn === 'limit' || pn === 'scope',
+      showQuestions: pn === 'questions',
+      tutorNormal: pn === 'tutor',
+      tutorLimit: limit,
+      tutorScope: pn === 'scope',
+      tabNotesFg: tabFg('notes'), tabNotesRule: tabRule('notes'),
+      tabTutorFg: tabFg('tutor'), tabTutorRule: tabRule('tutor'),
+      tabQFg: tabFg('questions'), tabQRule: tabRule('questions'),
+      quotaLabel: limit ? 'AI 200/200 · RESETS 1 SEP' : 'AI 184/200 LEFT',
+      inputBorder: limit ? '#7C7666' : '#7C7666',
+      inputHintAr: limit ? 'الحصة خلصت — تقدر تبعت للأستاذ' : 'اسأل عن أي حاجة في الدرس ده',
+      inputHintEn: limit ? 'Quota spent — you can write to the instructor' : 'Ask anything in this lesson',
+      sendBg: limit ? 'transparent' : '#A9C57E',
+      sendFg: limit ? '#7C7666' : '#1D1B17',
+      sendBorder: limit ? '1px solid #7C7666' : 'none',
+      chapters: this.chapters(),
+      noteBlocks: this.noteBlocks()
+    };
+  }
+}
+</script>
+</body>
+</html>

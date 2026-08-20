@@ -1,0 +1,147 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Josam Academy — Design Tokens v1.0
+   Source of truth: 12A-design-system-corrections.md §6
+   Every color pair below is WCAG 2.1 verified. Do not edit a value without
+   re-running the token-pair contrast test (BR-1578).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── DARK ─────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-base:#0A0A0B;  --bg-surface:#131316;  --bg-elevated:#1B1B1F;  --bg-inset:#08080A;
+  --bg-overlay:rgba(5,5,7,.72);
+
+  --border-subtle:#232328;      /* decorative only */
+  --border-strong:#34343B;      /* decorative only */
+  --border-control:#66666F;     /* 3.26:1 — every interactive control (BR-1577) */
+  --border-focus:#E8B04B;
+
+  --text-primary:#FAFAFA;       /* 18.96 */
+  --text-secondary:#A2A2AB;     /*  7.81 */
+  --text-muted:#86868F;         /*  5.48 */
+  --text-placeholder:#86868F;   /*  5.48 — never dimmed by opacity (BR-1579) */
+  --text-disabled:#5A5A63;
+  --text-inverse:#0A0A0B;
+
+  --accent:#E8B04B;             /* 10.12 */
+  --accent-hover:#F0BE63;
+  --accent-pressed:#D19E3C;
+  --accent-subtle:#2A2115;
+  --accent-foreground:#0A0A0B;
+
+  --success:#4ADE80;  --success-subtle:#0F2418;
+  --warning:#FBBF24;  --warning-subtle:#2A2010;
+  --danger:#F87171;   --danger-subtle:#2A1414;
+  --info:#60A5FA;     --info-subtle:#0F1A2A;
+
+  --chart-1:#E8B04B; --chart-2:#60A5FA; --chart-3:#4ADE80;
+  --chart-4:#F472B6; --chart-5:#A78BFA; --chart-6:#22D3EE;
+
+  --elev-1:0 1px 2px rgba(0,0,0,.12),  0 2px 8px rgba(0,0,0,.16);
+  --elev-2:0 2px 4px rgba(0,0,0,.16),  0 8px 24px rgba(0,0,0,.24);
+  --elev-3:0 4px 8px rgba(0,0,0,.20),  0 16px 48px rgba(0,0,0,.36);
+}
+
+/* ── LIGHT — an independent design, never an inversion (BR-541) ───────────── */
+[data-theme="light"] {
+  --bg-base:#FBFBFA;  --bg-surface:#FFFFFF;  --bg-elevated:#FFFFFF;  --bg-inset:#F4F4F2;
+  --bg-overlay:rgba(24,24,27,.44);
+
+  --border-subtle:#E6E6E2;
+  --border-strong:#D2D2CC;
+  --border-control:#8E8E96;     /* 3.25:1 */
+  --border-focus:#8A6414;
+
+  --text-primary:#18181B;       /* 17.72 */
+  --text-secondary:#52525B;     /*  7.73 */
+  --text-muted:#6B6B73;         /*  5.28 */
+  --text-placeholder:#6B6B73;
+  --text-disabled:#8E8E96;
+  --text-inverse:#FFFFFF;
+
+  --accent:#8A6414;             /* 5.37 on white AND white 5.37 on it (BR-1583) */
+  --accent-hover:#7A5710;
+  --accent-pressed:#6E4E0E;
+  --accent-subtle:#FBF4E4;
+  --accent-foreground:#FFFFFF;
+
+  --success:#15803D;  --success-subtle:#ECFDF3;
+  --warning:#8A5A00;  --warning-subtle:#FDF6E3;
+  --danger:#C81E1E;   --danger-subtle:#FEF2F2;
+  --info:#2563EB;     --info-subtle:#EFF6FF;
+
+  --chart-1:#8A6414; --chart-2:#2563EB; --chart-3:#15803D;
+  --chart-4:#BE185D; --chart-5:#6D28D9; --chart-6:#0E7490;
+
+  --elev-1:0 1px 2px rgba(0,0,0,.06),  0 2px 8px rgba(0,0,0,.08);
+  --elev-2:0 2px 4px rgba(0,0,0,.08),  0 8px 24px rgba(0,0,0,.12);
+  --elev-3:0 4px 8px rgba(0,0,0,.10),  0 16px 48px rgba(0,0,0,.18);
+}
+
+/* ── THEME-INDEPENDENT ────────────────────────────────────────────────────── */
+:root {
+  /* Type scale — 12 §4.2. These are the ONLY sizes. (BR-1317) */
+  --text-2xs:11px;   --lh-2xs:16px;
+  --text-xs:12px;    --lh-xs:18px;
+  --text-sm:14px;    --lh-sm:22px;
+  --text-base:16px;  --lh-base:26px;   /* Arabic needs 1.6+ leading (BR-1224) */
+  --text-lg:18px;    --lh-lg:28px;
+  --text-xl:22px;    --lh-xl:30px;
+  --text-2xl:28px;   --lh-2xl:36px;
+  --text-3xl:36px;   --lh-3xl:44px;
+  --text-4xl:48px;   --lh-4xl:56px;
+  --text-5xl:64px;   --lh-5xl:70px;
+
+  --weight-regular:400; --weight-medium:500; --weight-semibold:600;  /* no 700 (BR-1588) */
+
+  --font-display:'Readex Pro',system-ui,sans-serif;
+  --font-body:'IBM Plex Sans Arabic',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+
+  /* Space — 12 §5. These are the ONLY spacing values. (BR-1329) */
+  --space-1:4px;  --space-2:8px;  --space-3:12px; --space-4:16px;
+  --space-6:24px; --space-8:32px; --space-12:48px; --space-16:64px; --space-24:96px;
+
+  --radius-sm:4px; --radius-md:8px; --radius-lg:12px; --radius-xl:16px; --radius-full:9999px;
+
+  --duration-fast:150ms; --duration-base:200ms; --duration-slow:320ms;
+  --ease:cubic-bezier(.2,0,0,1);
+
+  --z-base:0; --z-sticky:100; --z-nav:200; --z-dropdown:300;
+  --z-overlay:400; --z-modal:500; --z-toast:600; --z-tooltip:700; --z-skip:800;
+
+  --focus-width:2px; --focus-offset:2px; --focus-color:var(--border-focus);
+
+  --icon-sm:16px; --icon-md:20px; --icon-lg:24px; --icon-xl:32px; --icon-stroke:1.5px;
+
+  --bp-sm:640px; --bp-md:1024px; --bp-lg:1440px; --bp-max:1280px;
+}
+
+/* ── GLOBAL RESET — the only two places !important is permitted (BR-1580) ─── */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0 }
+
+body {
+  font-family:var(--font-body);
+  background:var(--bg-base);
+  color:var(--text-primary);
+  font-size:var(--text-base);
+  line-height:1.62;
+}
+
+:focus-visible {
+  outline:var(--focus-width) solid var(--focus-color);
+  outline-offset:var(--focus-offset);
+}
+
+[hidden] { display:none !important }
+
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after {
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
+/* Technical strings are always LTR-isolated (BR-1393) */
+.ltr { direction:ltr; unicode-bidi:isolate; text-align:left }
