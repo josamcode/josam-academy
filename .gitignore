@@ -16,7 +16,12 @@ coverage/
 #
 # If project-level agent config is ever wanted as a committed artifact, add a negation for the
 # specific file — e.g. `!.claude/settings.json` — rather than removing these lines.
-.claude/
+#
+# `.claude/agents/` is exactly that committed artifact (founder directive, 2026-08-20): the
+# specialist roster the autonomous run executes through. A trailing-slash pattern cannot be
+# negated below itself, hence the `/*` form.
+.claude/*
+!.claude/agents/
 .agents/
 .windsurf/
 skills-lock.json

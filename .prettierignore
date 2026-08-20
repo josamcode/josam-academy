@@ -11,5 +11,16 @@ pnpm-lock.yaml
 # do it silently on every pre-commit. docs/runbooks/ is operational and is NOT excluded.
 docs/*.md
 
+# Founder-authored design reference set (12C) — reference artifacts, committed as received.
+# Reformatting them would silently modify files this protocol treats as read-only.
+docs/design-reference/
+
+# Founder-authored run charter and its AGENTS.md mirror — same rule: committed as received.
+AUTONOMOUS-RUN-PROMPT.md
+AGENTS.md
+
+# Agent roster definitions are prompts, not documents; formatting churn adds nothing.
+.claude/
+
 # The planning prototype is a historical artifact, not maintained source.
 prototype/
