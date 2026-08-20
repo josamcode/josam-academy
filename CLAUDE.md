@@ -4,30 +4,41 @@
 > Read this file and `STATUS.md` at the start of every session, before anything else.
 > Update the task queue in §5 at the end of every task, in the same commit as the work.
 
-| Field               | Value                                     |
-| ------------------- | ----------------------------------------- |
-| **Repository**      | `josam-academy`                           |
-| **Domain**          | `josamacademy.com`                        |
-| **Current phase**   | Phase 0 — Foundation                      |
-| **Scope authority** | `docs/16-task-breakdown.md`, Phase 0 only |
-| **Last updated**    | 2026-07-29                                |
-| **Updated after**   | `PH-0.9` — runbook authored (split scope) |
+| Field               | Value                                                                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Repository**      | `josam-academy`                                                                                                                          |
+| **Domain**          | `josamacademy.com`                                                                                                                       |
+| **Current phase**   | Phase 1 — Identity & Commerce (8 / 33)                                                                                                   |
+| **Scope authority** | `docs/16-task-breakdown.md`, Phases 1–3 to the MVP boundary (M4, public launch) — founder charter `AUTONOMOUS-RUN-PROMPT.md`, 2026-08-20 |
+| **Last updated**    | 2026-08-20                                                                                                                               |
+| **Updated after**   | `PH-1.11` — capability interceptor                                                                                                       |
 
 ---
 
 ## 1. Hard Scope Boundary
 
-- Execute **only** tasks with IDs `PH-0.1` – `PH-0.30` as defined in `docs/16-task-breakdown.md`.
-  `PH-0.29` and `PH-0.30` are remedial, added by founder decision after `PH-0.27` and after the
-  Phase 0 status report respectively.
-- **Never** start a `PH-1.x` or later task, even if it looks trivial, unblocking, or "while we're here".
-- **Never** create a database table, an auth flow, a payment concept, a course model, a domain
-  entity, or any business logic. Phase 0 has no features. It has infrastructure, tokens, i18n,
-  primitives, and the Wave-1 components.
-- If a Phase 0 task appears to need something from a later phase — **stop and report**. Do not improvise it.
+> **AMENDED 2026-08-20 by founder charter** (`AUTONOMOUS-RUN-PROMPT.md`, committed in the repo).
+> The original Phase-0-only boundary served until Phase 0 closed (2026-07-30); the bullets below
+> are the current scope. What did NOT change: `/docs` stays frozen, nothing is improvised, and
+> `§2` step 4 plus `§4` bind in full.
+
+- Execute **only** tasks with IDs `PH-1.x` – `PH-3.x` as defined in `docs/16-task-breakdown.md`,
+  in dependency order, to the MVP boundary: **M4, public launch, end of Phase 3** (`15 §5`).
+- **Never** start a `PH-4.x` or later task, even if it looks trivial, unblocking, or "while we're here".
+- Parallel execution is authorised **across independent task IDs only** (charter §4): ≤4
+  concurrent, disjoint file ownership, gates serialized at the merge point, one commit topic and
+  one Work Log entry per task. Never parallel within one task.
+- Decisions the founder would normally take are taken here, recorded in `STATUS.md §7` with the
+  reasoning and what would reverse them (charter §1). The only hard stop is a secret or an
+  external account only the founder can create — such tasks park 🔴 behind a default-off flag.
+- If a task appears to need something from a later phase — **stop and report**. Do not improvise it.
 - **Never** modify anything in `/docs`. If a document is wrong, stop and report it (`BR-1765`).
-  The founder corrects the document first, then the task proceeds.
-- Phase 1 does not begin until the Phase 0 closing report is delivered and accepted.
+  The founder corrects the document first, then the task proceeds. (Founder-authored additions —
+  `12A`/`12B`/`12C`, `design-reference/` — were committed as received, which is not an edit.)
+- For anything VISUAL, `docs/12C-design-reference.md` and `docs/design-reference/` outrank
+  `12 §3`–`§5`/`§9`–`§11`, which are dead. For BEHAVIOUR, `12 §17`–`§20` stand in full
+  (charter §3). `docs/design-reference/josam-tokens.css` is stale — see `STATUS.md §7`
+  2026-08-20: `12C §3` is the token lock.
 
 ---
 
@@ -55,13 +66,16 @@ For every task, in this exact order. **Do not batch tasks.** One task, one verif
              detected it, because "committed and pushed" was being reported as
              though it were verification (BR-1518).
 
-             CI cannot be observed from this environment: there is no `gh`.
-             Therefore:
+             AMENDED 2026-08-20: `gh` IS installed and authenticated in the WSL
+             environment, so CI is now observable from here. Therefore:
                - NEVER write "committed and pushed" in a way that reads as done.
-               - After pushing, the task STOPS and the founder checks CI.
+               - After pushing, WATCH the run (`gh run watch <id>` or
+                 `gh run list --branch main`) and report the observed conclusion
+                 — the run id, the verdict, the duration.
                - If CI is red, the task is NOT done, whatever the local gate said.
              An unobservable check is not a check that passed. It is one nobody
-             looked at (BR-1830).
+             looked at (BR-1830). Observation is now this session's job, not a
+             thing to hand the founder.
 
              IF THE CHANGE TOUCHES THE VERIFICATION MECHANISM ITSELF, RUN IT.
              `pnpm verify:fitness` is not part of the standard gate because it
@@ -488,7 +502,7 @@ and the second instance in this file.
 | `PH-1.8`  | Permission registry in code + startup sync + orphan flagging                                                      | `1.7`          |  A   |   1 |   ✅   |    0.7 | 174 permissions synced                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `PH-1.9`  | `packages/abilities` (CASL) shared across API and clients                                                         | `1.8`          |  A   |   1 |   ✅   |    0.5 | Same rules on both sides                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `PH-1.10` | Permission guard + scope decorator at the data layer                                                              | `1.9`          |  A   |   1 |   🟡   |    0.7 | **Branded type INSTALLED and proven** — `PrismaService` no longer extends `PrismaClient`; deny-by-default proven by adding a model (TS1360). Two silent denials distinct, proven by collapsing them (2/11 fail). Fitness cases 46/47 added (47 total): `unscoped()` count pinned at 18, deny-by-default proven in the suite. **NOT DONE:** guard wired nowhere, `BR-1631` startup check absent — both need a route table. **Both gaps are now OWNED BY `PH-1.12` (founder, 2026-07-31). `PH-1.10` closes at 🟡 and never reaches ✅** — the same shape as `PH-0.9`. |
-| `PH-1.11` | Capability interceptor computing `_can` + `_reason` on every response                                             | `1.9`          |  A   |   1 |   ⬜   |      — | Reason codes from the fixed enum                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `PH-1.11` | Capability interceptor computing `_can` + `_reason` on every response                                             | `1.9`          |  A   |   1 |   ✅   |    0.8 | Bound globally (`APP_INTERCEPTOR`); restrictive-wins merge; `PERMISSION_ABSENT` structurally unserializable; `BR-1111` ruling recorded in-code. Built 2026-08-16 by a session that ended UNRECORDED (`BR-1803` breach — see Work Log); verified, red-proofed and committed 2026-08-20. Dockerfile gained the first workspace runtime dep — fixed and proven by building the image.                                                                                                                                                                                  |
 | `PH-1.12` | Generated permission tests: every endpoint × every role **+ guard wiring + `BR-1631` startup check**              | `1.10`         |  A   | 1.5 |   ⬜   |      — | Matrix green · undeclared endpoint fails startup · a real request authorized by the guard. **Scope grew from `PH-1.10` (founder, 2026-07-31); Est 1 → 1.5.**                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `PH-1.13` | Admin: role list, permission matrix editor, per-user overrides                                                    | `1.11`, `0.26` |  A   | 1.5 |   ⬜   |      — | Full replacement semantics                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `PH-1.14` | Schema: `entitlements` `entitlement_events`                                                                       | `1.1`          |  A   | 0.5 |   ⬜   |      — | Hot lookup index in place                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -512,7 +526,7 @@ and the second instance in this file.
 | `PH-1.32` | Manual entitlement grant + bulk grant with required reason                                                        | `1.15`, `1.13` |  A   | 0.5 |   ⬜   |      — | Audit-logged                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `PH-1.33` | `packages/contracts` generated in CI from the OpenAPI surface; hand-edits fail the build                          | `1.12`         |  A   | 1.5 |   ⬜   |      — | **Added 2026-07-31, founder-authorised.** `packages/contracts` had NO owning task while `12 §19` row 19, `BR-931` and `BR-1584` all assumed it existed. Owns row 19.                                                                                                                                                                                                                                                                                                                                                                                                |
 
-**Progress (Phase 1): 7 / 33 · 21.2%** — CI-verified. `PH-1.5` and `PH-1.6` are 🟡: built to the credential boundary, not exercised. `PH-1.10` is 🟡 permanently.
+**Progress (Phase 1): 8 / 33 · 24.2%** — CI-verified through `PH-1.10`; `PH-1.11` local-gate green; CI result recorded at push. `PH-1.5` and `PH-1.6` are 🟡: built to the credential boundary, not exercised. `PH-1.10` is 🟡 permanently.
 
 > **`PH-1.10`'s two gaps close under `PH-1.12`, not under `PH-1.10`** (founder decision, 2026-07-31).
 >
@@ -574,7 +588,7 @@ Phase 0 is not done until **all** of these are true and evidenced.
     coincidence**, and a rate is what sets an interval.
     Cases that do not use `check` are audited separately — they cannot have case 40's defect
     and can still pass when their mechanism never ran (case 25 did).
-☐ `pnpm verify:fitness` (47 cases) RE-RUN at exit — not re-read — and every case still caught
+☐ `pnpm verify:fitness` (51 cases as of 2026-08-20) RE-RUN at exit — not re-read — and every case still caught
     (`BR-1832`). The recorded table in STATUS.md §4 is evidence of a past run, never
     a substitute for a present one (`BR-1768`).
 ☐ All 20 checks in `12 §19` reconciled: active, or recorded against the task that

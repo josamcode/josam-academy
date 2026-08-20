@@ -29,6 +29,7 @@ COPY apps/web/package.json ./apps/web/
 # (`BR-1838`). It changes rarely, so it costs the cache almost nothing.
 COPY apps/api/prisma.config.ts ./apps/api/
 COPY apps/api/prisma ./apps/api/prisma
+COPY packages/abilities/package.json ./packages/abilities/
 COPY packages/config/package.json ./packages/config/
 COPY packages/i18n/package.json ./packages/i18n/
 COPY packages/tokens/package.json ./packages/tokens/
@@ -48,7 +49,13 @@ COPY . .
 
 # `@josam/api`'s build script already runs `prisma generate` before `tsc` — the client is
 # generated, not published, and the compile imports what it emits.
-RUN pnpm --filter @josam/api run build
+#
+# `@josam/api...` (the ellipsis), not `@josam/api`: `PH-1.11` made `@josam/abilities` the API's
+# first WORKSPACE runtime dependency, and its `main` points at `dist/` — which only its own build
+# emits. A bare `--filter @josam/api` compiles the API against the package's .d.ts via the
+# workspace symlink and then `deploy` ships a package whose entry point does not exist. The
+# ellipsis builds workspace dependencies first, in topological order.
+RUN pnpm --filter "@josam/api..." run build
 
 # Reduce to production dependencies for the runtime stage. `deploy` resolves the workspace graph
 # and writes a self-contained tree, so the image carries no symlinks into a repo that will not

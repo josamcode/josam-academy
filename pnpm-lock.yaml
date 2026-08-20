@@ -95,6 +95,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: 3.1097.0
         version: 3.1097.0
+      '@josam/abilities':
+        specifier: workspace:*
+        version: link:../../packages/abilities
       '@nestjs/common':
         specifier: 11.1.28
         version: 11.1.28(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2)

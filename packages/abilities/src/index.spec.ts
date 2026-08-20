@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { type Actor, defineAbilitiesFor, parsePermission } from './index.js';
+import {
+  abilityActionFor,
+  type Actor,
+  DATA_SCOPES,
+  defineAbilitiesFor,
+  parsePermission,
+} from './index.js';
 
 /**
  * `PH-1.9` — the shared ability definition. The task's output is **"same rules on both sides"**,
@@ -144,5 +150,122 @@ describe('PH-1.9 — defineAbilitiesFor (05 §8)', () => {
   it('propagates a malformed key rather than silently dropping the rule', () => {
     // Dropping it would produce an actor missing one capability with no error anywhere.
     expect(() => defineAbilitiesFor(actor({ permissions: ['not a key'] }))).toThrow(/malformed/);
+  });
+});
+
+describe('PH-1.11 — a qualifier scope is a DIFFERENT capability (05 §5, BR-035)', () => {
+  /**
+   * Until `PH-1.11`, `defineAbilitiesFor` special-cased `own` and registered every other scope
+   * under the BARE action, so `model:action.qualifier` collapsed onto `model:action`. Each pair
+   * below fails against that implementation — the second expectation of each was `true` — and the
+   * failure was not a lint-visible one: the code read as correct and the rules were wrong.
+   *
+   * Both directions matter and only one of them is obvious. The loud half is over-granting: the
+   * holder of a request permission read as the approver. The quiet half is that the qualified
+   * capability was never registered under any action at all, so nothing could ASK for it and
+   * every asker got `false` for a permission the actor holds. `_can` is built out of that
+   * question, which is why this had to be fixed before the interceptor could exist.
+   */
+
+  it('COLLISION 1 — `user:read` does not confer `read.pii` (BR-035, BR-644)', () => {
+    const ability = defineAbilitiesFor(actor({ permissions: ['user:read'] }));
+    expect(ability.can('read', 'user')).toBe(true);
+    expect(ability.can('read.pii', 'user')).toBe(false);
+  });
+
+  it('COLLISION 2 — `user:read.pii` does not confer `user:read` (BR-035)', () => {
+    // "PII always requires its own explicit permission" (05 §5) is a statement in both
+    // directions: the qualified key is its own permission, so it grants its own capability and
+    // nothing else. Every role in `05 §4` that holds `.pii` holds the base key too, so no role
+    // loses anything by the two being independent.
+    const ability = defineAbilitiesFor(actor({ permissions: ['user:read.pii'] }));
+    expect(ability.can('read.pii', 'user')).toBe(true);
+    expect(ability.can('read', 'user')).toBe(false);
+  });
+
+  it('COLLISION 3 — `course:publish.request` is not `course:publish` (BR-657)', () => {
+    // The worst of the five. `05 §4.5` gives `course:publish.request` to instructors and content
+    // assistants; `course:publish.approve` is ROLE-01's alone. Collapsed, the asker read as the
+    // approver — and there is no bare `course:publish` in the registry for it to have meant.
+    const ability = defineAbilitiesFor(actor({ permissions: ['course:publish.request'] }));
+    expect(ability.can('publish.request', 'course')).toBe(true);
+    expect(ability.can('publish', 'course')).toBe(false);
+    expect(ability.can('publish.approve', 'course')).toBe(false);
+  });
+
+  it('COLLISION 4 — `order:read.amounts` is not `order:read` (BR-647)', () => {
+    // BR-647: support sees that an order exists and what it granted, but not the amount. The
+    // learner holds `.amounts` scoped to their own orders; support holds the base key and not
+    // the qualifier. Collapsed, the two were the same permission.
+    const ability = defineAbilitiesFor(actor({ permissions: ['order:read.amounts'] }));
+    expect(ability.can('read.amounts', 'order')).toBe(true);
+    expect(ability.can('read', 'order')).toBe(false);
+  });
+
+  it('COLLISION 5 — `device_transfer:approve.override` is not `approve` (BR-680)', () => {
+    // The override is "approve BEYOND policy limits", held by nobody but ROLE-01. Collapsed, it
+    // read as the ordinary in-policy approval that support does hold — and vice versa.
+    const ability = defineAbilitiesFor(
+      actor({ permissions: ['device_transfer:approve.override'] }),
+    );
+    expect(ability.can('approve.override', 'device_transfer')).toBe(true);
+    expect(ability.can('approve', 'device_transfer')).toBe(false);
+  });
+
+  it('the remaining registry qualifiers are askable and distinct', () => {
+    // `05 §4.4` and `§4.5`: the audit log and the version history are separate grants from the
+    // reads they qualify.
+    const ability = defineAbilitiesFor(
+      actor({ permissions: ['entitlement:read.audit', 'content:version.restore'] }),
+    );
+    expect(ability.can('read.audit', 'entitlement')).toBe(true);
+    expect(ability.can('read', 'entitlement')).toBe(false);
+    expect(ability.can('version.restore', 'content')).toBe(true);
+    expect(ability.can('version', 'content')).toBe(false);
+  });
+
+  it('a revoked qualifier leaves its base capability standing (BR-038)', () => {
+    // Revoking the wrong capability is the same class of defect as granting one. Under the
+    // collapse this revoke removed `user:read` as well, silently.
+    const ability = defineAbilitiesFor(
+      actor({ permissions: ['user:read', 'user:read.pii'], revokedPermissions: ['user:read.pii'] }),
+    );
+    expect(ability.can('read.pii', 'user')).toBe(false);
+    expect(ability.can('read', 'user')).toBe(true);
+  });
+
+  it('super_admin still covers a qualified action (BR-639)', () => {
+    const ability = defineAbilitiesFor(actor({ role: 'super_admin' }));
+    expect(ability.can('read.pii', 'user')).toBe(true);
+    expect(ability.can('publish.approve', 'course')).toBe(true);
+  });
+
+  it('`own` and `any` remain DATA scopes and never enter the action', () => {
+    // The regression this pair guards: treating every scope as a qualifier would produce
+    // `update.own`, which nothing asks for, and the instructor could edit nothing at all.
+    const own = defineAbilitiesFor(actor({ id: 'usr_7', permissions: ['course:update.own'] }));
+    expect(own.can('update', { __caslSubjectType__: 'course', owner_id: 'usr_7' })).toBe(true);
+    expect(own.can('update.own', { __caslSubjectType__: 'course', owner_id: 'usr_7' })).toBe(false);
+
+    const any = defineAbilitiesFor(actor({ id: 'usr_7', permissions: ['course:update.any'] }));
+    // BR-033 — `.any` implies `.own`, which an unconditioned rule gives for free.
+    expect(any.can('update', { __caslSubjectType__: 'course', owner_id: 'usr_9' })).toBe(true);
+    expect(any.can('update', { __caslSubjectType__: 'course', owner_id: 'usr_7' })).toBe(true);
+  });
+});
+
+describe('PH-1.11 — abilityActionFor / DATA_SCOPES (05 §5)', () => {
+  it('holds exactly the two scopes that answer "which records?"', () => {
+    // A third member here would silently re-collapse a qualifier onto its base action. The set is
+    // asserted whole rather than by membership so that an ADDITION fails, not just a removal.
+    expect([...DATA_SCOPES].sort()).toEqual(['any', 'own']);
+  });
+
+  it('maps a data scope to the bare action and a qualifier into the action', () => {
+    expect(abilityActionFor(parsePermission('course:read'))).toBe('read');
+    expect(abilityActionFor(parsePermission('course:update.own'))).toBe('update');
+    expect(abilityActionFor(parsePermission('course:update.any'))).toBe('update');
+    expect(abilityActionFor(parsePermission('user:read.pii'))).toBe('read.pii');
+    expect(abilityActionFor(parsePermission('course:publish.approve'))).toBe('publish.approve');
   });
 });
