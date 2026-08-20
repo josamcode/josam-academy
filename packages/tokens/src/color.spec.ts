@@ -176,6 +176,13 @@ describe('12C §3 — the locked values are pinned', () => {
     expect(darkColors.tintCritical).toBe('#3D3029');
     expect(darkColors.tintInfo).toBe('#333434');
   });
+
+  it('accentPressed is DERIVED (BR-1346 — 12C defines rest and hover only)', () => {
+    // Each theme's hover continued one step in its own direction: mixed 12% toward that theme's
+    // textPrimary — see color.ts. Founder review pending, like the tints.
+    expect(lightColors.accentPressed).toBe('#2D3F18');
+    expect(darkColors.accentPressed).toBe('#C7DC9F');
+  });
 });
 
 /**
@@ -207,8 +214,11 @@ describe('DT-1 — mapping decisions hold', () => {
   it.each([
     ['light', lightColors],
     ['dark', darkColors],
-  ])('%s: accentPressed equals accentHover — 12C defines rest and hover only', (_n, c) => {
-    expect(c.accentPressed).toBe(c.accentHover);
+  ])('%s: pressed is DISTINCT from hover — BR-1346, every state visually distinct', (_n, c) => {
+    // 12C defines rest and hover only; pressed is derived (see color.ts). It must never silently
+    // collapse back onto hover — that is the exact defect this assertion exists to catch.
+    expect(c.accentPressed).not.toBe(c.accentHover);
+    expect(c.accentPressed).not.toBe(c.accent);
   });
 
   it.each([

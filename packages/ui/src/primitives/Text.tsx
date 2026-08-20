@@ -36,14 +36,20 @@ export type TextWeight = 'regular' | 'bold' | 'extrabold';
 export type TextAlign = 'start' | 'center' | 'end';
 
 /**
+ * `12C §3` — the 10px `eyebrow` tier is MONO ONLY: Latin caps, letter-spaced, never carrying
+ * Arabic or a readable sentence. `Text` sets the body face, so the tier is excluded here the same
+ * way the dead sizes are — unwritable (`DEC-40`), reserved for a future mono `Eyebrow` component.
+ */
+export type TextSize = Exclude<FontSizeToken, 'eyebrow'>;
+
+/**
  * Static lookup tables, not template strings.
  *
  * Tailwind discovers utilities by scanning source text, so `` `text-${size}` `` produces a class
  * that exists in the DOM and in no stylesheet — styling that silently does nothing. Written out,
  * every class is a literal Tailwind can see.
  */
-const SIZE: Record<FontSizeToken, string> = {
-  eyebrow: 'text-eyebrow',
+const SIZE: Record<TextSize, string> = {
   '2xs': 'text-2xs',
   xs: 'text-xs',
   sm: 'text-sm',
@@ -81,7 +87,7 @@ const ALIGN: Record<TextAlign, string> = {
 
 export interface TextProps {
   children: ReactNode;
-  size?: FontSizeToken;
+  size?: TextSize;
   tone?: TextTone;
   weight?: TextWeight;
   align?: TextAlign;

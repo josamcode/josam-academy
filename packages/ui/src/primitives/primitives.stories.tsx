@@ -37,7 +37,11 @@ export const TypeScale: Story = {
       <Text size="sm">14 / 26 — sm</Text>
       <Text size="xs">12.5 / 22 — xs</Text>
       <Text size="2xs">11 / 16 — 2xs</Text>
-      <Text size="eyebrow">10 / 16 — EYEBROW · MONO ONLY</Text>
+      {/* The eyebrow tier is unwritable through Text/Heading (mono only, 12C §3) — shown here
+          as the raw utilities it reserves, until the mono Eyebrow component exists. */}
+      <span className="text-eyebrow font-mono tracking-widest" dir="ltr">
+        10 / 16 — EYEBROW · MONO ONLY
+      </span>
     </Stack>
   ),
 };

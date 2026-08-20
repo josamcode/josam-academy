@@ -18,15 +18,17 @@ import type { ReactNode } from 'react';
  */
 export type HeadingLevel = 1 | 2 | 3 | 4;
 
-const DEFAULT_SIZE: Record<HeadingLevel, FontSizeToken> = {
+/** `12C §3` — the 10px eyebrow tier is mono-only and no heading. Unwritable here (`DEC-40`). */
+export type HeadingSize = Exclude<FontSizeToken, 'eyebrow'>;
+
+const DEFAULT_SIZE: Record<HeadingLevel, HeadingSize> = {
   1: '3xl',
   2: 'xl',
   3: 'base',
   4: 'sm',
 };
 
-const SIZE: Record<FontSizeToken, string> = {
-  eyebrow: 'text-eyebrow',
+const SIZE: Record<HeadingSize, string> = {
   '2xs': 'text-2xs',
   xs: 'text-xs',
   sm: 'text-sm',
@@ -37,8 +39,7 @@ const SIZE: Record<FontSizeToken, string> = {
 };
 
 /** The display tiers — the only sizes 12C lets the display face render. */
-const FACE: Record<FontSizeToken, string> = {
-  eyebrow: 'font-bold',
+const FACE: Record<HeadingSize, string> = {
   '2xs': 'font-bold',
   xs: 'font-bold',
   sm: 'font-bold',
@@ -52,7 +53,7 @@ export interface HeadingProps {
   children: ReactNode;
   level: HeadingLevel;
   /** Defaults to the size that matches the level. Override to decouple look from outline. */
-  size?: FontSizeToken;
+  size?: HeadingSize;
   id?: string;
 }
 

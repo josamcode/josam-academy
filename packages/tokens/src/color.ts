@@ -59,7 +59,13 @@ export interface ColorTokens {
   accent: string;
   /** `12C accent.hover`. */
   accentHover: string;
-  /** `12C` defines rest and hover only; pressed holds the hover value (DT-1 mapping decision). */
+  /**
+   * `12C` defines rest and hover only, and `BR-1346` requires pressed to be DISTINCT from hover
+   * (lead ruling, DT-1). DERIVED: each theme's hover continued one step in its own direction —
+   * `accentHover` pulled 12% toward the theme's `textPrimary` (light darkens toward the ink,
+   * dark lightens toward the paper), the same move and mix the dark tints use. FOUNDER EYES,
+   * like the tints. Distinctness and the derived hexes are pinned in `color.spec.ts`.
+   */
   accentPressed: string;
   /** `12C surface.selected` — the accent-adjacent wash for highlighted rows and chips. */
   accentSubtle: string;
@@ -124,7 +130,8 @@ export const lightColors: ColorTokens = {
 
   accent: '#3F5B22',
   accentHover: '#2E4318',
-  accentPressed: '#2E4318',
+  // DERIVED (BR-1346): mix(#2E4318 → textPrimary #23201B, 12%). textOnAccent holds 11.439:1.
+  accentPressed: '#2D3F18',
   accentSubtle: '#E4E8D8',
 
   success: '#3F5B22', // worst surface 5.639:1 — clears 4.5 everywhere
@@ -173,7 +180,8 @@ export const darkColors: ColorTokens = {
 
   accent: '#A9C57E',
   accentHover: '#C2DA97',
-  accentPressed: '#C2DA97',
+  // DERIVED (BR-1346): mix(#C2DA97 → textPrimary #EDE7DA, 12%). textOnAccent holds 11.599:1.
+  accentPressed: '#C7DC9F',
   accentSubtle: '#2A2D20',
 
   success: '#A9C57E', // worst surface 7.343:1

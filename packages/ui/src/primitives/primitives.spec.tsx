@@ -134,6 +134,21 @@ describe('DEC-40 — the scale is closed', () => {
     // 5 is not a step, so 20px is unreachable — by construction, not by review.
     expect(Object.keys(space)).not.toContain('5');
   });
+
+  it('the eyebrow tier is unwritable on Text and Heading — mono only (12C §3)', () => {
+    // The 10px tier exists in the token scale for the future mono Eyebrow component and for
+    // nothing else. If either union widens to accept it, the directive below stops erroring and
+    // the compiler fails this file — the same mechanism that keeps the dead sizes dead.
+    const specimens = [
+      // @ts-expect-error -- eyebrow is the mono-only 10px tier; Text cannot write it (DEC-40)
+      <Text size="eyebrow">x</Text>,
+      // @ts-expect-error -- nor can Heading; no heading is 10px mono caps (DEC-40)
+      <Heading level={1} size="eyebrow">
+        x
+      </Heading>,
+    ];
+    expect(specimens).toHaveLength(2);
+  });
 });
 
 /**
@@ -144,7 +159,11 @@ describe('DEC-40 — the scale is closed', () => {
 describe('12C — Amiri scope: display tiers only, never under 28px', () => {
   it('applies the display face at 3xl and 4xl only, at weight 700', async () => {
     const { fontSize } = await import('@josam/tokens');
-    for (const token of Object.keys(fontSize) as (keyof typeof fontSize)[]) {
+    // 'eyebrow' is excluded from both size unions (mono only), so the sweep skips it.
+    const headingSizes = (Object.keys(fontSize) as (keyof typeof fontSize)[]).filter(
+      (token): token is Exclude<keyof typeof fontSize, 'eyebrow'> => token !== 'eyebrow',
+    );
+    for (const token of headingSizes) {
       const markup = renderToStaticMarkup(
         <Heading level={1} size={token}>
           x
@@ -168,7 +187,10 @@ describe('12C — Amiri scope: display tiers only, never under 28px', () => {
 
   it('Text never carries the display face at any size', async () => {
     const { fontSize } = await import('@josam/tokens');
-    for (const token of Object.keys(fontSize) as (keyof typeof fontSize)[]) {
+    const textSizes = (Object.keys(fontSize) as (keyof typeof fontSize)[]).filter(
+      (token): token is Exclude<keyof typeof fontSize, 'eyebrow'> => token !== 'eyebrow',
+    );
+    for (const token of textSizes) {
       expect(renderToStaticMarkup(<Text size={token}>x</Text>)).not.toContain('font-display');
     }
   });
