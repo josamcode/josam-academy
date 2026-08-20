@@ -58,6 +58,21 @@ overrides:
   # for another consumer, so this forces one copy rather than adding a new dependency. Same major,
   # and the version was already being loaded by something else in this install.
   postcss: '8.5.23'
+  # 2026-08-20 — the audit gate went red on advisories published since the 2026-08-01 push, not
+  # on any change in this repository. Three have in-major patches and are forced here; two are
+  # ACCEPTED below with their retire conditions. All ranged so an unrelated major elsewhere in
+  # the tree is not silently rewritten.
+  #
+  # fast-uri < 3.1.5 — host confusion via backslash (GHSA-7p8r-x3mc-p8w7). Reached through the
+  # prisma CLI chain, which SHIPS in the API image (migrations run at container start). Patch bump.
+  'fast-uri@3': '3.1.5'
+  # nanoid < 3.3.18 — custom generators can loop indefinitely (GHSA-2v37-7h3g-55p8). Reached
+  # through next > postcss, which ships to users. Patch bump within the 3.x line postcss expects.
+  'nanoid@3': '3.3.18'
+  # js-yaml 4.x < 4.3.1 — quadratic CPU on !!omap (GHSA-5p4m-2wfm-xmqj). Lint-time chain
+  # (stylelint > cosmiconfig), but an in-major patch exists, and fixing beats accepting whenever
+  # the fix is a patch bump — the postcss precedent above.
+  'js-yaml@4': '4.3.1'
 
 auditConfig:
   # Not "ignored" — ACCEPTED, each with the reason it cannot be fixed here and the condition that
@@ -75,3 +90,18 @@ auditConfig:
     # workspace project's own `dependencies` as production, and `packages/config` correctly
     # declares its plugins there. RETIRE when jsx-a11y ships a patched minimatch.
     - GHSA-mh99-v99m-4gvg
+    # brace-expansion again, 2026-08-20 (GHSA-rgw5-rvv9-x895) — the successor advisory to the one
+    # above, two ranges (<1.1.18 and 4.x). Both paths are the same class: packages/config's eslint
+    # and jsx-a11y chains, lint-time, never shipped, never fed untrusted input. The 4.x range's
+    # only patched line is 5.x, and forcing a major under eslint's minimatch for a lint-time DoS
+    # buys risk, not safety. RETIRE when the eslint chain ships brace-expansion >= 5.0.9 / 1.1.18
+    # on its own — Renovate surfaces that bump.
+    - GHSA-rgw5-rvv9-x895
+    # deepmerge-ts < 8 — stack exhaustion on recursive object graphs (GHSA-ggr8-5vv4-36mx).
+    # Reached only through prisma > @prisma/config, which merges THIS REPOSITORY'S OWN
+    # prisma.config.ts — the input is never attacker-controlled, so the "vulnerability" here is a
+    # self-DoS requiring us to commit a recursive config. It does ship in the API image (the CLI
+    # runs migrations at container start), which is exactly why it is accepted rather than
+    # overridden: forcing a cross-major bump under prisma's config loader risks the deploy path
+    # itself. RETIRE when prisma bumps @prisma/config to deepmerge-ts >= 8.
+    - GHSA-ggr8-5vv4-36mx
