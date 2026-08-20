@@ -71,9 +71,9 @@ export function Checkbox({ label, ...rest }: CheckboxProps & Availability) {
             title={title}
             aria-describedby={describedBy}
             aria-invalid={invalid}
-            className={`size-5 shrink-0 rounded-sm border border-border-strong bg-bg-inset data-[state=checked]:bg-accent data-[state=checked]:border-accent ${FOCUS} ${DISABLED}`}
+            className={`size-5 shrink-0 rounded-sm border border-border-control bg-bg-inset data-[state=checked]:bg-accent data-[state=checked]:border-accent ${FOCUS} ${DISABLED}`}
           >
-            <RadixCheckbox.Indicator className="flex items-center justify-center text-accent-contrast">
+            <RadixCheckbox.Indicator className="flex items-center justify-center text-text-on-accent">
               <Check width={14} height={14} strokeWidth={3} aria-hidden="true" focusable="false" />
             </RadixCheckbox.Indicator>
           </RadixCheckbox.Root>
@@ -121,7 +121,7 @@ export function Switch({ label, ...rest }: SwitchProps & Availability) {
             title={title}
             aria-describedby={describedBy}
             aria-invalid={invalid}
-            className={`h-6 w-11 shrink-0 rounded-full border border-border-strong bg-bg-inset data-[state=checked]:bg-accent ${FOCUS} ${DISABLED}`}
+            className={`h-6 w-11 shrink-0 rounded-full border border-border-control bg-bg-inset data-[state=checked]:bg-accent ${FOCUS} ${DISABLED}`}
           >
             {/*
               BR-1529 — the thumb travels on the INLINE axis, so it must move towards the end in
@@ -199,7 +199,7 @@ export function RadioGroup({ options, ...rest }: RadioGroupProps & Availability)
                 value={option.value}
                 disabled={option.disabled ?? false}
                 title={option.disabled === true ? option.disabledReason : undefined}
-                className={`size-5 shrink-0 rounded-full border border-border-strong bg-bg-inset data-[state=checked]:border-accent ${FOCUS} ${DISABLED}`}
+                className={`size-5 shrink-0 rounded-full border border-border-control bg-bg-inset data-[state=checked]:border-accent ${FOCUS} ${DISABLED}`}
               >
                 <RadixRadioGroup.Indicator className="flex size-full items-center justify-center after:block after:size-2.5 after:rounded-full after:bg-accent" />
               </RadixRadioGroup.Item>
@@ -254,10 +254,10 @@ export function RadioCard({ options, columns = 1, ...rest }: RadioCardProps & Av
               value={option.value}
               disabled={option.disabled ?? false}
               title={option.disabled === true ? option.disabledReason : undefined}
-              className={`rounded-lg border border-border-subtle bg-bg-surface p-4 text-start data-[state=checked]:border-accent data-[state=checked]:bg-accent-subtle ${FOCUS} ${DISABLED}`}
+              className={`rounded-none border border-border-control bg-bg-surface p-4 text-start data-[state=checked]:border-accent data-[state=checked]:bg-accent-subtle ${FOCUS} ${DISABLED}`}
             >
               <Stack gap="1">
-                <Text size="sm" weight="medium" align="start">
+                <Text size="sm" weight="bold" align="start">
                   {option.label}
                 </Text>
                 {option.description === undefined ? null : (

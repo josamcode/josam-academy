@@ -31,15 +31,15 @@ import type { ChoiceOption } from './choice-toggles.js';
  */
 
 const CONTROL =
-  'w-full rounded-sm bg-bg-inset text-text-primary p-3 border border-border-subtle ' +
+  'w-full rounded-none bg-bg-inset text-text-primary p-3 border border-border-control ' +
   'outline-none focus-visible:ring-2 focus-visible:ring-border-focus ' +
   'aria-invalid:border-danger disabled:opacity-50 disabled:cursor-not-allowed';
 
 const LISTBOX =
-  'z-50 max-h-60 overflow-y-auto rounded-md border border-border-strong bg-bg-elevated p-1';
+  'z-50 max-h-60 overflow-y-auto rounded-none border border-border-strong bg-bg-elevated p-1';
 
 const OPTION =
-  'flex cursor-pointer items-center gap-2 rounded-sm p-2 text-start text-text-primary ' +
+  'flex cursor-pointer items-center gap-2 rounded-none p-2 text-start text-text-primary ' +
   'data-highlighted:bg-accent-subtle aria-selected:bg-accent-subtle';
 
 /** What `Controller` hands each control body. Deliberately not RHF's own type. */
@@ -460,7 +460,7 @@ function MultiSelectControl({
             {visible.map((option) => (
               <span
                 key={option.value}
-                className="inline-flex items-center gap-1 rounded-full bg-accent-subtle px-2 py-1"
+                className="inline-flex items-center gap-1 rounded-sm bg-accent-subtle px-2 py-1"
               >
                 <Text size="xs">{option.label}</Text>
                 {/*
@@ -591,7 +591,7 @@ function TagsInputControl({
       {tags.map((tag) => (
         <span
           key={tag}
-          className="inline-flex items-center gap-1 rounded-full bg-accent-subtle px-2 py-1"
+          className="inline-flex items-center gap-1 rounded-sm bg-accent-subtle px-2 py-1"
         >
           <Text size="xs">{tag}</Text>
           <button

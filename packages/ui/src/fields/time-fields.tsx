@@ -31,12 +31,12 @@ import {
  */
 
 const CONTROL =
-  'w-full rounded-sm bg-bg-inset text-text-primary p-3 border border-border-subtle ' +
+  'w-full rounded-none bg-bg-inset text-text-primary p-3 border border-border-control ' +
   'outline-none focus-visible:ring-2 focus-visible:ring-border-focus ' +
   'aria-invalid:border-danger data-invalid:border-danger disabled:opacity-50 disabled:cursor-not-allowed';
 
 const ICON_BUTTON =
-  'rounded-sm p-2 text-text-secondary outline-none hover:bg-bg-inset ' +
+  'rounded-none p-2 text-text-secondary outline-none hover:bg-bg-inset ' +
   'focus-visible:ring-2 focus-visible:ring-border-focus disabled:opacity-50 ' +
   'disabled:cursor-not-allowed';
 
@@ -280,7 +280,7 @@ function DatePickerControl({
         <div
           role="dialog"
           aria-label={labels.open}
-          className="absolute z-50 mt-1 rounded-md border border-border-strong bg-bg-elevated p-3"
+          className="absolute z-50 mt-1 rounded-none border border-border-strong bg-bg-elevated p-3"
         >
           <Inline gap="2">
             <button
@@ -305,7 +305,7 @@ function DatePickerControl({
               />
             </button>
 
-            <Text size="sm" weight="medium">
+            <Text size="sm" weight="bold">
               <span aria-live="polite">{monthLabel}</span>
             </Text>
 
@@ -374,7 +374,7 @@ function DatePickerControl({
                       aria-label={formatDay.format(toDate(day.iso))}
                       disabled={unavailable}
                       onKeyDown={onGridKeyDown}
-                      className={`rounded-sm p-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-border-focus aria-selected:bg-accent aria-selected:text-accent-contrast ${
+                      className={`rounded-none p-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-border-focus aria-selected:bg-accent aria-selected:text-text-on-accent ${
                         day.inMonth ? 'text-text-primary' : 'text-text-muted'
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                       onClick={() => {

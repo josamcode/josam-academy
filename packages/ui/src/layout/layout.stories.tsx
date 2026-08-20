@@ -178,7 +178,7 @@ export const NavigationStates: Story = {
     <div className="flex flex-col gap-8">
       <TopBar
         brand={
-          <Text size="sm" weight="medium">
+          <Text size="sm" weight="bold">
             جوسام · Josam
           </Text>
         }
@@ -274,7 +274,7 @@ export const FullShell: Story = {
       topBar={
         <TopBar
           brand={
-            <Text size="sm" weight="medium">
+            <Text size="sm" weight="bold">
               جوسام · Josam
             </Text>
           }

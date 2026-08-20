@@ -101,7 +101,7 @@ export function FormField({ name, label, children, hint, required = false }: For
     <FormFieldContext.Provider value={value}>
       <Stack gap="1">
         <label id={labelId} htmlFor={id}>
-          <Text size="sm" weight="medium">
+          <Text size="sm" weight="bold">
             {label}
           </Text>
           {/*

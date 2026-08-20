@@ -266,7 +266,7 @@ export const Overlays: Story = {
     <div className="flex flex-row flex-wrap items-center gap-6 p-6">
       <Popover label="تفاصيل الدورة · Course details" trigger={<Button>تفاصيل · Details</Button>}>
         <Stack gap="1">
-          <Text size="sm" weight="medium">
+          <Text size="sm" weight="bold">
             اللغة العربية ١٠١ · Arabic 101
           </Text>
           <Text size="xs" tone="secondary">

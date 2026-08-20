@@ -45,7 +45,7 @@ export function EmptyState({ title, body, action, icon }: EmptyStateProps) {
       />
       <Stack gap="2">
         {/* Level 2 — the page's h1 belongs to PageHeader (BR-1548, BR-1472). */}
-        <Heading level={2} size="lg">
+        <Heading level={2} size="base">
           {title}
         </Heading>
         <Text size="sm" tone="secondary" align="center">
@@ -95,7 +95,7 @@ export function ErrorState({ title, body, retryLabel, onRetry, correlationId }: 
         className="text-danger-text"
       />
       <Stack gap="2">
-        <Heading level={2} size="lg">
+        <Heading level={2} size="base">
           {title}
         </Heading>
         <Text size="sm" tone="secondary" align="center">

@@ -26,20 +26,18 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** Every step of the type scale, so an off-scale size is visibly absent rather than merely illegal. */
+/** Every step of the 12C scale, so an off-scale size is visibly absent rather than merely illegal. */
 export const TypeScale: Story = {
   render: () => (
     <Stack gap="3">
-      <Text size="5xl">64 / 70 — 5xl</Text>
-      <Text size="4xl">48 / 56 — 4xl</Text>
-      <Text size="3xl">36 / 44 — 3xl</Text>
-      <Text size="2xl">28 / 36 — 2xl</Text>
-      <Text size="xl">22 / 30 — xl</Text>
-      <Text size="lg">18 / 28 — lg</Text>
-      <Text size="base">16 / 26 — base</Text>
-      <Text size="sm">14 / 22 — sm</Text>
-      <Text size="xs">12 / 18 — xs</Text>
+      <Text size="4xl">52 / 70 — 4xl (display)</Text>
+      <Text size="3xl">35 / 52 — 3xl (display)</Text>
+      <Text size="xl">22 / 32 — xl</Text>
+      <Text size="base">16 / 32 — base</Text>
+      <Text size="sm">14 / 26 — sm</Text>
+      <Text size="xs">12.5 / 22 — xs</Text>
       <Text size="2xs">11 / 16 — 2xs</Text>
+      <Text size="eyebrow">10 / 16 — EYEBROW · MONO ONLY</Text>
     </Stack>
   ),
 };
@@ -138,7 +136,7 @@ export const Icons: Story = {
 /** Composition — every primitive at once, which is how they will actually be used. */
 export const Composed: Story = {
   render: () => (
-    <Surface level="elevated" padding="8" radius="lg">
+    <Surface level="elevated" padding="8" radius="none">
       <Stack gap="4">
         <Heading level={2}>Composed</Heading>
         <Text tone="secondary">
@@ -148,7 +146,7 @@ export const Composed: Story = {
           <Icon icon={ArrowRight} flip label="Continue" />
           {/* PH-0.30 — `accent` is no longer a Text tone. It is a 3:1 boundary colour and
               measured 3.70:1 as light-theme body text. Emphasis here is weight, not brand colour. */}
-          <Text size="sm" weight="medium">
+          <Text size="sm" weight="bold">
             Continue
           </Text>
         </Inline>

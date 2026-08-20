@@ -37,7 +37,7 @@ export function Skeleton({ lines = 1, variant = 'text', label }: SkeletonProps) 
     variant === 'circle'
       ? 'rounded-full size-10'
       : variant === 'block'
-        ? 'rounded-md h-24'
+        ? 'rounded-none h-24'
         : 'rounded-sm h-4';
 
   /*
@@ -103,7 +103,7 @@ export function ProgressBar({ value, label, valueText, showValue = false }: Prog
         max={100}
         aria-label={label}
         aria-valuetext={valueText}
-        className="h-2 w-full overflow-hidden rounded-full bg-bg-inset"
+        className="h-2 w-full overflow-hidden rounded-none bg-bg-inset"
       >
         <RadixProgress.Indicator
           className={`h-full bg-accent transition-transform duration-normal ease-standard ${

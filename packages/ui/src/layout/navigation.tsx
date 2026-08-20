@@ -127,7 +127,7 @@ export interface NavItem {
 }
 
 const NAV_LINK =
-  'flex flex-row items-center gap-3 rounded-md p-3 text-text-secondary no-underline ' +
+  'flex flex-row items-center gap-3 rounded-none p-3 text-text-secondary no-underline ' +
   'outline-none hover:bg-bg-surface focus-visible:ring-2 focus-visible:ring-border-focus ' +
   'aria-[current=page]:bg-accent-subtle aria-[current=page]:text-text-primary';
 

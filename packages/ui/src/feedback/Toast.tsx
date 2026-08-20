@@ -116,11 +116,11 @@ export function Toast({ toast, dismissLabel, onDismiss }: ToastProps) {
       onOpenChange={(open) => {
         if (!open) onDismiss();
       }}
-      className={`flex flex-row items-start gap-3 rounded-md border-2 p-3 shadow-lg ${TONE[toast.tone]}`}
+      className={`flex flex-row items-start gap-3 rounded-none border-2 p-3 shadow-lg ${TONE[toast.tone]}`}
     >
       <Stack gap="1">
         <RadixToast.Title asChild>
-          <Text size="sm" weight="medium">
+          <Text size="sm" weight="bold">
             {toast.title}
           </Text>
         </RadixToast.Title>
@@ -136,14 +136,14 @@ export function Toast({ toast, dismissLabel, onDismiss }: ToastProps) {
           <RadixToast.Action
             altText={toast.undo.label}
             onClick={toast.undo.onUndo}
-            className="ms-auto rounded-sm p-2 text-sm underline outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+            className="ms-auto rounded-none p-2 text-sm underline outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
           >
             {toast.undo.label}
           </RadixToast.Action>
         )}
         <RadixToast.Close
           aria-label={dismissLabel}
-          className="rounded-sm p-2 outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+          className="rounded-none p-2 outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
         >
           <X width={14} height={14} aria-hidden="true" focusable="false" />
         </RadixToast.Close>

@@ -13,8 +13,8 @@ import { Icon } from '../primitives/Icon.js';
  * through which a second button arrives without anyone deciding to build one.
  *
  * `BR-1346` — hover, focus-visible, active, disabled and loading are each visually distinct.
- * `BR-1217` — gold is reserved for the primary action, the current rail position, and achievement
- * moments; only `variant="primary"` uses the accent.
+ * `BR-1217`'s principle survives the 12C palette: the accent is reserved for the primary action,
+ * the current rail position, and achievement moments; only `variant="primary"` uses it.
  */
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -29,8 +29,9 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 export type DisabledState =
   { disabled: true; disabledReason: string } | { disabled?: false; disabledReason?: never };
 
+// 12C: buttons are square (radius 0) and their labels are 700 — the screens' buttons throughout.
 const BASE =
-  'inline-flex items-center justify-center gap-2 font-medium rounded-md ' +
+  'inline-flex items-center justify-center gap-2 font-bold rounded-none ' +
   // focus-visible, not focus: a mouse user should not see a ring, a keyboard user must.
   'outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2 ' +
   'focus-visible:ring-offset-bg-base ' +
@@ -39,24 +40,27 @@ const BASE =
   'disabled:opacity-50 disabled:cursor-not-allowed';
 
 const VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-accent text-accent-contrast hover:bg-accent-hover active:bg-accent-pressed',
+  primary: 'bg-accent text-text-on-accent hover:bg-accent-hover active:bg-accent-pressed',
+  // A control boundary, so border-control, never the hairline (BR-1577).
   secondary:
-    'bg-bg-elevated text-text-primary border border-border-strong hover:bg-bg-surface active:bg-bg-inset',
+    'bg-bg-elevated text-text-primary border border-border-control hover:bg-bg-surface active:bg-bg-inset',
   ghost: 'bg-transparent text-text-secondary hover:bg-bg-surface active:bg-bg-inset',
   // BR-1344 — red is reserved for destructive and error states only.
   //
-  // `text-inverse`, not `accent-contrast`. `--accent-contrast` was computed and pinned against the
-  // ACCENT at PH-0.12 (SB-18) and is qualified for nothing else; on `--danger` it measured
-  // 3.67:1 in light theme — below AA body — while passing at 7.15:1 in dark, which is why a
-  // single-theme look would have missed it. `--text-inverse` flips per theme and clears both:
-  // 7.15:1 dark, 4.83:1 light. Pinned in packages/tokens/src/color.spec.ts (PH-0.30).
+  // `text-inverse`, not `text-on-accent`: `--text-on-accent` is computed and pinned against the
+  // ACCENT (12C text.onAccent) and is qualified for nothing else — the lesson PH-0.30 paid for
+  // when the old accent foreground was reused on danger and failed in exactly one theme.
+  // `--text-inverse` flips per theme and clears both: 6.75:1 dark, 6.81:1 light, pinned in
+  // packages/tokens/src/color.spec.ts.
   danger: 'bg-danger text-text-inverse hover:opacity-90 active:opacity-80',
 };
 
+// `lg` keeps 16px type and grows by padding: the 12C scale has no 18 — the next step up is 22,
+// which is the section-heading tier, not a button label.
 const SIZE: Record<ButtonSize, string> = {
   sm: 'text-sm p-2',
   md: 'text-base p-3',
-  lg: 'text-lg p-4',
+  lg: 'text-base p-4',
 };
 
 const ICON_SIZE: Record<ButtonSize, 'sm' | 'md' | 'lg'> = { sm: 'sm', md: 'md', lg: 'md' };

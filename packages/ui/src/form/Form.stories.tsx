@@ -24,7 +24,7 @@ type Story = StoryObj<typeof meta>;
 function DemoInput({ type = 'text' }: { type?: string }) {
   const control = useFieldControl({ required: 'This field is required' });
   return (
-    <input type={type} className="p-2 rounded-sm bg-bg-inset text-text-primary" {...control} />
+    <input type={type} className="p-2 rounded-none bg-bg-inset text-text-primary" {...control} />
   );
 }
 

@@ -106,7 +106,7 @@ export function SkipLink({ targetId, children }: SkipLinkProps) {
   return (
     <a
       href={`#${targetId}`}
-      className="sr-only rounded-md bg-bg-elevated p-3 text-text-primary underline focus:not-sr-only focus:absolute focus:z-50 focus:ring-2 focus:ring-border-focus"
+      className="sr-only rounded-none bg-bg-elevated p-3 text-text-primary underline focus:not-sr-only focus:absolute focus:z-50 focus:ring-2 focus:ring-border-focus"
     >
       {children}
     </a>

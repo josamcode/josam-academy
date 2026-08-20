@@ -66,7 +66,7 @@ export function InlineAlert({ tone, title, body, action, assertive = false }: In
   return (
     <div
       role={assertive ? 'alert' : 'status'}
-      className={`flex flex-row items-start gap-3 rounded-md border-2 bg-bg-surface p-3 text-text-primary ${border}`}
+      className={`flex flex-row items-start gap-3 rounded-none border-2 bg-bg-surface p-3 text-text-primary ${border}`}
     >
       {/*
         The icon is decorative: the tone is already carried by role and by the text. An
@@ -81,7 +81,7 @@ export function InlineAlert({ tone, title, body, action, assertive = false }: In
         className={`mt-0.5 shrink-0 ${accent}`}
       />
       <Stack gap="1">
-        <Text size="sm" weight="medium">
+        <Text size="sm" weight="bold">
           {title}
         </Text>
         {body === undefined ? null : <Text size="sm">{body}</Text>}
@@ -162,11 +162,11 @@ export function ReadOnlyBanner({ message, reason }: ReadOnlyBannerProps) {
   return (
     <div
       role="status"
-      className="flex flex-row items-center gap-2 rounded-md border-2 border-info bg-bg-surface p-3 text-text-primary"
+      className="flex flex-row items-center gap-2 rounded-none border-2 border-info bg-bg-surface p-3 text-text-primary"
     >
       <Lock width={16} height={16} aria-hidden="true" focusable="false" className="shrink-0" />
       <Inline gap="2">
-        <Text size="sm" weight="medium">
+        <Text size="sm" weight="bold">
           {message}
         </Text>
         <Text size="sm">{reason}</Text>

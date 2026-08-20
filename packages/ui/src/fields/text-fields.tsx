@@ -25,8 +25,8 @@ import { Text } from '../primitives/Text.js';
  */
 
 const CONTROL =
-  'w-full rounded-sm bg-bg-inset text-text-primary p-3 ' +
-  'border border-border-subtle ' +
+  'w-full rounded-none bg-bg-inset text-text-primary p-3 ' +
+  'border border-border-control ' +
   'outline-none focus-visible:ring-2 focus-visible:ring-border-focus ' +
   'aria-invalid:border-danger ' +
   'disabled:opacity-50 disabled:cursor-not-allowed';

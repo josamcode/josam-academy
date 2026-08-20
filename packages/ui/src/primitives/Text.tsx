@@ -16,22 +16,22 @@ import type { ElementType, ReactNode } from 'react';
  * `BR-1342` and `BR-1533`, and an escape hatch that exists is an escape hatch that gets used.
  */
 /**
- * `accent` is deliberately absent.
+ * `accent` is deliberately absent, still.
  *
- * The accent is specified and pinned as a **3:1 UI-boundary and large-text** colour (`SB-18`), and
- * in light theme it measures **3.70:1** on the base — correct for what it is, and below AA body.
- * Offering it as a `Text` tone invited exactly one thing: brand-coloured body copy that fails AA
- * in half the product's themes. Found at `PH-0.30` by the Storybook sweep, which is the only place
- * a resolved colour exists.
- *
- * Changing the accent to clear 4.5:1 would be a brand decision, not arithmetic, and `SB-18`
- * settled that the accent hex does not move. So the colour stays where it is proven — interactive
- * surfaces, borders, focus rings — and emphasis in body text is carried by `weight`.
+ * The 12C green accent happens to clear 4.5:1 on every surface, so the old contrast argument no
+ * longer decides it — the semantic one does: green IS this design's done/positive family, and
+ * accent-toned text is expressed as `tone="success"` (which holds the same value by decision, not
+ * by coincidence — pinned in `packages/tokens`). Emphasis in body text is carried by `weight`.
  */
 export type TextTone =
   'primary' | 'secondary' | 'muted' | 'inverse' | 'success' | 'warning' | 'danger' | 'info';
 
-export type TextWeight = 'regular' | 'medium' | 'semibold';
+/**
+ * `12C §3` weights: Almarai has 400, 700 and 800 — nothing between. `medium` and `semibold` died
+ * with the old fonts (a 500/600 on Almarai is a synthesised fake), and the Tailwind layer deletes
+ * their utilities. Mono's 500 is reached through the mono components, not through `Text`.
+ */
+export type TextWeight = 'regular' | 'bold' | 'extrabold';
 
 export type TextAlign = 'start' | 'center' | 'end';
 
@@ -43,16 +43,14 @@ export type TextAlign = 'start' | 'center' | 'end';
  * every class is a literal Tailwind can see.
  */
 const SIZE: Record<FontSizeToken, string> = {
+  eyebrow: 'text-eyebrow',
   '2xs': 'text-2xs',
   xs: 'text-xs',
   sm: 'text-sm',
   base: 'text-base',
-  lg: 'text-lg',
   xl: 'text-xl',
-  '2xl': 'text-2xl',
   '3xl': 'text-3xl',
   '4xl': 'text-4xl',
-  '5xl': 'text-5xl',
 };
 
 const TONE: Record<TextTone, string> = {
@@ -70,8 +68,8 @@ const TONE: Record<TextTone, string> = {
 
 const WEIGHT: Record<TextWeight, string> = {
   regular: 'font-normal',
-  medium: 'font-medium',
-  semibold: 'font-semibold',
+  bold: 'font-bold',
+  extrabold: 'font-extrabold',
 };
 
 /** `BR-1397` — alignment is logical. `text-left` is correct in one direction and wrong in the other. */

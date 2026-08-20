@@ -38,10 +38,8 @@ const PAD: Record<SpaceToken, string> = {
 };
 
 const RADIUS: Record<RadiusToken, string> = {
+  none: 'rounded-none',
   sm: 'rounded-sm',
-  md: 'rounded-md',
-  lg: 'rounded-lg',
-  xl: 'rounded-xl',
   full: 'rounded-full',
 };
 
@@ -187,7 +185,8 @@ export function Surface({
   level = 'surface',
   border = 'subtle',
   padding = '4',
-  radius = 'md',
+  // 12C: the printed-agenda surface is square. 3px exists for chips; a card defaults to 0.
+  radius = 'none',
 }: SurfaceProps) {
   return (
     <div className={cx(SURFACE[level], BORDER[border], PAD[padding], RADIUS[radius])}>

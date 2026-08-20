@@ -30,12 +30,12 @@ import {
  */
 
 const DROP_ZONE =
-  'flex flex-col items-center gap-2 rounded-md border-2 border-dashed border-border-subtle ' +
+  'flex flex-col items-center gap-2 rounded-none border-2 border-dashed border-border-control ' +
   'bg-bg-inset p-6 text-center outline-none focus-within:ring-2 focus-within:ring-border-focus ' +
   'aria-invalid:border-danger';
 
 const ICON_BUTTON =
-  'rounded-sm p-2 text-text-secondary outline-none hover:bg-bg-surface ' +
+  'rounded-none p-2 text-text-secondary outline-none hover:bg-bg-surface ' +
   'focus-visible:ring-2 focus-visible:ring-border-focus';
 
 interface FieldBinding {
@@ -369,7 +369,7 @@ export function ImageDrop({ aspect, imageLabels, ...props }: ImageDropProps & Av
           <img
             src={preview}
             alt={imageLabels.preview}
-            className="max-h-48 rounded-md object-contain"
+            className="max-h-48 rounded-none object-contain"
             onLoad={(event) => {
               setNatural({
                 width: event.currentTarget.naturalWidth,

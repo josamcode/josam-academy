@@ -49,7 +49,7 @@ const SPECIMENS: [string, ReactElement][] = [
   ],
   [
     'Box',
-    <Box padding="4" radius="md">
+    <Box padding="4" radius="sm">
       <Text>boxed</Text>
     </Box>,
   ],
@@ -133,6 +133,44 @@ describe('DEC-40 — the scale is closed', () => {
     expect(Object.keys(space).sort()).toEqual(['1', '12', '16', '2', '24', '3', '4', '6', '8']);
     // 5 is not a step, so 20px is unreachable — by construction, not by review.
     expect(Object.keys(space)).not.toContain('5');
+  });
+});
+
+/**
+ * 12C §3 — the display face never renders under 28px. In the locked scale only `4xl` (52) and
+ * `3xl` (35) clear that bar, so `Heading` keys the face to the RESOLVED size, not the level.
+ * Asserted against the type mapping's output because that is where the rule is encoded.
+ */
+describe('12C — Amiri scope: display tiers only, never under 28px', () => {
+  it('applies the display face at 3xl and 4xl only, at weight 700', async () => {
+    const { fontSize } = await import('@josam/tokens');
+    for (const token of Object.keys(fontSize) as (keyof typeof fontSize)[]) {
+      const markup = renderToStaticMarkup(
+        <Heading level={1} size={token}>
+          x
+        </Heading>,
+      );
+      if (fontSize[token].size >= 28) {
+        expect(markup, `${token} is a display tier`).toContain('font-display');
+        expect(markup, `display face is 700 only`).toContain('font-bold');
+      } else {
+        expect(markup, `${token} is under 28px and must not carry the display face`).not.toContain(
+          'font-display',
+        );
+      }
+    }
+  });
+
+  it('a small default heading (h3, h4) stays on the body face', () => {
+    expect(renderToStaticMarkup(<Heading level={3}>x</Heading>)).not.toContain('font-display');
+    expect(renderToStaticMarkup(<Heading level={4}>x</Heading>)).not.toContain('font-display');
+  });
+
+  it('Text never carries the display face at any size', async () => {
+    const { fontSize } = await import('@josam/tokens');
+    for (const token of Object.keys(fontSize) as (keyof typeof fontSize)[]) {
+      expect(renderToStaticMarkup(<Text size={token}>x</Text>)).not.toContain('font-display');
+    }
   });
 });
 

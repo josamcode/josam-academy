@@ -31,10 +31,10 @@ const PANEL =
   'fixed z-50 flex flex-col gap-4 bg-bg-elevated p-6 shadow-lg ' + 'focus-visible:outline-none';
 
 const SURFACE =
-  'z-50 rounded-md border border-border-strong bg-bg-elevated p-3 text-text-primary shadow-lg';
+  'z-50 rounded-none border border-border-strong bg-bg-elevated p-3 text-text-primary shadow-lg';
 
 const CLOSE_BUTTON =
-  'rounded-sm p-2 text-text-secondary outline-none hover:bg-bg-inset ' +
+  'rounded-none p-2 text-text-secondary outline-none hover:bg-bg-inset ' +
   'focus-visible:ring-2 focus-visible:ring-border-focus';
 
 /**
@@ -147,7 +147,7 @@ export function Dialog({
         <RadixDialog.Overlay className={OVERLAY} />
         <RadixDialog.Content
           onCloseAutoFocus={onCloseAutoFocus}
-          className={`${PANEL} inset-inline-0 top-1/2 mx-auto max-h-[85vh] w-[min(32rem,92vw)] -translate-y-1/2 overflow-y-auto rounded-lg`}
+          className={`${PANEL} inset-inline-0 top-1/2 mx-auto max-h-[85vh] w-[min(32rem,92vw)] -translate-y-1/2 overflow-y-auto rounded-none`}
         >
           <Stack gap="2">
             <Inline gap="3">
@@ -434,7 +434,7 @@ export function DropdownMenu({ trigger, items, label }: DropdownMenuProps) {
       disabled={item.disabled ?? false}
       title={item.disabled === true ? item.disabledReason : undefined}
       onSelect={item.onSelect}
-      className={`flex cursor-pointer items-center rounded-sm p-2 text-sm outline-none data-highlighted:bg-accent-subtle data-disabled:cursor-not-allowed data-disabled:opacity-50 ${
+      className={`flex cursor-pointer items-center rounded-none p-2 text-sm outline-none data-highlighted:bg-accent-subtle data-disabled:cursor-not-allowed data-disabled:opacity-50 ${
         item.destructive === true ? 'text-danger-text' : 'text-text-primary'
       }`}
     >

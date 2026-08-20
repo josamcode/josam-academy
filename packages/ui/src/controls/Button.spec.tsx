@@ -118,10 +118,16 @@ describe('BR-1217 / BR-1344 — colour meaning is not diluted', () => {
     expect(renderToStaticMarkup(<Button variant="primary">x</Button>)).not.toContain('bg-danger');
   });
 
-  it('primary pairs the accent with accent-contrast, which clears 4.5:1 (SB-18)', () => {
+  it('primary pairs the accent with text-on-accent, which clears 4.5:1 (12C, pinned in tokens)', () => {
     const m = renderToStaticMarkup(<Button variant="primary">x</Button>);
     expect(m).toContain('bg-accent');
-    expect(m).toContain('text-accent-contrast');
+    expect(m).toContain('text-text-on-accent');
+  });
+
+  it('a secondary button is bounded by border-control, never the hairline (BR-1577)', () => {
+    const m = renderToStaticMarkup(<Button variant="secondary">x</Button>);
+    expect(m).toContain('border-border-control');
+    expect(m).not.toContain('border-border-subtle');
   });
 });
 
