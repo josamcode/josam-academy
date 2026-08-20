@@ -39,4 +39,10 @@ describe('globals.css keeps Tailwind switched on', () => {
   it('imports the theme layer AFTER tailwindcss, or the defaults win (BR-1342)', () => {
     expect(css.indexOf('tailwind.css')).toBeGreaterThan(css.indexOf("'tailwindcss'"));
   });
+
+  it('binds the 12C body face to the document (DT-1)', () => {
+    // Without this declaration every screen renders in the browser default and nothing fails:
+    // the tokens are correct, the fonts are loaded, and no face is ever applied.
+    expect(css).toMatch(/html\s*\{[^}]*font-family:\s*var\(--font-family-body\)/);
+  });
 });
