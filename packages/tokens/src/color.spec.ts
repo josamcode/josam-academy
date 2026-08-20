@@ -118,9 +118,12 @@ describe.each([
   it.each([
     ['tintCritical', c.tintCritical],
     ['tintInfo', c.tintInfo],
-  ])('body text reaches 4.5:1 on %s — alerts carry prose, not just the status colour', (_n, tint) => {
-    expect(contrast(c.textPrimary, tint)).toBeGreaterThanOrEqual(4.5);
-  });
+  ])(
+    'body text reaches 4.5:1 on %s — alerts carry prose, not just the status colour',
+    (_n, tint) => {
+      expect(contrast(c.textPrimary, tint)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
 
   it.each([
     ['codeKeyword', c.codeKeyword],
@@ -161,13 +164,10 @@ describe('12C §3 — the locked values are pinned', () => {
     ['codeKeyword', '#7A2E86', '#C79BE0'],
     ['codeCall', '#1F3A5C', '#93B4DE'],
     ['codeLiteral', '#8E2A21', '#E8907F'],
-  ] satisfies [keyof ColorTokens, string, string][])(
-    '%s is %s / %s',
-    (token, light, dark) => {
-      expect(lightColors[token]).toBe(light);
-      expect(darkColors[token]).toBe(dark);
-    },
-  );
+  ] satisfies [keyof ColorTokens, string, string][])('%s is %s / %s', (token, light, dark) => {
+    expect(lightColors[token]).toBe(light);
+    expect(darkColors[token]).toBe(dark);
+  });
 
   it('the light tints are 12C values; the dark tints are DERIVED (12C lists none)', () => {
     expect(lightColors.tintCritical).toBe('#F6E7E4');
@@ -200,9 +200,12 @@ describe('DT-1 — mapping decisions hold', () => {
   it.each([
     ['light', lightColors],
     ['dark', darkColors],
-  ])('%s: borderStrong holds the hairline value — its control usages moved to borderControl', (_n, c) => {
-    expect(c.borderStrong).toBe(c.borderSubtle);
-  });
+  ])(
+    '%s: borderStrong holds the hairline value — its control usages moved to borderControl',
+    (_n, c) => {
+      expect(c.borderStrong).toBe(c.borderSubtle);
+    },
+  );
 
   it.each([
     ['light', lightColors],
@@ -231,7 +234,7 @@ describe('DT-1 — mapping decisions hold', () => {
   it.each([
     ['light', lightColors],
     ['dark', darkColors],
-  ])('%s: success IS the accent — green is this design\'s done/positive family', (_n, c) => {
+  ])("%s: success IS the accent — green is this design's done/positive family", (_n, c) => {
     expect(c.success).toBe(c.accent);
   });
 
@@ -245,7 +248,7 @@ describe('DT-1 — mapping decisions hold', () => {
     expect(c.infoText).toBe(c.info);
   });
 
-  it('textInverse is the other theme\'s textPrimary — text on an inverted surface', () => {
+  it("textInverse is the other theme's textPrimary — text on an inverted surface", () => {
     expect(lightColors.textInverse).toBe(darkColors.textPrimary);
     expect(darkColors.textInverse).toBe(lightColors.textPrimary);
   });
@@ -308,7 +311,7 @@ describe('BR-1583 — generated CSS carries every token', () => {
   });
 
   it('LIGHT is home — :root carries the paper palette, dark only behind an explicit choice or the OS', () => {
-    const rootBlock = css.slice(css.indexOf(':root {'), css.indexOf("[data-theme"));
+    const rootBlock = css.slice(css.indexOf(':root {'), css.indexOf('[data-theme'));
     expect(rootBlock).toContain(lightColors.bgBase);
     expect(rootBlock).not.toContain(darkColors.bgBase);
     expect(css).toContain('@media (prefers-color-scheme: dark)');
@@ -317,7 +320,7 @@ describe('BR-1583 — generated CSS carries every token', () => {
 
   it('lets an explicit theme choice beat the OS preference', () => {
     expect(css.indexOf("[data-theme='dark']")).toBeGreaterThan(css.indexOf(':root {'));
-    expect(css).toContain(":root:not([data-theme])");
+    expect(css).toContain(':root:not([data-theme])');
   });
 
   it('swaps the display stack to Newsreader for the English interface only (12C §3)', () => {

@@ -42,6 +42,7 @@
   html {
     background-color: var(--bg-base);
     color: var(--text-primary);
+
     /* 12C §3 — Almarai draws everything that is not display or code. The stack resolves the
        next/font variables set on <html> by app/layout.tsx; without this line the whole product
        renders in the browser default, which no token or component would ever notice. */
