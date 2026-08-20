@@ -415,7 +415,10 @@ output would undermine it.
 
 **By:** AI (autonomous run, standing founder authority of 2026-08-20)
 **Calendar: 2026-08-16 -> 2026-08-20 (5 days)** · **Time:** estimated 1.0 d → actual 0.8 d
-**Status:** committed; CI watch pending at push — the observed run id and verdict are appended to this entry when the push happens.
+**Status:** DONE per `BR-1761` — CI run **32346665624** on `73d5597` completed **SUCCESS in
+12m 04s**, observed via `gh run watch --exit-status` (exit 0) — read directly, not handed to the
+founder. The run covers the whole five-commit batch: charter/roster, the founder design set,
+`PH-1.11` itself (`5a5a331`), the fitness rework (`6aaef53`), and the audit-gate fix (`73d5597`).
 
 #### The build half was found STAGED and UNRECORDED — a `BR-1803` breach, recorded first
 
