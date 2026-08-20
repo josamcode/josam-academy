@@ -321,7 +321,10 @@ describe('PH-1.1 — schema conformance against 10, column by column', () => {
     ).rejects.toThrow(/has_arabic/);
   });
 
-  it('carries all six PARTIAL indexes with their predicates intact', async () => {
+  // No count in the title — "all six" began under-claiming silently the moment `PH-1.14` made
+  // it eight (reviewer finding, 2026-08-20). The map below is the census; a count restates it
+  // and drifts.
+  it('carries the PARTIAL indexes 10 names, predicates intact', async () => {
     const { rows } = await pool.query<{ indexname: string; indexdef: string }>(
       `SELECT indexname, indexdef FROM pg_indexes WHERE schemaname='public'`,
     );
@@ -336,6 +339,10 @@ describe('PH-1.1 — schema conformance against 10, column by column', () => {
       idx_refresh_user: /WHERE \(revoked_at IS NULL\)/,
       idx_refresh_expiry: /WHERE \(revoked_at IS NULL\)/,
       idx_verification_user: /WHERE \(consumed_at IS NULL\)/,
+      // `PH-1.14` / `TBL-021` — `idx_ent_lookup` is `BR-981`'s hottest index; without its
+      // predicate it quietly serves revoked entitlements to every content read.
+      idx_ent_lookup: /WHERE \(revoked_at IS NULL\)/,
+      idx_ent_expiry: /WHERE \(\(revoked_at IS NULL\) AND \(expires_at IS NOT NULL\)\)/,
     };
 
     for (const [name, predicate] of Object.entries(partial)) {
@@ -361,7 +368,7 @@ describe('PH-1.1 — schema conformance against 10, column by column', () => {
     }
   });
 
-  it('defines all six enums with exactly the values 10 lists', async () => {
+  it('defines the enums with exactly the values 10 lists', async () => {
     const expected: Record<string, string[]> = {
       user_status: ['active', 'suspended', 'pending_deletion', 'deleted'],
       theme_mode: ['light', 'dark', 'system'],
@@ -369,6 +376,20 @@ describe('PH-1.1 — schema conformance against 10, column by column', () => {
       auth_provider: ['password', 'google', 'phone'],
       client_platform: ['web', 'ios', 'android'],
       token_purpose: ['email_verify', 'password_reset', 'email_change'],
+      // `PH-1.14` — `TBL-021`/`TBL-022`, plus `quota_period` from `TBL-013` (pulled forward).
+      // A lost value here fails no migration: `entitlement_source` without 'promotion' rejects
+      // only the first promotional grant, in production.
+      entitlement_kind: ['content', 'feature', 'quota'],
+      entitlement_source: ['order', 'subscription', 'manual', 'free', 'promotion'],
+      quota_period: ['monthly', 'lifetime'],
+      entitlement_event: [
+        'granted',
+        'extended',
+        'revoked',
+        'expired',
+        'quota_reset',
+        'quota_adjusted',
+      ],
     };
     const { rows } = await pool.query<{ typname: string; labels: string[] }>(
       `SELECT t.typname, array_agg(e.enumlabel::text ORDER BY e.enumsortorder) AS labels
