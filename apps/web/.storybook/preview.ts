@@ -13,13 +13,13 @@ import '../app/globals.css';
  */
 export const globalTypes = {
   theme: {
-    description: 'Colour theme (12 §3)',
+    description: 'Colour theme (12C §3)',
     toolbar: {
       title: 'Theme',
       icon: 'contrast',
       items: [
-        { value: 'dark', title: 'Dark' },
         { value: 'light', title: 'Light' },
+        { value: 'dark', title: 'Dark' },
       ],
       dynamicTitle: true,
     },
@@ -39,14 +39,15 @@ export const globalTypes = {
 };
 
 export const initialGlobals = {
-  // Arabic and dark are the defaults because they are the product's defaults. A story only ever
-  // opened in English-light is a story whose Arabic rendering nobody has actually looked at.
-  theme: 'dark',
+  // Arabic and light are the defaults because they are the product's defaults — 12C §2: light is
+  // home. A story only ever opened in English is a story whose Arabic rendering nobody has
+  // actually looked at.
+  theme: 'light',
   locale: 'ar',
 };
 
 export const withThemeAndDirection: Decorator = (Story, context) => {
-  const theme = String(context.globals['theme'] ?? 'dark');
+  const theme = String(context.globals['theme'] ?? 'light');
   const raw = String(context.globals['locale'] ?? 'ar');
   const locale: Locale = (LOCALES as readonly string[]).includes(raw) ? (raw as Locale) : 'ar';
 

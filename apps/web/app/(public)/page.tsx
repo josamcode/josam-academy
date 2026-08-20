@@ -12,9 +12,9 @@ import { Box, Stack, Surface } from '@josam/ui';
 export default function PublicLandingPage() {
   return (
     <main data-route-group="public">
-      <Surface level="base" border="none" padding="8" radius="lg">
+      <Surface level="base" border="none" padding="8" radius="none">
         <Stack gap="4">
-          <Surface level="surface" padding="4" radius="md">
+          <Surface level="surface" padding="4" radius="none">
             <Box padding="2" />
           </Surface>
         </Stack>

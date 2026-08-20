@@ -23,12 +23,12 @@ export interface ThemeHarnessProps {
 
 export function ThemeHarness({ heading, body, actionLabel, statusLabels }: ThemeHarnessProps) {
   return (
-    <section className="bg-bg-surface text-text-primary p-8 rounded-lg">
-      <h1 className="text-2xl text-text-primary">{heading}</h1>
+    <section className="bg-bg-surface text-text-primary p-8 rounded-none">
+      <h1 className="text-xl text-text-primary">{heading}</h1>
       {/* Direction is inherited from <html dir>, set by the toolbar decorator. */}
       <p className="text-base text-text-secondary">{body}</p>
       <div className="flex gap-4 p-4">
-        <button type="button" className="bg-accent text-accent-contrast p-3 rounded-md">
+        <button type="button" className="bg-accent text-text-on-accent p-3 rounded-none">
           {actionLabel}
         </button>
         <span className="text-success-text">{statusLabels.success}</span>
