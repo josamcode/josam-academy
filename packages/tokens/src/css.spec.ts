@@ -70,4 +70,41 @@ describe('BR-1342 — the Tailwind theme layer deletes the defaults', () => {
     // 5 is not a step in 12 §5.
     expect(theme).not.toContain('--spacing-5:');
   });
+
+  it('the 12C radius set is 0 / 3 / full — the 12 §5 steps are gone (DT-1)', () => {
+    expect(theme).toContain('--radius-none: 0px;');
+    expect(theme).toContain('--radius-sm: 3px;');
+    for (const dead of ['--radius-md:', '--radius-lg:', '--radius-xl:']) {
+      expect(theme).not.toContain(dead);
+    }
+  });
+
+  it('the 12C type scale is 52/35/22/16/14/12.5/11 + 10, and the dead steps are gone (DT-1)', () => {
+    expect(theme).toContain('--text-eyebrow: 10px;');
+    expect(theme).toContain('--text-xs: 12.5px;');
+    expect(theme).toContain('--text-4xl: 52px;');
+    for (const dead of ['--text-lg:', '--text-2xl:', '--text-3xl: 36px', '--text-5xl:']) {
+      expect(theme).not.toContain(dead);
+    }
+  });
+
+  it('font utilities reference the runtime stacks, so the English display swap reaches them', () => {
+    // A literal Amiri stack here would freeze `font-display` to Arabic; the var is what lets
+    // `html[lang="en"]` swap the display face to Newsreader (12C §3).
+    expect(theme).toContain('--font-display: var(--font-family-display);');
+    expect(theme).toContain('--font-body: var(--font-family-body);');
+    expect(theme).toContain('--font-mono: var(--font-family-mono);');
+    // No utility for the Latin display stack: the language swap is the only path to it.
+    expect(theme).not.toContain('--font-display-latin:');
+  });
+
+  it('wipes the weight utilities down to the 12C set — 400 / 500 (mono) / 700 / 800 (DT-1)', () => {
+    expect(theme).toContain('--font-weight-*: initial;');
+    expect(theme).toContain('--font-weight-normal: 400;');
+    expect(theme).toContain('--font-weight-medium: 500;');
+    expect(theme).toContain('--font-weight-bold: 700;');
+    expect(theme).toContain('--font-weight-extrabold: 800;');
+    // No 600: Almarai has no semibold, and a synthesised fake must be unwritable.
+    expect(theme).not.toContain('--font-weight-semibold:');
+  });
 });

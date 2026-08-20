@@ -26,6 +26,8 @@ export {
   type FontFamilyToken,
   fontSize,
   type FontSizeToken,
+  fontWeight,
+  type FontWeightToken,
   radius,
   type RadiusToken,
   space,
