@@ -103,6 +103,49 @@ enum TokenPurpose {
   @@map("token_purpose")
 }
 
+// `PH-1.14` — `M04` enums. `quota_period` is DEFINED in `10 §TBL-013` (`product_entitlements`,
+// a `PH-1.17` table) but `TBL-021` uses it, so the type is created here — the same
+// dependency-pulls-a-leaf-forward shape as `roles` in `PH-1.1`. `PH-1.17` will find it existing.
+
+enum EntitlementKind {
+  content
+  feature
+  quota
+
+  @@map("entitlement_kind")
+}
+
+enum EntitlementSource {
+  order
+  subscription
+  manual
+  free
+  promotion
+
+  @@map("entitlement_source")
+}
+
+enum QuotaPeriod {
+  monthly
+  lifetime
+
+  @@map("quota_period")
+}
+
+/// `10` names this type `entitlement_event` — the singular of the table that stores it. Prisma
+/// identifiers are one namespace across models and enums, so the model `EntitlementEvent` forces
+/// a different name HERE; `@@map` keeps the database type exactly as `TBL-022` writes it.
+enum EntitlementEventType {
+  granted
+  extended
+  revoked
+  expired
+  quota_reset
+  quota_adjusted
+
+  @@map("entitlement_event")
+}
+
 // ─────────────────────────────────────────────────────────────────────────────────────────────
 // `TBL-007` roles — `M02`, created here because `users.role_id` requires it (`BR-1842`)
 // ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -243,6 +286,12 @@ model User {
   overrides          UserPermissionOverride[] @relation("OverrideSubject")
   overridesCreated   UserPermissionOverride[] @relation("OverrideCreator")
 
+  // `PH-1.14`. Same reason: `entitlements` and `entitlement_events` each point at `users` twice.
+  entitlements           Entitlement[]      @relation("EntitlementSubject")
+  entitlementsGranted    Entitlement[]      @relation("EntitlementGrantor")
+  entitlementEvents      EntitlementEvent[] @relation("EntitlementEventSubject")
+  entitlementEventsActed EntitlementEvent[] @relation("EntitlementEventActor")
+
   @@index([roleId], map: "idx_users_role")
   @@index([createdAt(sort: Desc)], map: "idx_users_created")
   @@map("users")
@@ -359,4 +408,79 @@ model LoginActivity {
 
   @@index([userId, createdAt(sort: Desc)], map: "idx_login_user")
   @@map("login_activity")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// `PH-1.14` — `M04` Entitlements. `TBL-021` – `TBL-022`.
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/// `TBL-021` — what a user may access, resolved on every content read through `idx_ent_lookup`
+/// (`BR-981`, the hottest index in the database — partial, hand-written in the migration).
+/// `BR-982` — additive: same key from multiple sources yields the longest expiry, quotas sum.
+/// `BR-983` — expiry is evaluated at read time; no nightly job flips rows, so there is no
+/// `status` column here to drift.
+/// `BR-984` — quota consumption is a conditional `UPDATE … RETURNING`, never read-then-write.
+model Entitlement {
+  id     String @id
+  userId String @map("user_id")
+
+  /// `'access:course:crs_01H...'` — a string, not a foreign key. The deliberate seam between
+  /// commerce and content (`BR-970`, `BR-950`): an entitlement outlives what it points at.
+  key  String
+  kind EntitlementKind
+
+  sourceType EntitlementSource @map("source_type")
+  sourceId   String?           @map("source_id")
+
+  grantedAt   DateTime  @default(now()) @map("granted_at") @db.Timestamptz(6)
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
+  graceEndsAt DateTime? @map("grace_ends_at") @db.Timestamptz(6)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(6)
+
+  quotaLimit      Int?         @map("quota_limit")
+  quotaPeriod     QuotaPeriod? @map("quota_period")
+  quotaConsumed   Int          @default(0) @map("quota_consumed")
+  periodStartedAt DateTime?    @map("period_started_at") @db.Timestamptz(6)
+
+  reason    String?
+  grantedBy String? @map("granted_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  /// `ON DELETE CASCADE` (`TBL-021`): an entitlement is meaningless without its subject.
+  user    User  @relation("EntitlementSubject", fields: [userId], references: [id], onDelete: Cascade)
+  /// `ON DELETE SET NULL` (`TBL-021`): the grant outlives the grantor; only attribution is
+  /// lost — the same policy argued at `role_permissions.granted_by`.
+  grantor User? @relation("EntitlementGrantor", fields: [grantedBy], references: [id], onDelete: SetNull)
+
+  events EntitlementEvent[]
+
+  @@index([sourceType, sourceId], map: "idx_ent_source")
+  @@map("entitlements")
+}
+
+/// `TBL-022` — the audit trail per entitlement. `BR-985`: append-only — no update, no delete,
+/// at any permission level. `10` states that as policy, not DDL; it binds the repository layer
+/// (`PH-1.15`), while `ON DELETE CASCADE` from `entitlements` is `10`'s own stated exception.
+model EntitlementEvent {
+  id             String               @id
+  entitlementId  String               @map("entitlement_id")
+  userId         String               @map("user_id")
+  event          EntitlementEventType
+  actorId        String?              @map("actor_id")
+  reason         String?
+  metadata       Json                 @default("{}")
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// `ON DELETE CASCADE` (`TBL-022`): events narrate their entitlement and go with it.
+  entitlement Entitlement @relation(fields: [entitlementId], references: [id], onDelete: Cascade)
+  /// `ON DELETE CASCADE` (`TBL-022`): denormalised subject for `idx_ent_events_user`; a hard
+  /// user deletion (rare under `BR-957` anonymisation) takes the trail with the account.
+  user        User        @relation("EntitlementEventSubject", fields: [userId], references: [id], onDelete: Cascade)
+  /// `ON DELETE SET NULL` (`TBL-022`): the event survives its actor — attribution-only, as with
+  /// `granted_by` above.
+  actor       User?       @relation("EntitlementEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)], map: "idx_ent_events_user")
+  @@map("entitlement_events")
 }

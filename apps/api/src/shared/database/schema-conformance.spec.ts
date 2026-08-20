@@ -43,6 +43,9 @@ const TABLES = [
   'permissions',
   'role_permissions',
   'user_permission_overrides',
+  // `PH-1.14` — M04 Entitlements, `TBL-021`–`022`.
+  'entitlements',
+  'entitlement_events',
 ] as const;
 
 /** `10`'s SQL types → PostgreSQL's `udt_name`, which is the only field that distinguishes them. */

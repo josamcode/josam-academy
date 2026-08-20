@@ -74,6 +74,13 @@ export const MODEL_SCOPES = {
   verificationToken: { kind: 'owned', ownerField: 'userId' },
   otpCode: { kind: 'owned', ownerField: 'userId' },
   userPermissionOverride: { kind: 'owned', ownerField: 'userId' },
+  // `PH-1.14`. `entitlement:read` is an admin permission (`05 §entitlement`); a learner sees only
+  // their own rows — the resolve path (`BR-981`) is `user_id + key` by construction, so the scope
+  // column IS the hot index's leading column (`TBL-021`).
+  entitlement: { kind: 'owned', ownerField: 'userId' },
+  // `entitlement:read.audit` reads the whole trail; a user's own history is their `user_id` slice
+  // (`TBL-022` denormalises the subject for exactly this read — `idx_ent_events_user`).
+  entitlementEvent: { kind: 'owned', ownerField: 'userId' },
 
   role: { kind: 'global', why: 'the role catalogue is the same for every actor (TBL-007)' },
   permission: {
