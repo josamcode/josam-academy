@@ -351,7 +351,7 @@ describe('PH-1.1 — schema conformance against 10, column by column', () => {
     }
   });
 
-  it('carries the six plain indexes 10 names', async () => {
+  it('carries the plain indexes 10 names', async () => {
     const { rows } = await pool.query<{ indexname: string }>(
       `SELECT indexname FROM pg_indexes WHERE schemaname='public'`,
     );
@@ -363,6 +363,12 @@ describe('PH-1.1 — schema conformance against 10, column by column', () => {
       'idx_refresh_family',
       'idx_otp_phone',
       'idx_login_user',
+      // `PH-1.7` — `TBL-008`.
+      'idx_permissions_model',
+      'idx_permissions_module',
+      // `PH-1.14` — `TBL-021`/`TBL-022`.
+      'idx_ent_source',
+      'idx_ent_events_user',
     ]) {
       expect(names.has(idx), `index ${idx} is missing`).toBe(true);
     }
@@ -376,6 +382,8 @@ describe('PH-1.1 — schema conformance against 10, column by column', () => {
       auth_provider: ['password', 'google', 'phone'],
       client_platform: ['web', 'ios', 'android'],
       token_purpose: ['email_verify', 'password_reset', 'email_change'],
+      // `PH-1.7` — `TBL-010`.
+      override_effect: ['grant', 'revoke'],
       // `PH-1.14` — `TBL-021`/`TBL-022`, plus `quota_period` from `TBL-013` (pulled forward).
       // A lost value here fails no migration: `entitlement_source` without 'promotion' rejects
       // only the first promotional grant, in production.

@@ -33,10 +33,10 @@ yesterday, and is the single largest change in this project's risk position so f
 | Field              | Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Last updated**   | 2026-08-20                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| **Updated by**     | AI (autonomous run to MVP, standing founder authority 2026-08-20; `PH-1.11` completed — found staged and unrecorded from a 2026-08-16 session, `BR-1803` breach recorded)                                                                                                                                                                                                                                                                                                             |
-| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · **8 / 33** · `PH-1.5`/`PH-1.6` 🟡, `PH-1.10` 🟡 permanently. Phase 0 closed at 29/30.                                                                                                                                                                                                                                                                                                                                                    |
+| **Updated by**     | AI (autonomous run to MVP, standing founder authority 2026-08-20; latest: `PH-1.14` merged from review — entitlements schema; earlier today `PH-1.11` completed with its `BR-1803` breach recorded)                                                                                                                                                                                                                                                                                   |
+| **Current phase**  | **Phase 1 — Identity, Permissions, Money** · **9 / 33** · `PH-1.5`/`PH-1.6` 🟡, `PH-1.10` 🟡 permanently. Phase 0 closed at 29/30.                                                                                                                                                                                                                                                                                                                                                    |
 | **Current task**   | `PH-1.12` — auth/route surface + `PermissionGuard` wiring + `BR-1631` startup check + generated permission matrix. In parallel: the `12C` design-token migration (founder-directed 2026-08-20).                                                                                                                                                                                                                                                                                       |
-| **Next task**      | `PH-1.13` / `PH-1.14` — dependency order, parallel where file-disjoint (run charter §4).                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Next task**      | `PH-1.13` / `PH-1.15` / `PH-1.17` — `PH-1.14` unblocks the latter two; dependency order, parallel where file-disjoint (run charter §4).                                                                                                                                                                                                                                                                                                                                               |
 | **Production URL** | **`josamacademy.com` — serving over HTTPS.** Cloudflare proxied, SSL mode Full. All five route groups 200.                                                                                                                                                                                                                                                                                                                                                                            |
 | **Blocked**        | Nothing hard-blocked today. The standing founder items remain: rotate the R2 credentials (`SB-36`, carries a date), a degraded `/health` does not alert (`SB-34`), TLS mode + certificate expiry (`SB-35`), and port 8000 stays open until `PH-0.8` runs (`SB-22`). Credential-gated tasks parked at the boundary: `PH-1.5` (Google round trip), `PH-1.6` (Twilio), and upcoming `PH-1.22` (Stripe account) and `PH-1.26`–`1.28` (Paymob/Fawry merchant — `OQ-01`, the longest lead). |
 
@@ -47,14 +47,14 @@ yesterday, and is the single largest change in this project's risk position so f
 | Phase                   |   Tasks |   Done | Status          |
 | ----------------------- | ------: | -----: | --------------- |
 | **0 — Foundation**      |      30 |     29 | 🟡 Exited 29/30 |
-| 1 — Identity & Commerce |      33 |      8 | 🟡 In progress  |
+| 1 — Identity & Commerce |      33 |      9 | 🟡 In progress  |
 | 2 — Content & Learning  |      34 |      0 | ⬜ Not started  |
 | 3 — Operations & Launch |      26 |      0 | ⬜ Not started  |
 | 4 — Motivation & Proof  |      22 |      0 | ⬜ Not started  |
 | 5 — AI Mentor           |      18 |      0 | ⬜ Not started  |
 | 6 — Mobile              |      16 |      0 | ⬜ Not started  |
 | 7 — Growth              |      14 |      0 | ⬜ Not started  |
-| **Total**               | **193** | **37** | **19.2%**       |
+| **Total**               | **193** | **38** | **19.7%**       |
 
 > **This table is now machine-checked** (`pnpm check:ledgers`, census section), against `docs/16`'s
 > enumerated rows per phase, against its own Total, and — for the two phases in flight — against the
@@ -102,7 +102,7 @@ yesterday, and is the single largest change in this project's risk position so f
 | 69 Wave 1 components                       | ✅ In Storybook, every state          | Roster **gate**, not a count — it found 68 and the missing one was fixed       |
 | axe, 4 theme × direction combos            | ✅ 49 stories                         | Real Chromium with real CSS; first run found 40 failures, four of them defects |
 | 51 fitness functions                       | ✅ All proven by deliberate violation | `pnpm verify:fitness` → `51 caught, 0 NOT caught` (2026-08-20, via Git Bash)   |
-| 1,076 tests                                | ✅                                    | tokens 84 · i18n 67 · abilities 46 · api 198 · web 21 · ui 660 (2026-08-20)    |
+| 1,084 tests                                | ✅                                    | tokens 84 · i18n 67 · abilities 48 · api 204 · web 21 · ui 660 (2026-08-20)    |
 
 ### Not working, and worth naming as such
 
@@ -408,6 +408,48 @@ redeploy. All four client sites verified unchanged throughout. Recorded so the u
 §3.3 output is not later misread as damage from this task — which is exactly the right instinct,
 because §3.3 exists to prove the client stack was untouched and an unexplained restart in that
 output would undermine it.
+
+---
+
+### 2026-08-20 · PH-1.14 — Schema: `entitlements` + `entitlement_events`
+
+**By:** AI — schema teammate, worktree `josam-wt-ph114`, isolated database `josam_ph114`
+(autonomous run, standing founder authority of 2026-08-20)
+**Calendar: 2026-08-20 -> 2026-08-20 (1 day)** · **Time:** estimated 0.5 d → actual 0.4 d
+**Status:** passed adversarial review (MERGE); the lead folds these records into the branch's
+final commit at merge so `BR-1799` holds literally.
+
+#### What exists now
+
+Column-for-column **verbatim from `TBL-021`/`TBL-022`**, including all five `ON DELETE` choices,
+which are `10`'s own text — the reviewer re-verified the whole surface against `docs/10:664-724`.
+The hot lookup index `(user_id, key) WHERE revoked_at IS NULL` is in place and **proven by
+`EXPLAIN`, not by inspection**: an expired-but-not-revoked row is RETURNED — `BR-983`'s read-time
+expiry depends on exactly that row surviving the index — and a revoked row is excluded. The
+reviewer reproduced both independently in a rolled-back transaction.
+
+#### Red-first (`BR-1835`)
+
+`TS1360` observed before scope classification; the conformance `DROP DEFAULT` probe red naming the
+exact column; five DDL rejections observed. The conformance `TABLES` map is extended to the two
+new tables (+6 tests, api suite 198 → 204).
+
+#### The review's two findings
+
+- **A** — the partial-index and enum guard maps extended to the new objects; rode the merge. The
+  second guard commit (`ae1bab2`) closed the two adjacent map gaps too — plain indexes and
+  `override_effect` — with a red each; the conformance maps now cover **12 tables / 8 partial
+  indexes / 10 plain indexes / 11 enums** with zero known absentees.
+- **B, recorded as a binding scope line:** `BR-985`'s append-only rule for `entitlement_events`
+  is enforced **NOWHERE in DDL** — `10` states it as policy, and nothing in the schema stops an
+  `UPDATE` or `DELETE`. **`PH-1.15`'s repository layer OWNS that enforcement**, and `PH-1.15`'s
+  queue-row Note in `CLAUDE.md §5b` now carries the line so it cannot be silently forgotten.
+
+#### Divergences, small enough to live here rather than in §7
+
+- `quota_period` is `TBL-013`'s enum, created at first use, verbatim — the `roles` precedent.
+- The Prisma enum is named `EntitlementEventType`, `@@map`ped to the doc-exact database name.
+- `10`/`16` specify no seed for these tables — stated here rather than invented.
 
 ---
 
