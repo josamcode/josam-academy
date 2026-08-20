@@ -194,6 +194,55 @@ check() {
   fi
 }
 
+# ── An injection that silently no-ops certifies whatever is already there (2026-08-20) ───────
+#
+# Case 51's injection embedded the LIVE value of the cell it mutated — a `.replace()` whose search
+# string said "Done = 7". PH-1.11's completion legitimately moved that cell to 8, the replace
+# matched nothing, the file was written back unchanged, `check:ledgers` correctly passed the
+# untouched tree, and the case reported "COMMAND PASSED — the violation was NOT caught": a broken
+# CASE wearing the exact message of a broken RULE. Case 49 had already died this death once (its
+# re-pointed marker), and cases 50, 41, 42 and 48 all carried the same defect latently. That is a
+# CLASS, not an incident: **an injection coupled to a value that legitimate work changes**.
+#
+# Two rules follow, and every mutating injection below routes through them. (SB-46's fix made the
+# RESTORE trustworthy; this makes the INJECTION trustworthy — same mechanism, other edge.)
+#
+#   1. Never embed a value the tree will legitimately change. Capture whatever is there and
+#      TRANSFORM it — increment the number, re-point the id — anchored on the SHAPE the checker
+#      itself parses, so the anchor can only go stale when the checker would go blind too (and
+#      the checkers fail loudly on their own blindness).
+#   2. Prove the injection landed. `mutate` refuses to write a file back unchanged; a missed
+#      anchor reports INJECTION DID NOT LAND and the check is NOT run, because a check run
+#      against an unmutated tree can only certify the tree, never the rule.
+#
+# $1 = a JS program run with `mutate(file, fn)` in scope. Every mutate() call is individually
+# guarded; a program that never calls mutate() at all is also an injection failure.
+inject() {
+  if node -e "
+    const fs = require('node:fs');
+    let landed = 0;
+    const mutate = (f, fn) => {
+      const prev = fs.readFileSync(f, 'utf8');
+      const next = fn(prev);
+      if (next === prev) {
+        console.error('          the anchor matched nothing in ' + f);
+        process.exit(21);
+      }
+      fs.writeFileSync(f, next);
+      landed += 1;
+    };
+    ${1}
+    if (landed === 0) { console.error('          the program never called mutate()'); process.exit(21); }
+  "; then
+    return 0
+  fi
+  echo "  RESULT: ✗ INJECTION DID NOT LAND — no violation exists, so the check was not run."
+  echo "          The CASE is broken, not the rule: its anchor no longer matches the tree."
+  echo "          Fix the case (see inject() above — this is what killed case 51 on 2026-08-20)."
+  fail=$((fail+1))
+  return 1
+}
+
 # ── 1. BR-1220 / BR-1342 / BR-545 — raw hex in a component ────────────────────
 hr; echo "1. BR-1220 — a raw hex colour in a component fails the build"
 cat > apps/web/app/__violation.css <<'CSS'
@@ -342,26 +391,28 @@ rm -f packages/ui/src/__violation.ts
 
 # ── 16. BR-811 / BR-1365 — prohibited copy term ───────────────────────────────
 hr; echo "16. BR-811 — a prohibited copy term in a catalog fails the check"
-node -e "
-const fs=require('node:fs');const f='packages/i18n/src/catalogs/en.ts';
-let s=fs.readFileSync(f,'utf8');
-s=s.replace(\"'common.retry': 'Try again',\", \"'common.retry': 'You failed — try again',\");
-fs.writeFileSync(f,s);
-"
-pnpm --filter @josam/i18n run build >/dev/null 2>&1
-check "prohibited copy" "pnpm check:catalogs" "BR-811"
+# Anchored on the KEY, never the copy: the previous version matched the full live value
+# ('Try again'), which a legitimate rewording would silently un-land (case 51's defect class).
+if inject "
+mutate('packages/i18n/src/catalogs/en.ts', (s) =>
+  s.replace(/('common\.retry':\s*')[^']*(',)/, (m, pre, post) => pre + 'You failed — try again' + post));
+"; then
+  pnpm --filter @josam/i18n run build >/dev/null 2>&1
+  check "prohibited copy" "pnpm check:catalogs" "BR-811"
+fi
 git checkout -- packages/i18n/src/catalogs/en.ts
 pnpm --filter @josam/i18n run build >/dev/null 2>&1
 
 # ── 17. BR-524 — English key with no Arabic source ────────────────────────────
 hr; echo "17. BR-524 — an English key with no Arabic source fails the check"
-node -e "
-const fs=require('node:fs');const f='packages/i18n/dist/catalogs/en.js';
-let s=fs.readFileSync(f,'utf8');
-s=s.replace('export const en = {', \"export const en = { 'orphan.key': 'No Arabic source',\");
-fs.writeFileSync(f,s);
-"
-check "arabic source" "pnpm check:catalogs" "BR-524"
+# The anchor is tsc's emit shape for the module header — stable, but still an assumption about
+# GENERATED output, so the injection proves it landed rather than trusting the emitter.
+if inject "
+mutate('packages/i18n/dist/catalogs/en.js', (s) =>
+  s.replace('export const en = {', \"export const en = { 'orphan.key': 'No Arabic source',\"));
+"; then
+  check "arabic source" "pnpm check:catalogs" "BR-524"
+fi
 pnpm --filter @josam/i18n run build >/dev/null 2>&1
 
 # ── 18. BR-1469 — clickable non-semantic element (jsx-a11y, activated at PH-0.17) ─────────
@@ -747,8 +798,14 @@ git checkout -- renovate.json
 # Row 14 of 12 §19 named size-limit and 13 §18.1 pinned it at PH-0.16. It was never installed, and
 # the row pointed at a task that had already closed — it had no owner until now.
 hr; echo "38. BR-1486 — a bundle over the 200 KB budget fails the build"
-sed -i "s/limit: '200 KB'/limit: '1 KB'/" .size-limit.mjs
-check "bundle over budget" "pnpm check:size" "exceeded|has exceeded"
+# Was `sed` on the literal budget ('200 KB') — sed reports nothing when its pattern matches
+# nothing, and a budget is exactly the kind of value a founder decision legitimately moves.
+# The regex floors whichever budget is first (the JS one), and the injection proves it landed.
+if inject "
+mutate('.size-limit.mjs', (s) => s.replace(/(limit: ')[^']*(')/, (m, pre, post) => pre + '1 KB' + post));
+"; then
+  check "bundle over budget" "pnpm check:size" "exceeded|has exceeded"
+fi
 git checkout -- .size-limit.mjs
 
 # ── 39. BR-1502 — a blanket "use client" in the route tree ───────────────────────────────
@@ -771,16 +828,17 @@ rm -rf apps/web/app/__violation
 # The Phase 0 report had to say "69/69, but that is a count I did, not a gate". The gate found that
 # the real figure was 68: `Toast` was in the roster and not exported.
 hr; echo "40. 12 §20.12.1 — a component missing from the package surface fails the build"
-node -e '
-  const fs = require("fs");
-  const s = fs.readFileSync("packages/ui/src/index.ts", "utf8").replace(/^\s*Skeleton,$/m, "");
-  fs.writeFileSync("packages/ui/src/index.ts", s);
-'
 # The pattern must match text ONLY the real assertion produces. `Skeleton|roster` matched
 # `src/roster.spec.ts` in a pnpm error line when the spec failed to start at all — a false
 # green inside the fitness suite, hidden by exactly the permissive matching `BR-1849`
 # describes. `to include 'Skeleton'` is emitted by the assertion and by nothing else.
-check "component missing from the roster" "pnpm --filter @josam/ui exec vitest run src/roster.spec.ts" "to include .Skeleton."
+# The injection is guarded: if the export surface is ever reshaped so the `Skeleton,` line no
+# longer exists (a re-export style change), the case must say so, not pass on an untouched file.
+if inject '
+mutate("packages/ui/src/index.ts", (s) => s.replace(/^\s*Skeleton,$/m, ""));
+'; then
+  check "component missing from the roster" "pnpm --filter @josam/ui exec vitest run src/roster.spec.ts" "to include .Skeleton."
+fi
 git checkout -- packages/ui/src/index.ts
 
 # ── 41. A summary figure that disagrees with its own table ──────────────────────────────
@@ -790,24 +848,39 @@ git checkout -- packages/ui/src/index.ts
 # enforces nothing: it occupies the place where a check should be, and reports something
 # reassuring. Founder decision, 2026-07-30.
 hr; echo "41. A progress total that disagrees with its own table fails the build"
-node -e '
-  const fs = require("fs");
-  fs.writeFileSync("CLAUDE.md",
-    fs.readFileSync("CLAUDE.md","utf8").replace(/Estimated total [\d.]+ d/, "Estimated total 20.5 d"));
-'
-check "stale summary total" "pnpm check:ledgers" "estimated total says|sums to"
+# The stale value is injected by TRANSFORMATION — capture the real total and move it — never by
+# writing a constant: a constant equal to the true sum lands and asserts nothing, and the old
+# constant here (20.5) was a real historical figure one recount away from exactly that. A figure
+# wrong BY COINCIDENCE is case 50's finding; this is the same rule applied to the injection.
+if inject '
+mutate("CLAUDE.md", (s) =>
+  s.replace(/(Estimated total )([\d.]+)( d)/, (m, pre, n, post) => pre + (Number(n) + 1) + post));
+'; then
+  check "stale summary total" "pnpm check:ledgers" "estimated total says|sums to"
+fi
 git checkout -- CLAUDE.md
 
 # ── 42. BR-1833 / BR-1840 — a deferral owned by a task that has already closed ──────────
 # `12 §19` row 15 sat on `PH-0.11` after `PH-0.11` closed without it, and row 20 named a
 # PHASE rather than a task. Both survived because the summary was read instead of the rows.
 hr; echo "42. BR-1840 — a deferred check owned by a COMPLETED task fails the build"
-node -e '
-  const fs = require("fs");
-  const s = fs.readFileSync("STATUS.md","utf8").replace("⬜ **`PH-1.10`**", "⬜ **`PH-0.11`**");
-  fs.writeFileSync("STATUS.md", s);
-'
-check "deferral owned by a done task" "pnpm check:ledgers" "which is DONE|BR-1840"
+# Re-points the FIRST deferred row in the `12 §19` block — whichever row that is — at `PH-0.11`,
+# which is DONE and can never be un-done. The previous version matched one specific live owner
+# (`PH-1.10`), which the task that legitimately re-judges that row would silently un-land — case
+# 51's defect class. The block is sliced the same way check-ledgers slices it, so the anchor and
+# the check can only go stale together (and the checker fails loudly when its slice goes blind).
+if inject '
+mutate("STATUS.md", (s) => {
+  const from = s.search(/^### `12 §19` — all 20 rows/m);
+  if (from === -1) return s;
+  const to = s.indexOf("\n### ", from);
+  const end = to === -1 ? s.length : to;
+  const block = s.slice(from, end).replace(/⬜ \*\*`PH-\d+\.\d+`\*\*/, "⬜ **`PH-0.11`**");
+  return s.slice(0, from) + block + s.slice(end);
+});
+'; then
+  check "deferral owned by a done task" "pnpm check:ledgers" "which is DONE|BR-1840"
+fi
 git checkout -- STATUS.md
 
 # ── 43. BR-1842 — task order inconsistent with foreign-key direction ────────────────────
@@ -816,15 +889,16 @@ git checkout -- STATUS.md
 # migration would have APPLIED — an ORM orders CREATE TABLE correctly within one migration — and
 # failed at seed time, three tasks later, looking like a bad seed script.
 hr; echo "43. BR-1842 — a table referencing one created in a LATER task fails the build"
-node -e '
-  const fs = require("fs");
-  const p = "docs/16-task-breakdown.md";
-  let s = fs.readFileSync(p, "utf8");
-  s = s.replace("| `PH-1.1` | Schema: **`roles`** `users`", "| `PH-1.1` | Schema: `users`");
-  s = s.replace("| `PH-1.7` | Schema: `permissions`", "| `PH-1.7` | Schema: `roles` `permissions`");
-  fs.writeFileSync(p, s);
-'
-check "fk order vs task order" "pnpm check:fk-order" "not created until|BR-1842"
+# Two moves, each guarded individually — one landing while the other no-ops would inject half a
+# violation. Anchored on the row ids and the `Schema:` prefix, tolerant of every other cell.
+if inject '
+mutate("docs/16-task-breakdown.md", (s) =>
+  s.replace(/(\|\s*`PH-1\.1`\s*\|\s*Schema:\s*)\*\*`roles`\*\*\s*/, (m, pre) => pre));
+mutate("docs/16-task-breakdown.md", (s) =>
+  s.replace(/(\|\s*`PH-1\.7`\s*\|\s*Schema:\s*)/, (m, pre) => pre + "`roles` "));
+'; then
+  check "fk order vs task order" "pnpm check:fk-order" "not created until|BR-1842"
+fi
 git checkout -- docs/16-task-breakdown.md
 
 # ── 44. The module graph resolves — the container, not the units ────────────────────────
@@ -835,14 +909,16 @@ git checkout -- docs/16-task-breakdown.md
 #
 # Removing a provider that something injects must fail the build. Not "when someone suspects DI".
 hr; echo "44. BR-1830 — a provider missing from the graph fails the build (the container check)"
-node -e '
-  const fs = require("fs");
-  const p = "apps/api/src/shared/security/security.module.ts";
-  // PasswordHasher is injected by RegistrationService. Removing it from the providers list leaves
-  // a graph Nest cannot build — which nothing but a container test can see.
-  fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace("providers: [PasswordHasher, BreachList],", "providers: [BreachList],"));
-'
-check "provider missing from the module graph" "pnpm --filter @josam/api exec vitest run src/shared/security/security.module.spec.ts" "Nest can.t resolve|UnknownDependencies|PasswordHasher"
+# PasswordHasher is injected by RegistrationService. Removing it from the providers list leaves
+# a graph Nest cannot build — which nothing but a container test can see. The regex removes it
+# from WHEREVER it sits in the array: the previous version matched the whole live providers line,
+# which adding any provider to this module would silently un-land (case 51's defect class).
+if inject '
+mutate("apps/api/src/shared/security/security.module.ts", (s) =>
+  s.replace(/(providers:\s*\[[^\]]*?)PasswordHasher,?\s*/, (m, pre) => pre));
+'; then
+  check "provider missing from the module graph" "pnpm --filter @josam/api exec vitest run src/shared/security/security.module.spec.ts" "Nest can.t resolve|UnknownDependencies|PasswordHasher"
+fi
 git checkout -- apps/api/src/shared/security/security.module.ts
 
 # ── 45. BR-964 — a permission absent from code is FLAGGED, never deleted ────────────────
@@ -854,19 +930,18 @@ git checkout -- apps/api/src/shared/security/security.module.ts
 # The violation: make the sync DELETE orphans instead of flagging them. The spec that asserts the
 # row survives must fail. `BR-1725` — enforcement is proven by breaking it, not by a green spec.
 hr; echo "45. BR-964 — deleting an orphaned permission instead of flagging it fails the build"
-node -e '
-  const fs = require("fs");
-  const p = "apps/api/src/shared/database/repositories/permission.repository.ts";
-  const s = fs.readFileSync(p, "utf8").replace(
-    `        await tx.permission.updateMany({
-          where: { key: { in: toOrphan } },
-          data: { isOrphaned: true },
-        });`,
-    `        await tx.permission.deleteMany({ where: { key: { in: toOrphan } } });`,
-  );
-  fs.writeFileSync(p, s);
-'
-check "orphan deleted instead of flagged" "pnpm --filter @josam/api exec vitest run src/modules/access/permission-sync.spec.ts" "the row must still exist|toHaveLength"
+# Anchored on the identifiers, tolerant of formatting — the previous version matched the exact
+# indentation of the live code, which any reformat would silently un-land. `toOrphan` plus
+# `isOrphaned: true` selects the flag branch and not its `toReinstate` twin above it.
+if inject '
+mutate("apps/api/src/shared/database/repositories/permission.repository.ts", (s) =>
+  s.replace(
+    /await tx\.permission\.updateMany\(\{\s*where:\s*\{\s*key:\s*\{\s*in:\s*toOrphan\s*\}\s*\},\s*data:\s*\{\s*isOrphaned:\s*true\s*\},?\s*\}\);/,
+    "await tx.permission.deleteMany({ where: { key: { in: toOrphan } } });",
+  ));
+'; then
+  check "orphan deleted instead of flagged" "pnpm --filter @josam/api exec vitest run src/modules/access/permission-sync.spec.ts" "the row must still exist|toHaveLength"
+fi
 git checkout -- apps/api/src/shared/database/repositories/permission.repository.ts
 
 # ── 46. PH-1.10 — an added scope exception fails the build ────────────────────
@@ -875,15 +950,23 @@ git checkout -- apps/api/src/shared/database/repositories/permission.repository.
 # the command (`pnpm check:scope-exceptions`), in any path, or in any argument. It can only come
 # from the check's own stderr. Case 40 passed while observing nothing because its pattern matched
 # a filename echoed back by its own command; this pattern cannot.
+#
+# The call site is a CREATED file, not an edit to a live repository. The previous version spliced
+# a method into `user.repository.ts`, which coupled the case to a live method name (a rename would
+# silently un-land it — case 51's defect class) AND mutated a file that was never in
+# TRACKED_TARGETS, so an interrupted run would have baked the injection in past every restore —
+# SB-46's exact shape, one target wide of the fix. The checker is a textual scan of every .ts file
+# under apps/api/src, so a self-contained file is the same violation with no coupling at all.
 hr; echo "46. PH-1.10 — an added unscoped() call site fails the build"
-node -e "
-const fs=require('node:fs');const f='apps/api/src/shared/database/repositories/user.repository.ts';
-let s=fs.readFileSync(f,'utf8');
-s=s.replace('async findRoleIdByKey(', 'async __extraException(): Promise<number> {\n    return this.prisma.unscoped(\'system\').user.count();\n  }\n\n  async findRoleIdByKey(');
-fs.writeFileSync(f,s);
-"
+cat > apps/api/src/shared/database/__violation.ts <<'TS'
+export function violate(prisma: {
+  unscoped(reason: string): { user: { count(): Promise<number> } };
+}): Promise<number> {
+  return prisma.unscoped('system').user.count();
+}
+TS
 check "scope exception added" "pnpm check:scope-exceptions" "count changed: pinned at"
-git checkout -- apps/api/src/shared/database/repositories/user.repository.ts
+rm -f apps/api/src/shared/database/__violation.ts
 
 # ── 47. PH-1.10 — an unclassified Prisma model fails the build ────────────────
 #
@@ -919,17 +1002,29 @@ pnpm --filter @josam/api exec prisma generate >/dev/null 2>&1
 # PHASE 1. Against the old Phase-0-only owner set this case reports NOT CAUGHT, which is the whole
 # point of it. (The REMOVE-AT check above was never the phase-limited one; case 49 covers that.)
 #
+# The row is WHICHEVER deferred row comes first, not a named one: the previous version re-pointed
+# row 19's owner by matching `PH-1.33` literally, and `PH-1.33` completing — which activates row
+# 19 and changes that cell — would have silently un-landed it (case 51's defect class). What this
+# case asserts is a property of the OWNER (done, phase 1), not of any particular row, so the only
+# live value it embeds is `PH-1.8` itself — safe, because a done task can never be un-done.
+#
 # BR-1849 AUDIT: the pattern is "an owner that has already closed cannot act", emitted only by
 # check-ledgers' BR-1840 branch. The command is `pnpm check:ledgers`, which echoes a script path
 # and no task ids; the pattern appears in no argument, path, or task name, and is distinct from
 # case 49's — neither case can pass on the other's failure.
 hr; echo "48. BR-1840 — a 12 §19 deferral owned by a DONE task fails, in EVERY phase"
-node -e "
-const fs=require('node:fs');const f='STATUS.md';
-const s=fs.readFileSync(f,'utf8').replace(/^(\|\s*19\s*\|.*?)PH-1\.33(.*)$/m,'\$1PH-1.8\$2');
-fs.writeFileSync(f,s);
-"
-check "deferral owned by a done Phase 1 task" "pnpm check:ledgers" "an owner that has already closed cannot act"
+if inject '
+mutate("STATUS.md", (s) => {
+  const from = s.search(/^### `12 §19` — all 20 rows/m);
+  if (from === -1) return s;
+  const to = s.indexOf("\n### ", from);
+  const end = to === -1 ? s.length : to;
+  const block = s.slice(from, end).replace(/⬜ \*\*`PH-\d+\.\d+`\*\*/, "⬜ **`PH-1.8`**");
+  return s.slice(0, from) + block + s.slice(end);
+});
+'; then
+  check "deferral owned by a done Phase 1 task" "pnpm check:ledgers" "an owner that has already closed cannot act"
+fi
 git checkout -- STATUS.md
 
 # ── 49. A REMOVE-AT marker owned by a 🟡 task fails ──────────────────────────────────────
@@ -947,6 +1042,18 @@ git checkout -- STATUS.md
 # Amber is not "in progress, will resolve shortly". This repository deliberately parks tasks
 # there: PH-0.9, PH-1.5, PH-1.6 and PH-1.10 are all 🟡 by decision, some permanently.
 #
+# The case INSERTS its own marker. It used to RE-POINT the one real marker in the tree — the
+# orphan suppression for `packages/abilities`, which named PH-1.11 — and PH-1.11 then deleted that
+# suppression, because importing the package was the whole reason the marker existed. The
+# `.replace()` matched nothing, the file was written back unchanged, `check-ledgers` passed, and
+# the case reported "COMMAND PASSED — the violation was NOT caught".
+#
+# It failed LOUDLY, which is the design working. But the coupling should never have existed: a
+# case that mutates a marker can only run while somebody else's marker is still there, so the
+# task that legitimately removes the last one silently takes a fitness case with it. That is
+# BR-1850's shape exactly — a defect in the verification layer, discovered because something
+# downstream broke rather than by looking. An injected violation must be SELF-CONTAINED.
+#
 # BR-1849 AUDIT: the pattern is "a state that may never resolve", emitted only by the amber
 # branch of check-ledgers. It is distinct from case 48's pattern, so neither case can pass on the
 # other's failure — two cases sharing an assertion is one case wearing two labels.
@@ -959,7 +1066,7 @@ hr; echo "49. A REMOVE-AT marker owned by a 🟡 task fails — an expiry that m
 node -e "
 const fs=require('node:fs');const f='.dependency-cruiser.mjs';
 const tag='REMOVE THIS LINE AT ';
-fs.writeFileSync(f, fs.readFileSync(f,'utf8').replace(tag+'PH-1.11', tag+'PH-1.10'));
+fs.writeFileSync(f, '// ' + tag + 'PH-1.10\n' + fs.readFileSync(f,'utf8'));
 "
 check "marker owned by an amber task" "pnpm check:ledgers" "a state that may never resolve"
 git checkout -- .dependency-cruiser.mjs
@@ -974,12 +1081,19 @@ git checkout -- .dependency-cruiser.mjs
 #
 # BR-1849 AUDIT: the pattern is "the file enumerates", emitted only by check-ledgers' census
 # branch. `pnpm check:ledgers` echoes a script path and no counts.
+#
+# The drift is injected by INCREMENTING whatever count is stated, never by writing a constant.
+# The previous version replaced the literal '193' — a count that had already moved twice in this
+# repository's history and would move again the day a task is added, silently un-landing the
+# injection (case 51's defect class, one added task from firing). Incrementing also keeps the
+# mutated figure parseable as a stated count, which is what routes it into the census branch.
 hr; echo "50. A stated task count that disagrees with the enumerated rows fails"
-node -e "
-const fs=require('node:fs');const f='docs/16-task-breakdown.md';
-fs.writeFileSync(f, fs.readFileSync(f,'utf8').replace('30 flows · 193 tasks.','30 flows · 191 tasks.'));
-"
-check "stated total drifted from the rows" "pnpm check:ledgers" "the file enumerates"
+if inject '
+mutate("docs/16-task-breakdown.md", (s) =>
+  s.replace(/(\d+ flows · )(\d+)( tasks\.)/, (m, pre, n, post) => pre + (Number(n) + 1) + post));
+'; then
+  check "stated total drifted from the rows" "pnpm check:ledgers" "the file enumerates"
+fi
 git checkout -- docs/16-task-breakdown.md
 
 # ── 51. STATUS §1 disagreeing with the machine-checked numerator fails ──────────────────
@@ -990,12 +1104,27 @@ git checkout -- docs/16-task-breakdown.md
 #
 # BR-1849 AUDIT: the pattern is "CLAUDE.md §5b has", emitted only by the cross-ledger branch, and
 # distinct from case 50's — neither case can pass on the other's failure.
+#
+# THIS CASE IS WHERE THE INJECTION RULE WAS LEARNED (2026-08-20). Its first version replaced the
+# literal cell '| 33 | 7 |'; PH-1.11's completion legitimately moved the 7 to 8, the replace
+# matched nothing, check:ledgers correctly passed the untouched tree, and the case reported
+# "COMMAND PASSED — the violation was NOT caught" in the pre-commit hook — a broken case wearing
+# the message of a broken rule. Two decisions encode the lesson:
+#   · the anchor is the SHAPE check-ledgers' own PHASE_ROW regex parses (`| 1 — ... | N | N |`),
+#     so it can only go stale when the checker itself goes blind — which the checker reports.
+#   · the Done cell is INCREMENTED, never decremented: a decrement of 0 writes "-1", which the
+#     checker's `(\d+)` cannot parse, so the row would silently drop out of the comparison and
+#     the case would misfire in a new way. 8 -> 9 and 0 -> 1 both stay parseable drift.
 hr; echo "51. STATUS §1's Done column disagreeing with CLAUDE.md's numerator fails"
-node -e "
-const fs=require('node:fs');const f='STATUS.md';
-fs.writeFileSync(f, fs.readFileSync(f,'utf8').replace('| 1 — Identity & Commerce |      33 |      7 |','| 1 — Identity & Commerce |      33 |      6 |'));
-"
-check "STATUS section 1 drifted from CLAUDE.md" "pnpm check:ledgers" "CLAUDE.md §5b has"
+if inject '
+mutate("STATUS.md", (s) =>
+  s.replace(
+    /^(\|\s*\*{0,2}1\s*—[^|]*\|\s*\d+\s*\|\s*)(\d+)(\s*\|)/m,
+    (m, pre, done, post) => pre + (Number(done) + 1) + post,
+  ));
+'; then
+  check "STATUS section 1 drifted from CLAUDE.md" "pnpm check:ledgers" "CLAUDE.md §5b has"
+fi
 git checkout -- STATUS.md
 
 hr
