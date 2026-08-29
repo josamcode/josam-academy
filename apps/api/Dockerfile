@@ -8,7 +8,7 @@
 
 # `BR-1810` — this tag is identical to `engines.node`, `.nvmrc`, `packageManager` and the CI
 # matrix. Renovate may not bump it alone (`BR-1828`); only a person can change all five coherently.
-ARG NODE_IMAGE=node:24.18-bookworm-slim
+ARG NODE_IMAGE=node:24.18.1-bookworm-slim
 
 # ─────────────────────────────────────────────────────────────────── deps
 FROM ${NODE_IMAGE} AS deps

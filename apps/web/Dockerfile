@@ -6,7 +6,7 @@
 # In a pnpm monorepo the latter is a tree of symlinks into `/repo/node_modules/.pnpm`, a path that
 # does not exist inside the container — an image that builds cleanly and then fails to start.
 
-ARG NODE_IMAGE=node:24.18-bookworm-slim
+ARG NODE_IMAGE=node:24.18.1-bookworm-slim
 
 # ─────────────────────────────────────────────────────────────────── deps
 FROM ${NODE_IMAGE} AS deps
