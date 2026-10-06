@@ -57,7 +57,7 @@ overrides:
   # at postcss >= 8.5.18. Next pulls in 8.4.31 transitively while 8.5.23 was ALREADY in the tree
   # for another consumer, so this forces one copy rather than adding a new dependency. Same major,
   # and the version was already being loaded by something else in this install.
-  postcss: '8.5.23'
+  postcss: '8.5.29'
   # 2026-08-20 — the audit gate went red on advisories published since the 2026-08-01 push, not
   # on any change in this repository. Three have in-major patches and are forced here; two are
   # ACCEPTED below with their retire conditions. All ranged so an unrelated major elsewhere in
